@@ -8,7 +8,6 @@ import type { Project } from '@/lib/types';
 import { isFieldFilled } from '@/lib/validators';
 import { PRODUCT_CONTEXT_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { MANDATORY_SKILLS } from '@/lib/constants';
-import Link from 'next/link';
 
 interface ProjectCardProps {
   project: Project;
@@ -128,15 +127,8 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
   }, [project]);
 
   return (
-    <Link
-      href={`/projects/${project.id}`}
-      onClick={(e) => {
-        e.preventDefault();
-        // Bypass Next.js client router (RSC fetch fails for non-pre-rendered dynamic routes
-        // in static export). Use native navigation — dev server handles it directly;
-        // on GitHub Pages the 404.html SPA redirect takes over.
-        window.location.href = (e.currentTarget as HTMLAnchorElement).href;
-      }}
+    <a
+      href={`${process.env.NEXT_PUBLIC_BASE_PATH}/projects/${project.id}`}
       className="block"
     >
       <Card className="group cursor-pointer hover:shadow-card-hover hover:scale-[1.01] transition-all duration-200">
@@ -162,6 +154,6 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
           <p className="text-xs text-muted-foreground">{filledCount} of 8 fields filled</p>
         </CardContent>
       </Card>
-    </Link>
+    </a>
   );
 });

@@ -1,21 +1,15 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-
 export function FadeIn({
   children,
   className,
-  delay = 0,
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
 }) {
   return (
-    <div
-      className={cn('animate-fade-in', className)}
-      style={delay ? { animationDelay: `${delay}s`, animationFillMode: 'both' } : undefined}
-    >
+    <div className={className}>
       {children}
     </div>
   );
@@ -44,7 +38,7 @@ export function StaggerItem({
   className?: string;
 }) {
   return (
-    <div className={cn('animate-fade-in', className)}>
+    <div className={className}>
       {children}
     </div>
   );

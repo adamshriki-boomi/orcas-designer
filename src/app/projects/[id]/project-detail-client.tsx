@@ -64,7 +64,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   // Clean up the URL when coming from the 404 redirect (placeholder?_id=...)
   useEffect(() => {
     if (searchParams.get('_id')) {
-      window.history.replaceState(null, '', `/orcas-designer/projects/${actualId}`);
+      window.history.replaceState(null, '', `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/projects/${actualId}`);
     }
     // Run once on mount only
     // eslint-disable-next-line react-hooks/exhaustive-deps

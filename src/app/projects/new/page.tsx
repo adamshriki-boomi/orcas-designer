@@ -131,7 +131,7 @@ function WizardContent() {
       };
       await db.projects.add(project);
       toast.success('Project saved!');
-      window.location.href = `${window.location.origin}/orcas-designer/projects/${id}`;
+      window.location.href = `${window.location.origin}${process.env.NEXT_PUBLIC_BASE_PATH || ''}/projects/${id}`;
     } catch {
       toast.error('Failed to save project');
     }

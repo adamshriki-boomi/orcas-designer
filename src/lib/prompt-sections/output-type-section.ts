@@ -49,6 +49,8 @@ export function buildOutputTypeSection(project: Project): string {
   lines.push(`**Output directory**: \`${outputDir}\``);
   lines.push('**File naming**: `[screen-name].html`');
   lines.push(`**Shared assets**: \`${outputDir}assets/\``);
+  lines.push('');
+  lines.push('`./assets/` = research and working files (screenshots, inventories, analysis docs). `./output/assets/` = delivered prototype assets (shared images, CSS, JS referenced by HTML output files).');
 
   return lines.join('\n');
 }

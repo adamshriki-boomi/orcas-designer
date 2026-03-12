@@ -40,7 +40,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var r=window.location.search.match(/[?&]redirect=([^&]*)/);if(r){var b=${JSON.stringify(process.env.NEXT_PUBLIC_BASE_PATH || '')};var p=decodeURIComponent(r[1]);window.history.replaceState(null,null,b+p)}})();`,
+            __html: `(function(){var r=window.location.search.match(/[?&]redirect=([^&]*)/);if(r){var b=${JSON.stringify(process.env.NEXT_PUBLIC_BASE_PATH)};var p=decodeURIComponent(r[1]);window.history.replaceState(null,null,b+p)}})();`,
           }}
         />
       </head>

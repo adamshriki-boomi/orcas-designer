@@ -7,13 +7,11 @@ import { useSharedSkills } from '@/hooks/use-shared-skills';
 import { useSharedMemories } from '@/hooks/use-shared-memories';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
-import { buttonVariants } from '@/components/ui/button';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { MANDATORY_SKILLS } from '@/lib/constants';
 import { isFieldFilled } from '@/lib/validators';
-import { Layers, CheckCircle2, Wand2, Brain, PlusCircle } from 'lucide-react';
-import Link from 'next/link';
+import { Layers, CheckCircle2, Wand2, Brain } from 'lucide-react';
 import type { Project } from '@/lib/types';
 
 const ExChartLazy = dynamic(
@@ -180,12 +178,6 @@ export default function DashboardPage() {
         <Header
           title="Dashboard"
           description="Manage your design & development prompt projects"
-          action={
-            <Link href="/projects/new" className={buttonVariants()}>
-              <PlusCircle />
-              New Project
-            </Link>
-          }
         />
         <PageContainer>
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -199,7 +191,7 @@ export default function DashboardPage() {
               <StatCard icon={Wand2} label="Total Skills" value={totalSkills} color="bg-primary" />
             </StaggerItem>
             <StaggerItem>
-              <StatCard icon={Brain} label="Total Memories" value={totalMemories} color="bg-secondary" />
+              <StatCard icon={Brain} label="Total Memories" value={totalMemories} color="bg-violet-500" />
             </StaggerItem>
           </StaggerContainer>
 

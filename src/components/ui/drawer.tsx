@@ -127,7 +127,7 @@ function DrawerContent({
       {...(props as Record<string, unknown>)}
     >
       {bodyChildren}
-      {footerContent && <div slot="footer">{footerContent}</div>}
+      {footerContent && <div slot="footer" className="flex flex-row justify-end gap-2 p-4">{footerContent}</div>}
     </ExSideDrawerLazy>
   )
 }
@@ -146,7 +146,7 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="drawer-footer"
-      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      className={cn("mt-auto flex flex-row justify-end gap-2 p-4", className)}
       {...props}
     />
   )

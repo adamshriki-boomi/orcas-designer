@@ -16,6 +16,7 @@ export function buildUserStoriesSection(project: Project): string {
     '- Create an organized user stories document/page',
     '- Link each user story to its relevant HTML file/screen in the prototype output',
     '- Prioritize stories based on the feature requirements provided',
+    '- Save as `./output/user-stories.html` as a standalone HTML page linked from the prototype navigation. Also save a reference copy as `./assets/user-stories.md`.',
   ];
 
   if (hasFigma) {

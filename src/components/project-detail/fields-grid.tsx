@@ -1,13 +1,17 @@
 'use client';
 
+import { Pencil } from 'lucide-react';
 import { FieldSummary } from './field-summary';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardAction, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import type { Project, SharedMemory } from '@/lib/types';
 
 interface FieldsGridProps {
   project: Project;
   onEditField: (fieldKey: string) => void;
+  onEditInteractionLevel?: () => void;
+  onEditImplementationMode?: () => void;
   sharedMemories?: SharedMemory[];
 }
 
@@ -54,7 +58,7 @@ const SELECTABLE_MEMORY_MAP: Record<string, string[]> = {
   productInfo: ['built-in-rivery-context'],
 };
 
-export function FieldsGrid({ project, onEditField, sharedMemories = [] }: FieldsGridProps) {
+export function FieldsGrid({ project, onEditField, onEditInteractionLevel, onEditImplementationMode, sharedMemories = [] }: FieldsGridProps) {
   function getMemoryNames(fieldKey: string): string[] {
     const names: string[] = [];
     const lockedIds = LOCKED_MEMORY_MAP[fieldKey] ?? [];
@@ -88,9 +92,23 @@ export function FieldsGrid({ project, onEditField, sharedMemories = [] }: Fields
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Card size="sm">
+        <Card
+          size="sm"
+          className="cursor-pointer transition-all duration-150 hover:shadow-card-hover hover:scale-[1.01]"
+          onClick={onEditInteractionLevel}
+          onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEditInteractionLevel?.(); } }}
+          role="button"
+          tabIndex={0}
+          aria-label="Edit Interaction Level"
+        >
           <CardHeader>
             <CardTitle className="text-sm">Interaction Level</CardTitle>
+            <CardAction>
+              <Button variant="ghost" size="icon-xs" onClick={(e) => { e.stopPropagation(); onEditInteractionLevel?.(); }}>
+                <Pencil className="size-3" />
+                <span className="sr-only">Edit Interaction Level</span>
+              </Button>
+            </CardAction>
           </CardHeader>
           <CardContent>
             <Badge variant="secondary">
@@ -99,9 +117,23 @@ export function FieldsGrid({ project, onEditField, sharedMemories = [] }: Fields
           </CardContent>
         </Card>
 
-        <Card size="sm">
+        <Card
+          size="sm"
+          className="cursor-pointer transition-all duration-150 hover:shadow-card-hover hover:scale-[1.01]"
+          onClick={onEditImplementationMode}
+          onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEditImplementationMode?.(); } }}
+          role="button"
+          tabIndex={0}
+          aria-label="Edit Implementation Mode"
+        >
           <CardHeader>
             <CardTitle className="text-sm">Implementation Mode</CardTitle>
+            <CardAction>
+              <Button variant="ghost" size="icon-xs" onClick={(e) => { e.stopPropagation(); onEditImplementationMode?.(); }}>
+                <Pencil className="size-3" />
+                <span className="sr-only">Edit Implementation Mode</span>
+              </Button>
+            </CardAction>
           </CardHeader>
           <CardContent>
             <Badge variant="secondary">

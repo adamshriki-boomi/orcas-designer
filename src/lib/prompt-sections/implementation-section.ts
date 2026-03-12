@@ -19,7 +19,9 @@ export function buildImplementationSection(project: Project): string {
 
   if (impl.implementationMode === 'add-on-top') {
     lines.push('**Mode**: Add on top of existing implementation');
-    lines.push(`Use the ${inv('screenshot-overlay-positioning')} skill to analyze the current UI screenshots and position new elements precisely on top of the existing design.`);
+    if (impl.urlValue || impl.files.length > 0) {
+      lines.push(`Use the ${inv('screenshot-overlay-positioning')} skill to analyze the current UI screenshots and position new elements precisely on top of the existing design.`);
+    }
   } else {
     lines.push('**Mode**: Redesign from scratch');
     lines.push('The current implementation is provided for reference only. Create a fresh design that improves upon the existing experience.');

@@ -56,11 +56,16 @@ function slugify(name: string): string {
 
 export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill[] = []): string {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
+  const hasDesignFigma = !!(project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
   const hasSourceFigma = !!(project.currentImplementation.figmaLinks.length > 0 || project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
   const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top';
   const hasScreenshots = project.currentImplementation.files.length > 0 || !!project.currentImplementation.urlValue;
   const hasUrl = !!project.currentImplementation.urlValue;
   const hasStorybook = !!project.designSystemStorybook.urlValue;
+  const hasNpm = !!(project.designSystemNpm.textValue || project.designSystemNpm.urlValue);
+  const npmPkg = project.designSystemNpm.textValue || project.designSystemNpm.urlValue;
+  const protoUrl = project.prototypeSketches.urlValue;
+  const hasPrototypeUrl = !!protoUrl && !protoUrl.includes('figma.com');
   const interactionLevel = project.interactionLevel ?? 'static';
   const isLite = project.promptMode === 'lite';
   const accessibilityLevel = project.accessibilityLevel ?? 'none';
@@ -82,6 +87,10 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   lines.push('### Phase 1: Research & Discovery');
   const slug = slugify(project.name);
   lines.push(`${step++}. Run \`git init\` and \`git checkout -b feat/${slug}\` to initialize a git repository on a feature branch. Create a \`.gitignore\` with: \`node_modules/\`, \`.DS_Store\`, \`*.log\`, \`dist/\``);
+  lines.push(`${step++}. Run \`mkdir -p ./assets ./output ./output/assets\` to create the working and output directories.`);
+  if (hasNpm) {
+    lines.push(`${step++}. Run \`npm i ${npmPkg}\` to install the design system package.`);
+  }
   if (hasUrl) {
     lines.push(`${step++}. Use Playwright MCP to visit the URL listed in <current-implementation>, capture full-page screenshots of all key screens and states, and save each to \`./assets/screenshots/[screen-name].png\`. These files will be used by ${inv('screenshot-overlay-positioning')} in Phase 2.`);
   }
@@ -89,11 +98,15 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
     lines.push(`${step++}. Use Playwright MCP to crawl the Storybook at the URL listed in <design-system>. Visit the sidebar navigation to enumerate all components, then visit each component's docs page. Extract component names, props, variants, and code examples. Save a complete design system inventory to \`./assets/design-system-inventory.md\`.`);
   }
   lines.push(`${step++}. Read all provided context (company, product, feature info)`);
-  lines.push(`${step++}. Use ${inv('brainstorming')} to explore approach and requirements`);
+  if (hasPrototypeUrl) {
+    lines.push(`${step++}. Visit the prototype at \`${protoUrl}\` using Playwright MCP or WebFetch. Document all screens, states, and interactions found. Save findings to \`./assets/prototype-analysis.md\`.`);
+  }
+  // B7: Figma extraction BEFORE brainstorming
   if (hasSourceFigma) {
     lines.push(`${step++}. Use ${inv('implement-design')} to extract design specs from the **Figma reference files** listed in \`<current-implementation>\` and \`<design-system>\``);
     lines.push(`${step++}. Use ${inv('create-design-system-rules')} to establish design system rules based on the design`);
   }
+  lines.push(`${step++}. Use ${inv('brainstorming')} to explore approach and requirements`);
 
   // Checkpoint
   lines.push(`${step++}. **CHECKPOINT**: Present findings to user before continuing:`);
@@ -101,6 +114,9 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   lines.push('   - Inaccessible URLs (if any)');
   lines.push('   - Assumptions made');
   lines.push('   - Proposed approach');
+  if (hasPrototypeUrl) {
+    lines.push('   - Prototype screens and interactions documented: [list key screens found]');
+  }
   lines.push('   Wait for user confirmation before proceeding to Phase 2.');
 
   // Phase 2: Planning
@@ -156,6 +172,9 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   }
   lines.push('   - All files committed to git');
 
+  if (hasDesignFigma) {
+    lines.push(`${step++}. Use ${inv('code-connect-components')} to map generated HTML/JS components to their Figma counterparts for developer handoff.`);
+  }
   if (!isLite) {
     lines.push(`${step++}. Create \`./CLAUDE.md\` in the **git root** (the directory where \`git init\` was run) with: Project Context (requirements, design decisions), Design System (tokens, components used), Implementation Notes (tech decisions, dependencies, limitations)`);
   }

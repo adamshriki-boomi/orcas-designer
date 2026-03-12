@@ -37,6 +37,8 @@ export function buildDesignSystemSection(project: Project): string {
   }
   if (npm.textValue || npm.urlValue) {
     lines.push('Install and use this design system package for consistent component usage.');
+    const pkgRef = npm.textValue || npm.urlValue;
+    lines.push(`If no bundler is configured, reference the design system via CDN (e.g., \`https://unpkg.com/${pkgRef}\` or \`https://cdn.jsdelivr.net/npm/${pkgRef}\`) or use a relative \`<script>\` tag pointing to the UMD bundle under \`node_modules/${pkgRef}/dist/\` from your HTML files.`);
   }
   if (npm.additionalContext) lines.push(`> NPM context: ${npm.additionalContext}`);
 

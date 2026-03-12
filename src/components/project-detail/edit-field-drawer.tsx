@@ -81,7 +81,7 @@ export function EditFieldDrawer({
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
       <DrawerContent width="50">
         <DrawerHeader>
-          <DrawerTitle>Edit {label}</DrawerTitle>
+          <DrawerTitle>{label}</DrawerTitle>
           <DrawerDescription>
             Update the {label.toLowerCase()} for this project.
           </DrawerDescription>

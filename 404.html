@@ -4,18 +4,25 @@
     <meta charset="utf-8" />
     <title>Redirecting...</title>
     <script>
-      // Single-page app redirect for GitHub Pages
-      // Converts the current path into a query param and redirects to the root
-      // so the client-side router can handle it.
+      // SPA redirect for GitHub Pages with static export.
+      // Dynamic routes like /projects/[id] only have a pre-rendered "placeholder"
+      // page, so we redirect to that page with the real ID as a query param.
       var basePath = '/orcas-designer';
       var path = window.location.pathname;
       if (path.startsWith(basePath)) {
         path = path.slice(basePath.length);
       }
-      var redirect = path + window.location.search + window.location.hash;
-      window.location.replace(
-        basePath + '/?redirect=' + encodeURIComponent(redirect)
-      );
+      var projectMatch = path.match(/^\/projects\/([^\/]+)$/);
+      if (projectMatch && projectMatch[1] !== 'new' && projectMatch[1] !== 'placeholder') {
+        window.location.replace(
+          basePath + '/projects/placeholder?_id=' + encodeURIComponent(projectMatch[1])
+        );
+      } else {
+        var redirect = path + window.location.search + window.location.hash;
+        window.location.replace(
+          basePath + '/?redirect=' + encodeURIComponent(redirect)
+        );
+      }
     </script>
   </head>
   <body></body>

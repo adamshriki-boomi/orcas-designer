@@ -128,7 +128,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
   }, [project]);
 
   return (
-    <Link href={`/projects/${project.id}`} className="block">
+    <Link href={`/projects/placeholder?_id=${project.id}`} className="block">
       <Card className="group cursor-pointer hover:shadow-card-hover hover:scale-[1.01] transition-all duration-200">
         <CardHeader>
           <div className="flex items-start justify-between gap-3">

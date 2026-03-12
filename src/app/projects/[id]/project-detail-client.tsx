@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
@@ -52,7 +52,26 @@ interface ProjectDetailClientProps {
 
 export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   const router = useRouter();
-  const { project, updateProject } = useProject(id);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Resolve the real project ID: prefer _id query param (from 404 redirect
+  // or in-app navigation), then extract from pathname, fallback to prop.
+  const actualId = useMemo(() => {
+    const queryId = searchParams.get('_id');
+    if (queryId) return queryId;
+    const last = pathname.split('/').pop();
+    return last && last !== 'placeholder' ? last : id;
+  }, [searchParams, pathname, id]);
+
+  // Clean up the URL so it shows /projects/<actualId> instead of /projects/placeholder?_id=...
+  useEffect(() => {
+    if (searchParams.get('_id') || pathname.endsWith('/placeholder')) {
+      window.history.replaceState(null, '', `/orcas-designer/projects/${actualId}`);
+    }
+  }, [actualId, searchParams, pathname]);
+
+  const { project, updateProject } = useProject(actualId);
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
   const { prompt } = usePromptGenerator(project, sharedSkills, sharedMemories);

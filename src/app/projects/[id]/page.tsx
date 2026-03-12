@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import ProjectDetailClient from './project-detail-client';
 
 export function generateStaticParams() {
@@ -12,5 +13,9 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <ProjectDetailClient id={id} />;
+  return (
+    <Suspense>
+      <ProjectDetailClient id={id} />
+    </Suspense>
+  );
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
@@ -52,28 +52,23 @@ interface ProjectDetailClientProps {
 
 export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Resolve the real project ID: prefer _id query param (from 404 redirect
-  // or in-app navigation), then extract from pathname, fallback to prop.
+  // In dev mode, `id` prop comes directly from the [id] route param.
+  // In production (static export), the 404.html redirects to /projects/placeholder?_id=<real-id>.
   const actualId = useMemo(() => {
     const queryId = searchParams.get('_id');
-    if (queryId) return queryId;
-    const last = pathname.split('/').pop();
-    return last && last !== 'placeholder' ? last : id;
-  }, [searchParams, pathname, id]);
+    return queryId && id === 'placeholder' ? queryId : id;
+  }, [searchParams, id]);
 
-  // Clean up the URL so it shows /projects/<actualId> instead of /projects/placeholder?_id=...
-  // Use a ref to prevent infinite loops — Next.js patches replaceState which re-triggers router updates.
-  const didCleanUrl = useRef(false);
+  // Clean up the URL when coming from the 404 redirect (placeholder?_id=...)
   useEffect(() => {
-    if (didCleanUrl.current) return;
-    if (searchParams.get('_id') || pathname.endsWith('/placeholder')) {
-      didCleanUrl.current = true;
+    if (searchParams.get('_id')) {
       window.history.replaceState(null, '', `/orcas-designer/projects/${actualId}`);
     }
-  }, [actualId, searchParams, pathname]);
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { project, updateProject } = useProject(actualId);
   const { sharedSkills } = useSharedSkills();

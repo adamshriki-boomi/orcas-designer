@@ -128,7 +128,17 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
   }, [project]);
 
   return (
-    <Link href={`/projects/placeholder?_id=${project.id}`} className="block">
+    <Link
+      href={`/projects/${project.id}`}
+      onClick={(e) => {
+        e.preventDefault();
+        // Bypass Next.js client router (RSC fetch fails for non-pre-rendered dynamic routes
+        // in static export). Use native navigation — dev server handles it directly;
+        // on GitHub Pages the 404.html SPA redirect takes over.
+        window.location.href = (e.currentTarget as HTMLAnchorElement).href;
+      }}
+      className="block"
+    >
       <Card className="group cursor-pointer hover:shadow-card-hover hover:scale-[1.01] transition-all duration-200">
         <CardHeader>
           <div className="flex items-start justify-between gap-3">

@@ -131,7 +131,7 @@ function WizardContent() {
       };
       await db.projects.add(project);
       toast.success('Project saved!');
-      router.push(`/projects/placeholder?_id=${id}`);
+      window.location.href = `${window.location.origin}/orcas-designer/projects/${id}`;
     } catch {
       toast.error('Failed to save project');
     }

@@ -37,6 +37,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var r=window.location.search.match(/[?&]redirect=([^&]*)/);if(r){var p=decodeURIComponent(r[1]);window.history.replaceState(null,null,p)}})();`,
+          }}
+        />
+      </head>
       <body className={`${poppins.variable} ${notoSans.variable} ${firaMono.variable} font-sans antialiased`}>
         <ExosphereProvider>
           <div className="flex min-h-screen">

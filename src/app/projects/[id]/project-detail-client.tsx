@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Trash2 } from 'lucide-react';
@@ -65,8 +65,12 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   }, [searchParams, pathname, id]);
 
   // Clean up the URL so it shows /projects/<actualId> instead of /projects/placeholder?_id=...
+  // Use a ref to prevent infinite loops — Next.js patches replaceState which re-triggers router updates.
+  const didCleanUrl = useRef(false);
   useEffect(() => {
+    if (didCleanUrl.current) return;
     if (searchParams.get('_id') || pathname.endsWith('/placeholder')) {
+      didCleanUrl.current = true;
       window.history.replaceState(null, '', `/orcas-designer/projects/${actualId}`);
     }
   }, [actualId, searchParams, pathname]);

@@ -40,7 +40,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var r=window.location.search.match(/[?&]redirect=([^&]*)/);if(r){var p=decodeURIComponent(r[1]);window.history.replaceState(null,null,p)}})();`,
+            __html: `(function(){var r=window.location.search.match(/[?&]redirect=([^&]*)/);if(r){var b='/orcas-designer';var p=decodeURIComponent(r[1]);window.history.replaceState(null,null,b+p)}})();`,
           }}
         />
       </head>

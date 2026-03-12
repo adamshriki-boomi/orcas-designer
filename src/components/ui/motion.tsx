@@ -1,6 +1,13 @@
 'use client';
 
+import { useEffect } from 'react';
 import { motion } from 'motion/react';
+
+// During SSR and initial hydration, motion.div renders inline opacity:0 styles.
+// If motion fails to animate during hydration, content stays invisible.
+// This flag ensures initial={false} during hydration (content visible immediately)
+// and initial={{ opacity: 0 }} only after hydration (for client-side navigation animations).
+let hasHydrated = false;
 
 export function FadeIn({
   children,
@@ -11,9 +18,11 @@ export function FadeIn({
   className?: string;
   delay?: number;
 }) {
+  useEffect(() => { hasHydrated = true; }, []);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={hasHydrated ? { opacity: 0, y: 8 } : false}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={className}
@@ -32,9 +41,11 @@ export function StaggerContainer({
   className?: string;
   staggerDelay?: number;
 }) {
+  useEffect(() => { hasHydrated = true; }, []);
+
   return (
     <motion.div
-      initial="hidden"
+      initial={hasHydrated ? 'hidden' : false}
       animate="visible"
       variants={{
         visible: {

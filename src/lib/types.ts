@@ -128,7 +128,7 @@ export const emptyProject = (id: string, name: string): Project => ({
   currentImplementation: emptyCurrentImplementation(),
   figmaFileLink: emptyFormField(),
   designSystemStorybook: emptyFormField(),
-  designSystemNpm: emptyFormField(),
+  designSystemNpm: { ...emptyFormField(), inputType: 'text' },
   designSystemFigma: emptyFormField(),
   prototypeSketches: emptyFormField(),
   outputType: 'static-only',

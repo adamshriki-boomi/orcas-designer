@@ -56,6 +56,9 @@ function buildQuickReference(project: Project): string {
 
   if (hasDs) {
     lines.push('- Design system: provided (see Design System section)');
+    if (project.designSystemStorybook.urlValue) {
+      lines.push(`- Storybook: ${project.designSystemStorybook.urlValue}`);
+    }
   }
 
   const accessibility = project.accessibilityLevel ?? 'none';

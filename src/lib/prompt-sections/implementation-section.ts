@@ -38,10 +38,10 @@ export function buildImplementationSection(project: Project): string {
 
   if (impl.figmaLinks.length > 0) {
     lines.push('**Current Figma references**:');
+    lines.push('**READ FROM THESE FILES** — use them to understand the current design state, component usage, and existing token choices before building.');
     for (const link of impl.figmaLinks) {
       lines.push(`- ${link}`);
     }
-    lines.push(`Use \`${inv('implement-design')}\` to extract design specs from these Figma references.`);
   }
 
   if (impl.additionalContext) {

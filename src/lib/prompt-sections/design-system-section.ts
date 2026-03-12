@@ -21,21 +21,28 @@ export function buildDesignSystemSection(project: Project): string {
 
   if (sb.urlValue) {
     lines.push(`**Storybook URL**: ${sb.urlValue}`);
-    lines.push('Reference this Storybook for available components, their props, and usage patterns.');
+    lines.push(`**IMPORTANT — Storybook Discovery**: Before writing any code, use Playwright MCP (or WebFetch) to systematically scrape this Storybook site:
+1. Visit the Storybook URL and navigate the sidebar to discover ALL available components
+2. For each component, visit its docs/canvas page and extract: component name, available props (with types and defaults), variants/states, and usage examples
+3. Save a summary of the full component inventory to \`./assets/design-system-inventory.md\`
+4. Use this inventory as the single source of truth for all UI implementation — prefer existing Storybook components over custom CSS`);
   }
   if (sb.additionalContext) lines.push(`> Storybook context: ${sb.additionalContext}`);
 
-  if (npm.urlValue || npm.textValue) {
-    const val = npm.urlValue || npm.textValue;
-    lines.push(`**NPM Package**: ${val}`);
+  if (npm.textValue) {
+    lines.push(`**NPM Install Command**: \`${npm.textValue}\``);
+  }
+  if (npm.urlValue) {
+    lines.push(`**NPM Package URL**: ${npm.urlValue}`);
+  }
+  if (npm.textValue || npm.urlValue) {
     lines.push('Install and use this design system package for consistent component usage.');
   }
   if (npm.additionalContext) lines.push(`> NPM context: ${npm.additionalContext}`);
 
   if (figma.urlValue) {
     lines.push(`**Design System Figma URL**: ${figma.urlValue}`);
-    lines.push(`Use \`${inv('code-connect-components')}\` to map Figma design tokens and components to code.`);
-    lines.push(`Use \`${inv('create-design-system-rules')}\` to generate design system rules from this Figma file.`);
+    lines.push('Reference this Figma file for design tokens, component styles, and visual specifications.');
   }
   if (figma.additionalContext) lines.push(`> DS Figma context: ${figma.additionalContext}`);
 

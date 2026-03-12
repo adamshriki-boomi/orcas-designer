@@ -50,10 +50,17 @@ function buildSkillsPreamble(project: Project, sharedSkills: SharedSkill[]): str
   return lines.join('\n');
 }
 
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill[] = []): string {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
+  const hasSourceFigma = !!(project.currentImplementation.figmaLinks.length > 0 || project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
   const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top';
   const hasScreenshots = project.currentImplementation.files.length > 0 || !!project.currentImplementation.urlValue;
+  const hasUrl = !!project.currentImplementation.urlValue;
+  const hasStorybook = !!project.designSystemStorybook.urlValue;
   const interactionLevel = project.interactionLevel ?? 'static';
   const isLite = project.promptMode === 'lite';
   const accessibilityLevel = project.accessibilityLevel ?? 'none';
@@ -73,11 +80,18 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   let step = 1;
   lines.push('');
   lines.push('### Phase 1: Research & Discovery');
-  lines.push(`${step++}. Run \`git init\` to initialize a git repository for the project`);
+  const slug = slugify(project.name);
+  lines.push(`${step++}. Run \`git init\` and \`git checkout -b feat/${slug}\` to initialize a git repository on a feature branch. Create a \`.gitignore\` with: \`node_modules/\`, \`.DS_Store\`, \`*.log\`, \`dist/\``);
+  if (hasUrl) {
+    lines.push(`${step++}. Use Playwright MCP to visit the URL listed in <current-implementation>, capture full-page screenshots of all key screens and states, and save each to \`./assets/screenshots/[screen-name].png\`. These files will be used by ${inv('screenshot-overlay-positioning')} in Phase 2.`);
+  }
+  if (hasStorybook) {
+    lines.push(`${step++}. Use Playwright MCP to crawl the Storybook at the URL listed in <design-system>. Visit the sidebar navigation to enumerate all components, then visit each component's docs page. Extract component names, props, variants, and code examples. Save a complete design system inventory to \`./assets/design-system-inventory.md\`.`);
+  }
   lines.push(`${step++}. Read all provided context (company, product, feature info)`);
   lines.push(`${step++}. Use ${inv('brainstorming')} to explore approach and requirements`);
-  if (hasFigma) {
-    lines.push(`${step++}. Use ${inv('implement-design')} to extract design specs from the Figma file`);
+  if (hasSourceFigma) {
+    lines.push(`${step++}. Use ${inv('implement-design')} to extract design specs from the **Figma reference files** listed in \`<current-implementation>\` and \`<design-system>\``);
     lines.push(`${step++}. Use ${inv('create-design-system-rules')} to establish design system rules based on the design`);
   }
 
@@ -143,7 +157,7 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   lines.push('   - All files committed to git');
 
   if (!isLite) {
-    lines.push(`${step++}. Create CLAUDE.md in project root with: Project Context (requirements, design decisions), Design System (tokens, components used), Implementation Notes (tech decisions, dependencies, limitations)`);
+    lines.push(`${step++}. Create \`./CLAUDE.md\` in the **git root** (the directory where \`git init\` was run) with: Project Context (requirements, design decisions), Design System (tokens, components used), Implementation Notes (tech decisions, dependencies, limitations)`);
   }
   lines.push(`${step++}. Use ${inv('finishing-a-development-branch')} to complete the work`);
 

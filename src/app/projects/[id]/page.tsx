@@ -7,6 +7,22 @@ export function generateStaticParams() {
   return [{ id: 'placeholder' }];
 }
 
+function ProjectDetailSkeleton() {
+  return (
+    <div className="space-y-6 p-6">
+      <div className="space-y-3">
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-[var(--exo-color-surface-secondary)]" />
+        <div className="h-4 w-72 animate-pulse rounded bg-[var(--exo-color-surface-secondary)]" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+          <div key={i} className="h-24 animate-pulse rounded-2xl bg-[var(--exo-color-surface-secondary)]" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default async function ProjectDetailPage({
   params,
 }: {
@@ -14,7 +30,7 @@ export default async function ProjectDetailPage({
 }) {
   const { id } = await params;
   return (
-    <Suspense>
+    <Suspense fallback={<ProjectDetailSkeleton />}>
       <ProjectDetailClient id={id} />
     </Suspense>
   );

@@ -96,7 +96,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { project, updateProject } = useProject(actualId);
+  const { project, isLoading, updateProject } = useProject(actualId);
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
   const { prompt } = usePromptGenerator(project, sharedSkills, sharedMemories);
@@ -119,7 +119,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   const [memoryContent, setMemoryContent] = useState('');
   const memoryFileRef = useRef<HTMLInputElement>(null);
 
-  if (project === undefined) {
+  if (isLoading) {
     return (
       <>
         <Header title="" />
@@ -140,7 +140,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
     );
   }
 
-  if (project === null) {
+  if (!project) {
     return (
       <>
         <Header title="Not Found" />
@@ -198,7 +198,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
   const handleDelete = async () => {
     try {
-      await db.projects.delete(id);
+      await db.projects.delete(actualId);
       setDeleteOpen(false);
       router.push('/projects');
       toast.success('Project deleted');

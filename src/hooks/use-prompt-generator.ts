@@ -5,7 +5,7 @@ import type { Project, SharedSkill, SharedMemory } from '@/lib/types';
 import { generatePrompt } from '@/lib/prompt-generator';
 
 export function usePromptGenerator(
-  project: Project | undefined,
+  project: Project | null | undefined,
   sharedSkills: SharedSkill[],
   sharedMemories: SharedMemory[] = []
 ) {

@@ -4,15 +4,14 @@ import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useProjects } from '@/hooks/use-projects';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
-import { useSharedMemories } from '@/hooks/use-shared-memories';
+import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID } from '@/hooks/use-shared-memories';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { MANDATORY_SKILLS } from '@/lib/constants';
-import { isFieldFilled } from '@/lib/validators';
-import { Layers, CheckCircle2, Wand2, Brain } from 'lucide-react';
-import type { Project } from '@/lib/types';
+import { getActiveSkillsForProject } from '@/lib/skill-filter';
+import { Layers, RefreshCw, Wand2, Brain } from 'lucide-react';
 
 const ExChartLazy = dynamic(
   () => import('@boomi/exosphere').then((m) => ({ default: m.ExChart })),
@@ -33,26 +32,15 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
   );
 }
 
-function isProjectComplete(project: Project): boolean {
-  const fields = [
-    project.companyInfo,
-    project.productInfo,
-    project.featureInfo,
-    project.figmaFileLink,
-    project.designSystemStorybook,
-    project.designSystemNpm,
-    project.designSystemFigma,
-    project.prototypeSketches,
-  ];
-  return fields.every(isFieldFilled);
-}
-
 export default function DashboardPage() {
   const { projects, isLoading } = useProjects();
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
 
-  const completedCount = projects.filter(isProjectComplete).length;
+  const totalRegenerations = useMemo(
+    () => projects.reduce((sum, p) => sum + (p.regenerationCount ?? 0), 0),
+    [projects]
+  );
   const totalSkills = sharedSkills.length + MANDATORY_SKILLS.length;
   const totalMemories = sharedMemories.length;
 
@@ -73,8 +61,8 @@ export default function DashboardPage() {
     return Object.entries(buckets).map(([label, count]) => ({ x: label, y: count, z: label }));
   }, [projects]);
 
-  // Chart options
-  const completionChartOptions = useMemo(() => ({
+  // Projects by Interaction Level donut chart
+  const interactionChartOptions = useMemo(() => ({
     type: 'donut-chart',
     width: 250,
     height: 250,
@@ -85,10 +73,11 @@ export default function DashboardPage() {
     legendAlignment: 'center',
     tooltip: { compactNumber: false },
     data: [
-      { x: 'Complete', y: completedCount },
-      { x: 'Incomplete', y: Math.max(0, projects.length - completedCount) },
+      { x: 'Static Mockups', y: projects.filter(p => p.interactionLevel === 'static').length },
+      { x: 'Click-through', y: projects.filter(p => p.interactionLevel === 'click-through').length },
+      { x: 'Full Prototype', y: projects.filter(p => p.interactionLevel === 'full-prototype').length },
     ],
-  }), [completedCount, projects.length]);
+  }), [projects]);
 
   const projectsOverTimeOptions = useMemo(() => ({
     type: 'stack-bar',
@@ -101,56 +90,86 @@ export default function DashboardPage() {
     data: monthlyBuckets,
   }), [monthlyBuckets]);
 
-  const skillUsageCounts = useMemo(() => {
-    const counts = new Map<string, number>();
+  // Skills usage: include mandatory skills (active per project) + shared skills
+  const skillsUsageOptions = useMemo(() => {
+    const mandatoryData = MANDATORY_SKILLS
+      .filter(s => s.includeCondition !== 'never')
+      .map(skill => ({
+        name: skill.name,
+        count: projects.filter(p => getActiveSkillsForProject(p).some(as => as.name === skill.name)).length,
+      }))
+      .filter(d => d.count > 0);
+
+    const skillUsageCounts = new Map<string, number>();
     for (const p of projects) {
       for (const sid of p.selectedSharedSkillIds) {
-        counts.set(sid, (counts.get(sid) ?? 0) + 1);
+        skillUsageCounts.set(sid, (skillUsageCounts.get(sid) ?? 0) + 1);
       }
     }
-    return counts;
-  }, [projects]);
 
-  const memoryUsageCounts = useMemo(() => {
-    const counts = new Map<string, number>();
+    const sharedData = sharedSkills.map(skill => ({
+      name: skill.name,
+      count: skillUsageCounts.get(skill.id) ?? 0,
+    }));
+
+    const allSkills = [...mandatoryData, ...sharedData]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    return {
+      type: 'stack-bar',
+      width: 400,
+      height: 280,
+      barWidth: 'medium',
+      showGridLines: true,
+      showLegends: false,
+      tooltip: { compactNumber: false },
+      data: allSkills.map(s => ({
+        x: s.name.slice(0, 14),
+        y: s.count,
+        z: s.name.slice(0, 14),
+      })),
+    };
+  }, [projects, sharedSkills]);
+
+  // Memories usage: include all shared memories (built-in + custom)
+  const memoriesUsageOptions = useMemo(() => {
+    const memoryUsageCounts = new Map<string, number>();
     for (const p of projects) {
       for (const mid of p.selectedSharedMemoryIds ?? []) {
-        counts.set(mid, (counts.get(mid) ?? 0) + 1);
+        memoryUsageCounts.set(mid, (memoryUsageCounts.get(mid) ?? 0) + 1);
       }
     }
-    return counts;
-  }, [projects]);
 
-  const skillsUsageOptions = useMemo(() => ({
-    type: 'grouped-bar',
-    width: 400,
-    height: 280,
-    showGridLines: true,
-    showLegends: false,
-    tooltip: { compactNumber: false },
-    data: sharedSkills.slice(0, 8).map((s) => ({
-      category: s.name.slice(0, 14),
-      subcategory: 'Usage',
-      value: skillUsageCounts.get(s.id) ?? 0,
-    })),
-  }), [sharedSkills, skillUsageCounts]);
+    const allMemories = sharedMemories
+      .map(m => ({
+        name: m.name,
+        count: m.id === COMPANY_CONTEXT_MEMORY_ID
+          ? projects.length
+          : (memoryUsageCounts.get(m.id) ?? 0),
+      }))
+      .filter(d => d.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
 
-  const memoriesUsageOptions = useMemo(() => ({
-    type: 'grouped-bar',
-    width: 400,
-    height: 280,
-    showGridLines: true,
-    showLegends: false,
-    tooltip: { compactNumber: false },
-    data: sharedMemories
-      .filter((m) => !m.isBuiltIn)
-      .slice(0, 8)
-      .map((m) => ({
-        category: m.name.slice(0, 14),
-        subcategory: 'Usage',
-        value: memoryUsageCounts.get(m.id) ?? 0,
+    return {
+      type: 'stack-bar',
+      width: 400,
+      height: 280,
+      barWidth: 'medium',
+      showGridLines: true,
+      showLegends: false,
+      tooltip: { compactNumber: false },
+      data: allMemories.map(m => ({
+        x: m.name.slice(0, 14),
+        y: m.count,
+        z: m.name.slice(0, 14),
       })),
-  }), [sharedMemories, memoryUsageCounts]);
+    };
+  }, [sharedMemories, projects]);
+
+  const hasSkillsData = skillsUsageOptions.data.length > 0;
+  const hasMemoriesData = memoriesUsageOptions.data.length > 0;
 
   if (isLoading) {
     return (
@@ -185,7 +204,7 @@ export default function DashboardPage() {
               <StatCard icon={Layers} label="Total Projects" value={projects.length} color="gradient-primary" />
             </StaggerItem>
             <StaggerItem>
-              <StatCard icon={CheckCircle2} label="Completed" value={completedCount} color="bg-accent" />
+              <StatCard icon={RefreshCw} label="Regenerated" value={totalRegenerations} color="bg-accent" />
             </StaggerItem>
             <StaggerItem>
               <StatCard icon={Wand2} label="Total Skills" value={totalSkills} color="bg-primary" />
@@ -198,8 +217,12 @@ export default function DashboardPage() {
           {/* Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-2xl shadow-card bg-card p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Completion Rate</h3>
-              <ExChartLazy options={completionChartOptions} />
+              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Projects by Interaction Level</h3>
+              {projects.length > 0 ? (
+                <ExChartLazy options={interactionChartOptions} />
+              ) : (
+                <p className="text-sm text-muted-foreground py-8 text-center">No projects yet</p>
+              )}
             </div>
             <div className="rounded-2xl shadow-card bg-card p-4">
               <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Projects Over Time</h3>
@@ -207,18 +230,18 @@ export default function DashboardPage() {
             </div>
             <div className="rounded-2xl shadow-card bg-card p-4">
               <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Skills Usage</h3>
-              {sharedSkills.length > 0 ? (
+              {hasSkillsData ? (
                 <ExChartLazy options={skillsUsageOptions} />
               ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No shared skills yet</p>
+                <p className="text-sm text-muted-foreground py-8 text-center">No skills in use yet</p>
               )}
             </div>
             <div className="rounded-2xl shadow-card bg-card p-4">
               <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Memories Usage</h3>
-              {sharedMemories.filter((m) => !m.isBuiltIn).length > 0 ? (
+              {hasMemoriesData ? (
                 <ExChartLazy options={memoriesUsageOptions} />
               ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No custom memories yet</p>
+                <p className="text-sm text-muted-foreground py-8 text-center">No memories in use yet</p>
               )}
             </div>
           </div>

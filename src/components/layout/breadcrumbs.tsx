@@ -20,7 +20,7 @@ const BreadcrumbsInner = dynamic(
             {items.map((item, index) => (
               <ExBreadcrumbItem
                 key={index}
-                {...(item.href ? { link: item.href } : {})}
+                {...(item.href ? { link: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}${item.href}` } : {})}
               >
                 {item.label}
               </ExBreadcrumbItem>

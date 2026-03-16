@@ -12,7 +12,10 @@ export function buildMemorySection(project: Project, sharedMemories: SharedMemor
   const lines: string[] = [
     '## MEMORIES',
     '',
-    'The following context files have been provided as project memories:',
+    'The following context files have been provided as project memories. Important notes:',
+    '- If memories reference production tech stack choices (e.g., React libraries, specific frameworks), treat them as design intent for the final product — for this prototype, implement equivalent behavior using the tech approach specified in <output-requirements>.',
+    '- If memories mention features or requirements not listed in the <context> feature requirements, treat them as out of scope for this prototype unless the user confirms otherwise at the checkpoint.',
+    '- The authoritative feature scope is defined in <context> — memories provide supporting context only.',
     '',
   ];
 

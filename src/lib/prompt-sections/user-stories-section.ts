@@ -8,7 +8,7 @@ export function buildUserStoriesSection(project: Project): string {
   const lines: string[] = [
     '## USER STORIES',
     '',
-    'Derive user stories from the context available in this prompt and any accessible URLs. If feature documentation is inaccessible, base stories on the prototype interactions and embedded company context:',
+    'Derive user stories from the context available in this prompt and any accessible URLs. If feature documentation is inaccessible, base stories on the prototype interactions and embedded company context. Aim for 10-20 stories covering all feature requirements, each with 2-4 acceptance criteria:',
     '',
     '- Format each story as: "As a [type of user], I want [goal] so that [benefit]"',
     '- Group stories by feature area or user journey',
@@ -16,7 +16,7 @@ export function buildUserStoriesSection(project: Project): string {
     '- Create an organized user stories document/page',
     '- Link each user story to its relevant HTML file/screen in the prototype output',
     '- Prioritize stories based on the feature requirements provided',
-    '- Save as `./output/user-stories.html` as a standalone HTML page linked from the prototype navigation. Also save a reference copy as `./assets/user-stories.md`.',
+    '- Save as `./output/user-stories.html` as a standalone HTML page linked from the prototype navigation. Also save `./assets/user-stories.md` as a machine-readable reference for future sprint planning.',
   ];
 
   if (hasFigma) {

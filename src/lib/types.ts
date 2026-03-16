@@ -100,6 +100,7 @@ export interface Project {
   customSkills: CustomSkill[];
   selectedSharedMemoryIds: MemoryId[];
   customMemories: CustomMemory[];
+  regenerationCount: number;
   generatedPrompt: string;
 }
 
@@ -143,5 +144,6 @@ export const emptyProject = (id: string, name: string): Project => ({
   customSkills: [],
   selectedSharedMemoryIds: ['built-in-company-context'],
   customMemories: [],
+  regenerationCount: 0,
   generatedPrompt: '',
 });

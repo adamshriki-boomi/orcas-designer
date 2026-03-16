@@ -16,7 +16,7 @@ export function buildRequirementsSection(project: Project): string {
   if (browsers.length === 1) {
     lines.push(`**Browser Target**: ${browsers[0]} only`);
   } else {
-    lines.push(`**Browser Compatibility**: ${browsers.join(', ')}. Test in all listed browsers.`);
+    lines.push(`**Browser Compatibility**: ${browsers.join(', ')}. Use cross-browser compatible CSS and JS — avoid browser-specific features without fallbacks. Use standard web APIs supported by all listed browsers.`);
   }
 
   return lines.join('\n');

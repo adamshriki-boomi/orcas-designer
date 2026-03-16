@@ -24,7 +24,7 @@ export function buildImplementationSection(project: Project): string {
     }
   } else {
     lines.push('**Mode**: Redesign from scratch');
-    lines.push('The current implementation is provided for reference only. Create a fresh design that improves upon the existing experience.');
+    lines.push('The current implementation is provided for context and inspiration only — do not replicate the existing layout or interaction patterns. Create a fresh design that improves upon the existing experience.');
   }
 
   if (impl.inputType === 'url' && impl.urlValue) {

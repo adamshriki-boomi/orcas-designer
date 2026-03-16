@@ -86,25 +86,25 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   lines.push('');
   lines.push('### Phase 1: Research & Discovery');
   const slug = slugify(project.name);
-  lines.push(`${step++}. Run \`git init\` and \`git checkout -b feat/${slug}\` to initialize a git repository on a feature branch. Create a \`.gitignore\` with: \`node_modules/\`, \`.DS_Store\`, \`*.log\`, \`dist/\``);
+  lines.push(`${step++}. Initialize the repository: if already inside a git repo, create a new branch from current HEAD: \`git checkout -b feat/${slug}\`. If not in a git repo, run \`git init\` first. Only create \`.gitignore\` if one does not already exist — include: \`node_modules/\`, \`.DS_Store\`, \`*.log\`, \`dist/\``);
   lines.push(`${step++}. Run \`mkdir -p ./assets ./output ./output/assets\` to create the working and output directories.`);
   if (hasNpm) {
-    lines.push(`${step++}. Run \`npm i ${npmPkg}\` to install the design system package.`);
+    lines.push(`${step++}. Run \`npm i ${npmPkg}\` to install the design system package. If installation fails (package not found or network error), skip and proceed — use the Storybook inventory or CDN references instead.`);
   }
   if (hasUrl) {
-    lines.push(`${step++}. Use Playwright MCP to visit the URL listed in <current-implementation>, capture full-page screenshots of all key screens and states, and save each to \`./assets/screenshots/[screen-name].png\`. These files will be used by ${inv('screenshot-overlay-positioning')} in Phase 2.`);
+    lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to visit the URL listed in <current-implementation>. If Playwright MCP is available, capture full-page screenshots and save to \`./assets/screenshots/[screen-name].png\`. If the URL is inaccessible, proceed using the embedded context and descriptions in this prompt.`);
   }
   if (hasStorybook) {
-    lines.push(`${step++}. Use Playwright MCP to crawl the Storybook at the URL listed in <design-system>. Visit the sidebar navigation to enumerate all components, then visit each component's docs page. Extract component names, props, variants, and code examples. Save a complete design system inventory to \`./assets/design-system-inventory.md\`.`);
+    lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to crawl the Storybook at the URL listed in <design-system>. Visit the sidebar navigation to enumerate all components, then visit each component's docs page. Extract component names, props, variants, and code examples. Save a complete design system inventory to \`./assets/design-system-inventory.md\`. If the URL is inaccessible, proceed using any NPM package documentation or embedded context.`);
   }
   lines.push(`${step++}. Read all provided context (company, product, feature info)`);
   if (hasPrototypeUrl) {
-    lines.push(`${step++}. Visit the prototype at \`${protoUrl}\` using Playwright MCP or WebFetch. Document all screens, states, and interactions found. Save findings to \`./assets/prototype-analysis.md\`.`);
+    lines.push(`${step++}. Visit the prototype at \`${protoUrl}\` using Playwright MCP or WebFetch. Document all screens, states, and interactions found. Save findings to \`./assets/prototype-analysis.md\`. If inaccessible, use the wireframe descriptions in <prototypes>.`);
   }
-  // B7: Figma extraction BEFORE brainstorming
+  // Figma extraction BEFORE brainstorming
   if (hasSourceFigma) {
-    lines.push(`${step++}. Use ${inv('implement-design')} to extract design specs from the **Figma reference files** listed in \`<current-implementation>\` and \`<design-system>\``);
-    lines.push(`${step++}. Use ${inv('create-design-system-rules')} to establish design system rules based on the design`);
+    lines.push(`${step++}. If Figma MCP read tools are available, use ${inv('implement-design')} to extract design specs from the **Figma reference files** listed in \`<current-implementation>\` and \`<design-system>\`. If Figma URLs are inaccessible or the tool is unavailable, rely on the wireframe descriptions in <prototypes> and the design tokens in <design-direction>.`);
+    lines.push(`${step++}. Use ${inv('create-design-system-rules')} to establish design system rules based on the extracted specs (or embedded context if Figma was unavailable)`);
   }
   lines.push(`${step++}. Use ${inv('brainstorming')} to explore approach and requirements`);
 
@@ -133,7 +133,7 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   // Phase 3: Build
   lines.push('');
   lines.push('### Phase 3: Build');
-  lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS)`);
+  lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). Reference \`./assets/design-system-inventory.md\` (if generated) when choosing components.`);
   if (interactionLevel === 'click-through') {
     lines.push(`${step++}. Build click-through flows with basic navigation between pages`);
   } else if (interactionLevel === 'full-prototype') {
@@ -141,7 +141,7 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   }
   lines.push(`${step++}. Link user stories to their relevant HTML file/screen in the prototype output`);
   if (hasFigma) {
-    lines.push(`${step++}. Use the Figma MCP \`generate_figma_design\` tool to write completed designs to the Figma target file. Do this ONLY after all HTML prototype files are done and verified.`);
+    lines.push(`${step++}. If the Figma MCP \`generate_figma_design\` tool is available, write completed designs to the Figma target file. Do this ONLY after all HTML prototype files are done and verified. If the tool is not available, skip this step.`);
   }
 
   // Phase 4: Verify & Wrap Up
@@ -158,25 +158,25 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
     lines.push('   - CSS transitions and micro-interactions work smoothly');
   }
   if (hasFigma) {
-    lines.push('   - Figma target file populated with all design frames');
+    lines.push('   - Figma target file populated with all design frames (if Figma MCP tool was available)');
   }
   if (!isLite) {
-    lines.push('   - Responsive layouts verified at desktop, tablet, and mobile widths');
+    lines.push('   - Responsive layouts verified: desktop (primary), tablet (required), mobile (stretch)');
   }
   if (accessibilityLevel !== 'none') {
     const wcagLabel = accessibilityLevel === 'wcag-aa' ? 'WCAG 2.1 AA' : 'WCAG 2.1 AAA';
     lines.push(`   - ${wcagLabel} compliance: ARIA labels, keyboard nav, color contrast, semantic HTML`);
   }
   if (browsers.length > 1) {
-    lines.push(`   - Tested in all target browsers: ${browsers.join(', ')}`);
+    lines.push(`   - Cross-browser compatible CSS/JS verified for: ${browsers.join(', ')}`);
   }
   lines.push('   - All files committed to git');
 
   if (hasDesignFigma) {
-    lines.push(`${step++}. Use ${inv('code-connect-components')} to map generated HTML/JS components to their Figma counterparts for developer handoff.`);
+    lines.push(`${step++}. If the prototype uses a component framework and Figma MCP is available, use ${inv('code-connect-components')} to map components to their Figma counterparts for developer handoff. For vanilla HTML/JS prototypes, skip this step.`);
   }
   if (!isLite) {
-    lines.push(`${step++}. Create \`./CLAUDE.md\` in the **git root** (the directory where \`git init\` was run) with: Project Context (requirements, design decisions), Design System (tokens, components used), Implementation Notes (tech decisions, dependencies, limitations)`);
+    lines.push(`${step++}. Create \`CLAUDE.md\` in the repository root directory (same level as \`.git/\`) with: Project Context (requirements, design decisions), Design System (tokens, components used), Implementation Notes (tech decisions, dependencies, limitations)`);
   }
   lines.push(`${step++}. Use ${inv('finishing-a-development-branch')} to complete the work`);
 

@@ -20,7 +20,7 @@ export function buildOutputTypeSection(project: Project): string {
   }
 
   if (hasFigma) {
-    lines.push('HTML/CSS/JS files are the **primary, always-required output**. After all HTML files are complete, write designs to the Figma target file using the Figma MCP `generate_figma_design` tool.');
+    lines.push('HTML/CSS/JS files are the **primary, always-required output**. After all HTML files are complete, if the Figma MCP `generate_figma_design` tool is available, write designs to the Figma target file. If the tool is not available, skip Figma output entirely.');
   } else {
     lines.push('Do NOT create Figma files.');
   }
@@ -30,11 +30,20 @@ export function buildOutputTypeSection(project: Project): string {
   lines.push('- Each screen/state as a separate HTML file');
 
   if (!isLite) {
-    lines.push('- Responsive layouts (desktop, tablet, mobile) where applicable');
+    lines.push('- Responsive layouts: desktop is primary, tablet required for all screens, mobile phone layouts are optional/stretch');
   }
 
   lines.push('- All UI states (default, hover, active, disabled, error, loading, empty)');
   lines.push('- Consistent use of the design system tokens and components');
+  lines.push('');
+  lines.push('**Tech approach**: This is a standalone HTML/CSS/JS prototype — not a React/Vue/Angular application. Use vanilla JavaScript or lightweight standalone libraries. If project memories mention framework-specific libraries (e.g., React components), implement equivalent behavior with vanilla JS for the prototype. For complex interactions like drag-and-drop and virtualized lists, use lightweight standalone libraries (e.g., SortableJS) or simulate the interaction with mock data and CSS transitions. Full data virtualization is not required for the prototype.');
+  lines.push('');
+  lines.push('**Mock data**: Create a shared `./output/assets/mock-data.js` with realistic sample data used across all views. Include variety in status, priority, assignee, project, and dates (some overdue). Use realistic names and content appropriate for demos.');
+
+  if (!isLite) {
+    lines.push('');
+    lines.push('**Responsive breakpoints**: Desktop: 1280px+, Tablet: 768-1279px, Mobile (stretch goal): <768px.');
+  }
 
   if (interactionLevel === 'click-through') {
     lines.push('- Basic navigation JavaScript for page-to-page flows');

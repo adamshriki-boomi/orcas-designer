@@ -71,7 +71,7 @@ export function WizardShell({
                           aria-label={`Go to step ${stepIndex + 1}: ${step.label}`}
                           aria-current={isActive ? 'step' : undefined}
                           className={cn(
-                            "flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-sm transition-all duration-150",
+                            "flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left text-sm transition-all duration-150 cursor-pointer",
                             isActive
                               ? "bg-primary text-primary-foreground font-medium scale-[1.02]"
                               : isCompleted

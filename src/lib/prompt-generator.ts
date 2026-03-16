@@ -49,7 +49,7 @@ function buildQuickReference(project: Project): string {
 
   const lines: string[] = [
     `- Project: ${project.name}`,
-    `- Output: HTML/CSS/JS prototype${hasFigma ? ' + Figma' : ''}`,
+    `- Output: HTML/CSS/JS prototype (primary)${hasFigma ? ' + Figma (if MCP tool available)' : ''}`,
     `- Output dir: ${project.outputDirectory || './output/'}`,
     `- Interaction: ${interactionLabels[interactionLevel] ?? interactionLevel}`,
   ];

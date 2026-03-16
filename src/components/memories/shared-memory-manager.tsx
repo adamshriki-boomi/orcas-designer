@@ -223,7 +223,7 @@ export function SharedMemoryManager() {
 
       {/* Add / Edit Drawer */}
       <Drawer open={mgr.dialogOpen} onOpenChange={(open) => { if (!open) mgr.closeDialog(); }} direction="right">
-        <DrawerContent>
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle>
               {mgr.editingId ? 'Edit Shared Memory' : 'Add Shared Memory'}
@@ -324,7 +324,7 @@ export function SharedMemoryManager() {
 
       {/* View Drawer */}
       <Drawer open={mgr.viewDialogOpen} onOpenChange={mgr.setViewDialogOpen} direction="right">
-        <DrawerContent>
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle className="flex items-center gap-2">
               {viewingMemory?.name}

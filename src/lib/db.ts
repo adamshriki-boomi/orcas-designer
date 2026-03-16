@@ -36,4 +36,12 @@ db.version(3).stores({}).upgrade((tx) => {
   });
 });
 
+db.version(4).stores({}).upgrade((tx) => {
+  return tx.table('projects').toCollection().modify((project: Record<string, unknown>) => {
+    if (project.regenerationCount === undefined) {
+      project.regenerationCount = 0;
+    }
+  });
+});
+
 export { db };

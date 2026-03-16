@@ -239,7 +239,7 @@ export function SharedSkillManager() {
 
       {/* Add / Edit Drawer */}
       <Drawer open={mgr.dialogOpen} onOpenChange={(open) => { if (!open) mgr.closeDialog(); }} direction="right">
-        <DrawerContent>
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle>
               {mgr.editingId ? 'Edit Shared Skill' : 'Add Shared Skill'}
@@ -376,7 +376,7 @@ export function SharedSkillManager() {
 
       {/* View Drawer */}
       <Drawer open={mgr.viewDialogOpen} onOpenChange={mgr.setViewDialogOpen} direction="right">
-        <DrawerContent>
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle>{viewingSkill?.name}</DrawerTitle>
             <DrawerDescription>

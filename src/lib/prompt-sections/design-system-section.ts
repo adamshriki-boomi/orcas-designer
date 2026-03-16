@@ -21,11 +21,13 @@ export function buildDesignSystemSection(project: Project): string {
 
   if (sb.urlValue) {
     lines.push(`**Storybook URL**: ${sb.urlValue}`);
-    lines.push(`**IMPORTANT — Storybook Discovery**: Before writing any code, use Playwright MCP (or WebFetch) to systematically scrape this Storybook site:
+    lines.push(`**IMPORTANT — Storybook Discovery**: Before writing any code, use Playwright MCP (preferred) or WebFetch to systematically scrape this Storybook site:
 1. Visit the Storybook URL and navigate the sidebar to discover ALL available components
 2. For each component, visit its docs/canvas page and extract: component name, available props (with types and defaults), variants/states, and usage examples
 3. Save a summary of the full component inventory to \`./assets/design-system-inventory.md\`
-4. Use this inventory as the single source of truth for all UI implementation — prefer existing Storybook components over custom CSS`);
+4. Use this inventory as the single source of truth for all UI implementation — prefer existing Storybook components over custom CSS
+
+If the sidebar content is not scrapable (common with SPAs), try accessing the Storybook's \`stories.json\` or \`index.json\` endpoint (e.g., \`${sb.urlValue}/stories.json\`) for a machine-readable component index. If Storybook is entirely inaccessible, build using standard HTML semantic elements styled with the design tokens from <design-direction> (colors, font, border radius, motion style). Use clean, consistent component patterns (buttons, inputs, cards, tables, modals, drawers) and apply the design tokens as CSS custom properties.`);
   }
   if (sb.additionalContext) lines.push(`> Storybook context: ${sb.additionalContext}`);
 

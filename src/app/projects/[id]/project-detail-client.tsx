@@ -157,9 +157,21 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
     );
   }
 
+  const handleRename = async (name: string) => {
+    try {
+      await updateProject({ name });
+      toast.success('Project renamed');
+    } catch {
+      toast.error('Failed to rename project');
+    }
+  };
+
   const handleRegeneratePrompt = async () => {
     try {
-      await updateProject({ generatedPrompt: prompt });
+      await updateProject({
+        generatedPrompt: prompt,
+        regenerationCount: (project.regenerationCount ?? 0) + 1,
+      });
       toast.success('Prompt regenerated');
     } catch {
       toast.error('Failed to regenerate prompt');
@@ -314,7 +326,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
             {/* ===== Overview Tab ===== */}
             <TabsContent value="overview">
               <div className="space-y-6">
-                <ProjectHeader project={project} />
+                <ProjectHeader project={project} onRename={handleRename} />
                 <FieldsGrid
                   project={project}
                   onEditField={(fieldKey) => setEditingField(fieldKey)}
@@ -581,7 +593,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
       {/* ===== Edit Interaction Level Drawer ===== */}
       <Drawer open={editInteractionOpen} onOpenChange={setEditInteractionOpen}>
-        <DrawerContent>
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle>Edit Interaction Level</DrawerTitle>
             <DrawerDescription>Choose the level of interactivity for the prototype output.</DrawerDescription>
@@ -620,7 +632,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
       {/* ===== Edit Implementation Mode Drawer ===== */}
       <Drawer open={editImplModeOpen} onOpenChange={setEditImplModeOpen}>
-        <DrawerContent>
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle>Edit Implementation Mode</DrawerTitle>
             <DrawerDescription>Choose how to build relative to the existing implementation.</DrawerDescription>
@@ -659,7 +671,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
       {/* ===== View Skill Drawer ===== */}
       <Drawer open={viewSkillDrawer.open} onOpenChange={(open) => { if (!open) setViewSkillDrawer({ open: false, skill: null }); }}>
-        <DrawerContent>
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle>{viewSkillDrawer.skill?.name ?? 'Skill'}</DrawerTitle>
           </DrawerHeader>
@@ -709,7 +721,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
       {/* ===== View Memory Drawer ===== */}
       <Drawer open={viewMemoryDrawer.open} onOpenChange={(open) => { if (!open) setViewMemoryDrawer({ open: false, memory: null }); }}>
-        <DrawerContent width="50">
+        <DrawerContent width="25">
           <DrawerHeader>
             <DrawerTitle>{viewMemoryDrawer.memory?.name ?? 'Memory'}</DrawerTitle>
           </DrawerHeader>

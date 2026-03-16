@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Settings, Brain, ExternalLink, Plus, Trash2, Upload } from 'lucide-react';
@@ -84,10 +84,10 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const actualId = useMemo(() => {
+  const [actualId] = useState(() => {
     const queryId = searchParams.get('_id');
     return queryId && id === 'placeholder' ? queryId : id;
-  }, [searchParams, id]);
+  });
 
   useEffect(() => {
     if (searchParams.get('_id')) {

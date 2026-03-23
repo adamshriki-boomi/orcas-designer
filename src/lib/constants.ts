@@ -139,6 +139,171 @@ Pre-built production-ready pipeline templates for common use cases (marketing, C
 - **Starter Kit** = pre-built pipeline template
 - **Custom File Zone** = enterprise data storage in customer-owned zones`;
 
+export const BUILT_IN_EXOSPHERE_STORYBOOK = `# @boomi/exosphere v7.8.1 — Design System Reference
+
+> Storybook: https://exosphere.boomi.com/ | Lit Web Components with React wrappers
+> SSR: All components require \`dynamic(() => import(...), { ssr: false })\` in Next.js
+> Enum values MUST be inlined as strings — never import enum types (causes HTMLElement SSR crash)
+
+---
+
+## Component Inventory (67 React Components)
+
+### Buttons & Actions
+- **ExButton** — type: "primary"|"secondary"|"tertiary", flavor: "base"|"periwinkle"|"branded"|"risky"|"tab", size: "small"|"default"|"large", as: "button"|"anchor", indicator (bool|number), href, target, rel
+- **ExIconButton** — type: "primary"|"secondary"|"tertiary", flavor: "base"|"branded"|"risky"|"periwinkle"|"periwinkle_green", size: "default"|"small"|"x-small", icon (Material Design name string), tooltipText, useTooltipPortal, circular, indicator, variant, hover, pressed
+- **ExLink** — size: "small"|"medium"|"large", href, target, rel, newTab, label
+- **ExToggle** — on (boolean), controlled, showToggleLabel, showSymbol, size, leftIcon, rightIcon, label
+
+### Form Controls
+- **ExInput** — type: "text"|"password"|"email"|"number"|"phone"|"currency"|"date"|etc., footerType: "info"|"success"|"error"|"warning", searchSize: "medium"|"large", searchFlavor: "white"|"gray", clearable, togglePassword, noSpinButtons, hideCharCount, required, helpText, infoText, errorMsg
+- **ExTextarea** — footerType: "info"|"success"|"error"|"warning", rows, maxLength, helpText, errorMsg, required
+- **ExCheckbox** — size: "small"|"medium"|"large", footerType: "info"|"success"|"error"|"warning", checked, indeterminate, controlled, showStatusIcon
+- **ExCheckboxGroup** — label, alignment, footerType, showStatusIcon
+- **ExNestedCheckboxGroup** — nested variant of checkbox group
+- **ExRadio** — size: "small"|"medium"|"large", footerType: "info"|"success"|"error"|"warning", checked, showStatusIcon
+- **ExRadioGroup** — label, alignment, footerType, showStatusIcon
+- **ExFileUploader** — size: "medium"|"large", sizeUnit: "MB"|"KB", mainText, buttonText, icon, fileTypes, maxSize, singleFileUpload, errorState, progressBarFluidWidth
+
+### Dropdowns & Select
+- **ExSelect** — type: "SINGLE"|"MULTI", selected, placeholder, helpText, errorMsg, isMenuItemsDynamic
+- **ExCombobox** — size: "default"|"large"|"standard"|"medium"|"small", type: "input"|"standard", select: "single"|"multi"|"default", searchSize: "medium"|"large", menuHeight, noResultText, noOptionText, loader
+- **ExDropdown** — width, height, variant, customWidth
+- **ExMenu** — width: "default"|"medium"|"large"|"x-large"|"xx-large"|"fluid"|"full-fluid", variant: "navigation"|"action", height: "default"|"medium"|"large"
+- **ExMenuItem** — variant options available
+- **ExMenuItemGroup** — category variant
+- **ExDatePicker** — label, value, placeholder, disabled, required
+- **ExTimePicker** (tag: ex-time-range-picker) — startTime, endTime
+
+### Data Display
+- **ExBadge** — color: "gray"|"red"|"navy"|"green"|"yellow"|"blue"|"orange"|"white", shape: "round"|"squared", size: "default"|"small"|"extrasmall"|"tiny", showIcon, icon, useTextContent (use \`true\` to avoid Lit template placeholders)
+- **ExLabel** — type: "info"|"success"|"error"|"warning", width: "default"|"auto", tooltipText
+- **ExIcon** — icon (Material Design name), variant: "icon"|"secondary"|"tertiary"|"inverse"|"disabled"|"danger"|"default"|"original", size: "XS"|"S"|"M"|"L"|"6XL", hideBrowserTooltip
+- **ExAvatar** — type, size variants
+- **ExPill** — color, size variants
+- **ExPillGroup** — container for pills
+- **ExLoader** — size, variant, state variants
+
+### Layout & Navigation
+- **ExLeftmenubarAdjustable** — expandWidth, collapseWidth, isCollapse, showAvatar, firstName, lastName, animated, collapsed, defaultMinResize, defaultMaxResize, resize, expandable, preventStacking
+- **ExLeftmenubarLink** — selected, disabled, label, tooltipText, isCollapsed, haveBorder. ⚠️ NO \`icon\` prop — use \`<ExIcon icon="name" slot="icon" />\`
+- **ExLeftmenubarDropdown** — label, tooltipText, open, disabled, isCollapsed, selected, animated
+- **ExLeftMenubarItem** — selected, disabled, label, haveBorder
+- **ExLeftmenubarCategoryTitle** — label
+- **ExLeftmenubarDivider** — no props
+- **ExLeftmenubarTableRow** — label, tag
+- **ExLeftmenubarTableCol** — no props
+- **ExBreadcrumb** — label (a11y), variant: "collapsed"|"fluid"
+- **ExBreadcrumbItem** — link (URL string), rel, target. Text as children slot
+- **ExPageHeader** — slot-based
+- **ExFooter** / **ExFooterLinkGroup** / **ExFooterLink** — href, target
+- **ExContainer** — generic container
+
+### Panels & Drawers
+- **ExSideDrawer** — width: "25"|"50"|"75"|"default", panelTitle, infoText, open, hideClose, navigation, footer (must be \`true\` for footer slot to render), top, icon, leadingIconLabel, resize, expandable, noMarginSlot, preventStacking, expanded. onClose+onCancel handle ESC and backdrop natively
+- **ExNavigationDrawer** — navigation drawer variant
+- **ExCard** — minimal, slot-based
+- **ExPanel** — content panel
+
+### Tabs & Accordion
+- **ExTab** — selectedIndex. ⚠️ onSelect fires CustomEvent with \`detail.selectedIndex\` (NOT \`detail.index\` — TypeScript type is wrong!)
+- **ExTabItem** — variant options
+- **ExAccordion** — variant: "elevated"|"flat", allowMultiple
+- **ExAccordionItem** — open, label, leadingIcon, variant, leadingIconLabel, useEnhancedStyles
+
+### Dialog & Notifications
+- **ExDialog** — headerContent: "info"|"warning"|"positive"|"negative"|"critical"|"announcement"|"media", variant: "spaced", dialogTitle, subHeader, open, staticBackdrop, hideClose, animated, hideLeadingIcon, padding
+- **ExAlertPopup** — popup alert variant
+- **ExAlertBanner** — banner alert variant
+- **ExAlertToast** — type: "Information"|"Success"|"Warning"|"Error", toasts[], options: { maxToastsToShow, duration }
+- **ToastController** — static: initialize(), show(toast), dismiss(id), setOptions()
+
+### Data & Visualization
+- **ExTable** — gridOptions (JS object, ag-grid based), editableContent, overflowVisible, hideSortOrder, stickyHeader, domLayoutNormal
+- **ExChart** — options (JS object, NOT string). options.type: "donut-chart"|"stack-bar"|"grouped-bar"|"line-chart"
+- **ExStructuredList** / Body / Row / Col / ColGroup / Subheader — structured data layout
+- **ExTree** — tree view
+- **ExPagination** — type: "compact"|"default", totalItems, pageSize, pageSizeOptions[], selectedPage, hideControls, hideGoToPage, hideItemPerPage, alwaysShowItemsPerPage
+
+### Carousel & Wizard
+- **ExCarousel** / **ExCarouselItem** — carousel layout
+- **ExWizard** — selectedIndex, totalItems, allowMultiple, wizardTitle, headerDescription, type, step, tooltipText, hideActions, disableNavigation
+- **ExWizardItem** — open, title, step, description, show
+
+### Content Editing
+- **ExJsonEditor** — JSON editor
+- **ExRichTextEditor** — rich text editor
+- **ExRichInput** / **ExRichInputSuggestion** — type variants
+
+### Miscellaneous
+- **ExSegmentedControl** — segmentPlace: "inner"|"first"|"last", segmentVariant: "white"|"gray", tooltipPlacement: "top"|"bottom", selected, disabled
+- **ExSegmentedControls** — container for segmented controls
+- **ExTile** — tile variant
+- **ExFilter** — filter component
+- **ExEmptyState** — empty state display
+- **ExTooltip** — position: "top"|"bottom"|"right"|"left", alignment: "start"|"middle"|"end", variant: "default"|"custom", trigger, tooltipDelay, hideDelay, showTooltipOnOverflow, usePortal, keepPopupOpen
+- **ExResizeHandle** — resizer position variants
+
+---
+
+## Design Tokens
+
+### Color Palette
+Families: navy, blue, aqua, green, yellow, red, orange, coral, purple, periwinkle, magenta, gray, brand
+Shades: 10, 20, 30, 40, 50, 60, 70, 80, 90
+Pattern: \`--exo-palette-{COLOR}-{SHADE}\`, \`--exo-palette-{COLOR}-{SHADE}-rgb\`
+
+### Semantic Colors (Light & Dark themes)
+**Background**: --exo-color-background, -secondary, -tertiary, -disabled, -brand, -action, -action-secondary, -selected, -selected-weak, -selected-hover, -success, -warning, -danger-weak, -danger-strong, -danger-extreme, -highlight, -info, --exo-color-surface-ai-action, -ai-action-hover
+**Font**: --exo-color-font, -secondary, -tertiary, -link, -link-hover, -link-secondary, -success, -danger, -code, -disabled, -inverse
+**Icon**: --exo-color-icon, -secondary, -tertiary, -danger, -disabled, -inverse
+**Border**: --exo-color-border, -secondary, -tertiary, -selected, -action, -action-hover, -highlight, -danger-weak, -danger-strong, -danger-extreme, -inverse, -contrast
+**Outline**: --exo-color-outline-weak, -moderate, -strong, -extreme, -inverse
+**Shadow**: --exo-color-shadow-weak, -moderate, -strong
+**Scrim**: --exo-color-scrim
+
+### Typography
+Fonts: --exo-font-brand ("Poppins"), --exo-font-family ("Noto Sans"), --exo-font-monospace ("Fira Mono")
+Sizes: --exo-font-size-x-micro (0.625rem), -micro (0.75rem), -x-small (0.813rem), -small (0.875rem), -medium (1rem), -large (1.12rem), -x-large (1.25rem), -2x-large through -7x-large
+Weights: --exo-font-weight-light (300), -regular (400), -semi-bold (600), -bold (700)
+Line heights: --exo-line-height-heading (1.25em), -body (1.5em), -denser, -looser
+
+### Spacing
+--exo-spacing-none (0), -4x-small (0.0625rem), -3x-small (0.125rem), -2x-small (0.25rem), -x-small (0.5rem), -small (0.75rem), -standard (1rem), -medium (1.25rem), -large (1.5rem), -x-large (2rem), -2x-large, -3x-large+
+
+### Z-Index
+--exo-z-index-layer-1 (900), -layer-2 (901), -layer-3 (902), -layer-4 (903), -layer-5 (9999)
+--exo-z-index-dialog (900), -select-menu-input (901), -select-menu-dropdown (902), -dialog-overlay (903), -tooltip-popup (9999)
+
+### Opacity
+--exo-opacity-0 (transparent), -1 (0.1), -2 (0.15), -3 (0.4), -4 (0.5), -5 (0.6), -6 (0.75)
+
+### Data Visualization
+Color sets: --exo-color-set-1-1 through set-3-8
+Data solid: navy, coral, purple, periwinkle, green, blue, gray, background-gray
+
+---
+
+## CSS Imports
+\\\`\\\`\\\`
+import '@boomi/exosphere/dist/styles.css';              // Required base styles
+import '@boomi/exosphere/dist/exo-component-theme.css'; // Optional theme overrides
+import '@boomi/exosphere/dist/exo-table-styles.css';    // For ag-grid tables
+import '@boomi/exosphere/dist/ui-kit/ai.css';           // AI theme variant
+import '@boomi/exosphere/dist/ui-kit/discover.css';     // Discover theme variant
+import '@boomi/exosphere/dist/icon.js';                 // Material Design Icons
+\\\`\\\`\\\`
+
+## Key Gotchas
+1. **SSR**: All Exosphere components need \`dynamic(() => import(...), { ssr: false })\` — they extend HTMLElement which doesn't exist server-side
+2. **Enum imports crash SSR**: Always inline enum values as strings, never import enum types
+3. **ExLeftmenubarLink has NO icon prop**: Pass icons via named slot: \`<ExIcon icon="home" slot="icon" />\`
+4. **ExTab onSelect event**: Fires \`detail.selectedIndex\` (TypeScript type says \`detail.index\` — this is WRONG)
+5. **ExSideDrawer footer slot**: Set \`footer={true}\` prop or footer slot content won't render
+6. **ExBadge text**: Use \`useTextContent={true}\` to avoid Lit template placeholder issues in badge text
+7. **ExChart options**: Pass JS object directly, not a JSON string
+8. **ExTable gridOptions**: Pass JS object (ag-grid compatible), not string`;
+
 export const WIZARD_STEPS = [
   { key: 'company-info', label: 'Company Info', required: false },
   { key: 'product-info', label: 'Product Info', required: true },

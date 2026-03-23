@@ -5,13 +5,15 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import type { SharedMemory } from '@/lib/types';
 import { generateId } from '@/lib/id';
-import { BUILT_IN_COMPANY_CONTEXT, BUILT_IN_PRODUCT_CONTEXT } from '@/lib/constants';
+import { BUILT_IN_COMPANY_CONTEXT, BUILT_IN_PRODUCT_CONTEXT, BUILT_IN_EXOSPHERE_STORYBOOK } from '@/lib/constants';
 
 const BUILT_IN_MEMORY_ID = 'built-in-company-context';
 const BUILT_IN_PRODUCT_MEMORY_ID = 'built-in-rivery-context';
+const BUILT_IN_STORYBOOK_MEMORY_ID = 'built-in-exosphere-storybook';
 
 export const COMPANY_CONTEXT_MEMORY_ID = BUILT_IN_MEMORY_ID;
 export const PRODUCT_CONTEXT_MEMORY_IDS = [BUILT_IN_PRODUCT_MEMORY_ID];
+export const DESIGN_SYSTEM_MEMORY_IDS = [BUILT_IN_STORYBOOK_MEMORY_ID];
 
 export function useSharedMemories() {
   const sharedMemories = useLiveQuery(
@@ -54,6 +56,21 @@ export function useSharedMemories() {
             description: 'Built-in product context for Boomi Data Integration (formerly Rivery)',
             content: BUILT_IN_PRODUCT_CONTEXT,
             fileName: 'rivery-context.md',
+            isBuiltIn: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+        if (cancelled) return;
+        const existingStorybook = await db.sharedMemories.get(BUILT_IN_STORYBOOK_MEMORY_ID);
+        if (cancelled) return;
+        if (!existingStorybook) {
+          await db.sharedMemories.add({
+            id: BUILT_IN_STORYBOOK_MEMORY_ID,
+            name: 'Exosphere Storybook',
+            description: 'Built-in design system reference for @boomi/exosphere components, tokens, and patterns',
+            content: BUILT_IN_EXOSPHERE_STORYBOOK,
+            fileName: 'exosphere-storybook.md',
             isBuiltIn: true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

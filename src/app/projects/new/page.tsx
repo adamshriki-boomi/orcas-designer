@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWizardForm } from '@/hooks/use-wizard-form';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
-import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS } from '@/hooks/use-shared-memories';
+import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { db } from '@/lib/db';
 import { generateId } from '@/lib/id';
@@ -95,7 +95,7 @@ function WizardContent() {
     if (isFieldFilled(formData.featureInfo)) set.add(2);
     if (isFieldFilled(formData.currentImplementation) || formData.currentImplementation.figmaLinks.length > 0) set.add(3);
     if (formData.figmaFileLink.urlValue.trim().length > 0) set.add(4);
-    if (isFieldFilled(formData.designSystemStorybook)) set.add(5);
+    if (isFieldFilled(formData.designSystemStorybook) || (formData.selectedSharedMemoryIds ?? []).some((id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id))) set.add(5);
     if (isFieldFilled(formData.designSystemNpm)) set.add(6);
     if (isFieldFilled(formData.designSystemFigma)) set.add(7);
     if (isFieldFilled(formData.prototypeSketches)) set.add(8);
@@ -165,8 +165,18 @@ function WizardContent() {
         return <StepCurrentImpl data={formData.currentImplementation} onChange={setCurrentImpl} />;
       case 4:
         return <StepFigmaLink data={formData.figmaFileLink} onChange={(d: FormFieldData) => setField('figmaFileLink', d)} />;
-      case 5:
-        return <StepDesignSystemStorybook data={formData.designSystemStorybook} onChange={(d: FormFieldData) => setField('designSystemStorybook', d)} />;
+      case 5: {
+        const storybookMemories = sharedMemories.filter((m) => DESIGN_SYSTEM_MEMORY_IDS.includes(m.id));
+        return (
+          <StepDesignSystemStorybook
+            data={formData.designSystemStorybook}
+            onChange={(d: FormFieldData) => setField('designSystemStorybook', d)}
+            storybookMemories={storybookMemories}
+            selectedMemoryIds={formData.selectedSharedMemoryIds ?? []}
+            onSelectedMemoryIdsChange={setSharedMemories}
+          />
+        );
+      }
       case 6:
         return <StepDesignSystemNpm data={formData.designSystemNpm} onChange={(d: FormFieldData) => setField('designSystemNpm', d)} />;
       case 7:

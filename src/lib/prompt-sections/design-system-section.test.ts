@@ -1,0 +1,74 @@
+import { buildDesignSystemSection } from './design-system-section'
+import { createTestProject, createProjectWithDesignSystem } from '@/test/helpers/project-fixtures'
+import { emptyFormField } from '@/lib/types'
+
+describe('buildDesignSystemSection', () => {
+  it('returns empty string when there is no design system content', () => {
+    const project = createTestProject()
+    const result = buildDesignSystemSection(project)
+    expect(result).toBe('')
+  })
+
+  it('includes storybook URL and discovery instructions', () => {
+    const project = createTestProject({
+      designSystemStorybook: {
+        ...emptyFormField(),
+        urlValue: 'https://storybook.example.com',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('**Storybook URL**: https://storybook.example.com')
+    expect(result).toContain('Storybook Discovery')
+    expect(result).toContain('design-system-inventory.md')
+  })
+
+  it('includes NPM install command for text-based npm input', () => {
+    const project = createTestProject({
+      designSystemNpm: {
+        ...emptyFormField(),
+        inputType: 'text',
+        textValue: '@example/design-system',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('`@example/design-system`')
+    expect(result).toContain('NPM Install Command')
+  })
+
+  it('includes design system Figma URL', () => {
+    const project = createTestProject({
+      designSystemFigma: {
+        ...emptyFormField(),
+        urlValue: 'https://www.figma.com/design/ds123/Design-System',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('**Design System Figma URL**: https://www.figma.com/design/ds123/Design-System')
+    expect(result).toContain('design tokens, component styles')
+  })
+
+  it('includes additional context for each sub-section', () => {
+    const project = createProjectWithDesignSystem({
+      designSystemStorybook: {
+        ...emptyFormField(),
+        urlValue: 'https://storybook.example.com',
+        additionalContext: 'Use v3 components only',
+      },
+      designSystemNpm: {
+        ...emptyFormField(),
+        inputType: 'text',
+        textValue: '@example/ds',
+        additionalContext: 'Version 3.x required',
+      },
+      designSystemFigma: {
+        ...emptyFormField(),
+        urlValue: 'https://www.figma.com/design/ds123/DS',
+        additionalContext: 'Focus on the "Core" page',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('> Storybook context: Use v3 components only')
+    expect(result).toContain('> NPM context: Version 3.x required')
+    expect(result).toContain('> DS Figma context: Focus on the "Core" page')
+  })
+})

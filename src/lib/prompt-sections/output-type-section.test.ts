@@ -1,0 +1,53 @@
+import { buildOutputTypeSection } from './output-type-section'
+import { createTestProject, createProjectWithFigma } from '@/test/helpers/project-fixtures'
+
+describe('buildOutputTypeSection', () => {
+  it('includes "Static Mockups Only" for static interaction level', () => {
+    const project = createTestProject({ interactionLevel: 'static' })
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('Static Mockups Only')
+    expect(result).toContain('No JavaScript interactions')
+  })
+
+  it('includes "Click-through Flows" and navigation JS for click-through level', () => {
+    const project = createTestProject({ interactionLevel: 'click-through' })
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('Click-through Flows')
+    expect(result).toContain('Basic navigation JavaScript')
+  })
+
+  it('includes "Full Interactive Prototype" and animations for full-prototype level', () => {
+    const project = createTestProject({ interactionLevel: 'full-prototype' })
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('Full Interactive Prototype')
+    expect(result).toContain('animations')
+    expect(result).toContain('CSS transitions')
+  })
+
+  it('includes Claude-to-Figma reference when figma target is set', () => {
+    const project = createProjectWithFigma({ interactionLevel: 'static' })
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('Claude-to-Figma')
+    expect(result).not.toContain('Do NOT create Figma files')
+  })
+
+  it('includes "Do NOT create Figma files" when no figma target', () => {
+    const project = createTestProject({ interactionLevel: 'static' })
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('Do NOT create Figma files')
+  })
+
+  it('does not include responsive breakpoints line in lite mode', () => {
+    const project = createTestProject({ promptMode: 'lite' })
+    const result = buildOutputTypeSection(project)
+    expect(result).not.toContain('Responsive breakpoints')
+    expect(result).not.toContain('tablet required')
+  })
+
+  it('includes responsive breakpoints in comprehensive mode', () => {
+    const project = createTestProject({ promptMode: 'comprehensive' })
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('Responsive breakpoints')
+    expect(result).toContain('tablet')
+  })
+})

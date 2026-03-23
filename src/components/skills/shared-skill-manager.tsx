@@ -253,9 +253,8 @@ export function SharedSkillManager() {
 
           <div className="flex-1 overflow-y-auto px-4 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="skill-name">Name</Label>
+              <Label>Name</Label>
               <Input
-                id="skill-name"
                 placeholder="Skill name"
                 value={mgr.form.name}
                 onChange={(e) => mgr.setForm((f) => ({ ...f, name: e.target.value }))}
@@ -263,9 +262,8 @@ export function SharedSkillManager() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="skill-description">Description</Label>
+              <Label>Description</Label>
               <Input
-                id="skill-description"
                 placeholder="Brief description of what this skill does"
                 value={mgr.form.description}
                 onChange={(e) =>
@@ -302,9 +300,8 @@ export function SharedSkillManager() {
 
             {mgr.form.type === 'url' ? (
               <div className="space-y-1.5">
-                <Label htmlFor="skill-url">URL</Label>
+                <Label>URL</Label>
                 <Input
-                  id="skill-url"
                   type="url"
                   placeholder="https://..."
                   value={mgr.form.urlValue}

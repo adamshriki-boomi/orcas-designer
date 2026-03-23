@@ -237,9 +237,8 @@ export function SharedMemoryManager() {
 
           <div className="flex-1 overflow-y-auto px-4 space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="memory-name">Name</Label>
+              <Label>Name</Label>
               <Input
-                id="memory-name"
                 placeholder="Memory name"
                 value={mgr.form.name}
                 onChange={(e) => mgr.setForm((f) => ({ ...f, name: e.target.value }))}
@@ -247,9 +246,8 @@ export function SharedMemoryManager() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="memory-description">Description</Label>
+              <Label>Description</Label>
               <Input
-                id="memory-description"
                 placeholder="Brief description of this memory"
                 value={mgr.form.description}
                 onChange={(e) =>
@@ -270,9 +268,8 @@ export function SharedMemoryManager() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="memory-content">Content</Label>
+              <Label>Content</Label>
               <Textarea
-                id="memory-content"
                 placeholder="Paste markdown content here, or upload a file above..."
                 value={mgr.form.content}
                 onChange={(e) => mgr.setForm((f) => ({ ...f, content: e.target.value }))}

@@ -62,9 +62,8 @@ export function StepCompanyInfo({ data, onChange, builtInContent }: StepCompanyI
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="additional-context">Additional Context</Label>
+          <Label>Additional Context</Label>
           <Textarea
-            id="additional-context"
             placeholder="Add any extra company context not covered above..."
             value={data.additionalContext}
             onChange={(e) =>

@@ -168,9 +168,8 @@ export function EditFieldDrawer({
     if (fieldKey === 'companyInfo') {
       return (
         <div className="space-y-4">
-          <Label htmlFor="additional-context">Additional Context</Label>
+          <Label>Additional Context</Label>
           <Textarea
-            id="additional-context"
             placeholder="Add any extra company context not covered above..."
             value={draft.additionalContext}
             onChange={(e) => update({ additionalContext: e.target.value })}

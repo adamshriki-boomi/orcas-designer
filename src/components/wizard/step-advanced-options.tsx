@@ -147,13 +147,13 @@ export function StepAdvancedOptions({
         <CollapsibleSection title="Browser Compatibility" defaultOpen={browserCompatibility.length > 1}>
           <div className="flex flex-wrap gap-4">
             {BROWSER_OPTIONS.map((option) => (
-              <label key={option.value} className="flex items-center gap-2 cursor-pointer">
+              <div key={option.value} className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
                   checked={browserCompatibility.includes(option.value)}
                   onCheckedChange={() => toggleBrowser(option.value)}
                 />
-                <span className="text-sm">{option.label}</span>
-              </label>
+                <span className="text-sm" onClick={() => toggleBrowser(option.value)}>{option.label}</span>
+              </div>
             ))}
           </div>
         </CollapsibleSection>
@@ -164,9 +164,8 @@ export function StepAdvancedOptions({
             <Switch
               checked={externalResourcesAccessible}
               onCheckedChange={onExternalResourcesChange}
-              id="external-resources"
             />
-            <Label htmlFor="external-resources">
+            <Label>
               Are external URLs publicly accessible?
             </Label>
           </div>

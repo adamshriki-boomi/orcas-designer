@@ -111,9 +111,8 @@ export function CustomSkillAdder({ skills, onChange }: CustomSkillAdderProps) {
         <Card size="sm">
           <CardContent className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="custom-skill-name">Name</Label>
+              <Label>Name</Label>
               <Input
-                id="custom-skill-name"
                 placeholder="Skill name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -144,9 +143,8 @@ export function CustomSkillAdder({ skills, onChange }: CustomSkillAdderProps) {
 
             {type === 'url' ? (
               <div className="space-y-1.5">
-                <Label htmlFor="custom-skill-url">URL</Label>
+                <Label>URL</Label>
                 <Input
-                  id="custom-skill-url"
                   type="url"
                   placeholder="https://..."
                   value={urlValue}

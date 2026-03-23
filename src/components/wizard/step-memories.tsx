@@ -124,9 +124,8 @@ export function StepMemories({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="inline-memory-name">Name</Label>
+              <Label>Name</Label>
               <Input
-                id="inline-memory-name"
                 placeholder="Memory name"
                 value={uploadName}
                 onChange={(e) => setUploadName(e.target.value)}
@@ -134,9 +133,8 @@ export function StepMemories({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="inline-memory-content">Content</Label>
+              <Label>Content</Label>
               <Textarea
-                id="inline-memory-content"
                 placeholder="Paste markdown content or upload a file..."
                 value={uploadContent}
                 onChange={(e) => setUploadContent(e.target.value)}
@@ -147,11 +145,10 @@ export function StepMemories({
 
             <div className="flex items-center gap-2">
               <Checkbox
-                id="save-to-shared"
                 checked={saveToShared}
                 onCheckedChange={(checked) => setSaveToShared(checked === true)}
               />
-              <Label htmlFor="save-to-shared" className="text-sm font-normal">
+              <Label className="text-sm font-normal">
                 Save to Shared Memories library
               </Label>
             </div>

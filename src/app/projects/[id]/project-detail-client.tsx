@@ -498,18 +498,16 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label htmlFor="custom-memory-name">Name</Label>
+                          <Label>Name</Label>
                           <Input
-                            id="custom-memory-name"
                             placeholder="Memory name"
                             value={memoryName}
                             onChange={(e) => setMemoryName(e.target.value)}
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label htmlFor="custom-memory-content">Content</Label>
+                          <Label>Content</Label>
                           <Textarea
-                            id="custom-memory-content"
                             placeholder="Paste markdown content or upload a file..."
                             value={memoryContent}
                             onChange={(e) => setMemoryContent(e.target.value)}

@@ -18,9 +18,22 @@ export function buildMemorySection(project: Project, sharedMemories: SharedMemor
     '## MEMORIES',
     '',
     'The following context files have been provided as project memories. Important notes:',
-    '- If memories reference production tech stack choices (e.g., React libraries, specific frameworks), treat them as design intent for the final product — for this prototype, implement equivalent behavior using the tech approach specified in <output-requirements>.',
-    '- If memories mention features or requirements not listed in the <context> feature requirements, treat them as out of scope for this prototype unless the user confirms otherwise at the checkpoint.',
   ];
+
+  if (hasDesignSystemMemory) {
+    lines.push(
+      '- If memories define a design system or component library (e.g., Storybook inventory, web components), these components are MANDATORY — use them directly as web components in your HTML. They are NOT framework-specific libraries to reimplement with vanilla JS.',
+      '- For non-design-system tech stack mentions in memories (e.g., Redux, React Router), treat as design intent — implement equivalent behavior for the prototype.',
+    );
+  } else {
+    lines.push(
+      '- If memories reference production tech stack choices (e.g., React libraries, specific frameworks), treat them as design intent for the final product — for this prototype, implement equivalent behavior using the tech approach specified in <output-requirements>.',
+    );
+  }
+
+  lines.push(
+    '- If memories mention features or requirements not listed in the <context> feature requirements, treat them as out of scope for this prototype unless the user confirms otherwise at the checkpoint.',
+  );
 
   const hasNonDesignSystemMemory = selectedMemories.some(
     (m) => !DESIGN_SYSTEM_MEMORY_IDS.includes(m.id),

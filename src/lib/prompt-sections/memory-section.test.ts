@@ -86,6 +86,22 @@ describe('buildMemorySection', () => {
     expect(result).toContain('non-design-system memories provide supporting context only')
   })
 
+  it('uses MANDATORY web component language when DS memory is present', () => {
+    const storybookMem = createStorybookMemory()
+    const project = createProjectWithStorybookMemory()
+    const result = buildMemorySection(project, [storybookMem])
+    expect(result).toContain('MANDATORY')
+    expect(result).toContain('web components')
+    expect(result).toContain('NOT framework-specific')
+  })
+
+  it('does not contain generic "implement equivalent behavior" line when DS memory is present', () => {
+    const storybookMem = createStorybookMemory()
+    const project = createProjectWithStorybookMemory()
+    const result = buildMemorySection(project, [storybookMem])
+    expect(result).not.toContain('implement equivalent behavior using the tech approach')
+  })
+
   it('uses standard supporting context language for non-design-system memories', () => {
     const memory = createTestSharedMemory({
       id: 'mem-1',
@@ -100,6 +116,22 @@ describe('buildMemorySection', () => {
     const result = buildMemorySection(project, [memory])
     expect(result).toContain('memories provide supporting context only')
     expect(result).not.toContain('AUTHORITATIVE')
+  })
+
+  it('keeps original "implement equivalent behavior" line when no DS memory', () => {
+    const memory = createTestSharedMemory({
+      id: 'mem-1',
+      name: 'Tech Stack',
+      fileName: 'tech-stack.md',
+      content: 'Uses React and Redux.',
+    })
+    const project = createTestProject({
+      selectedSharedMemoryIds: ['mem-1'],
+      customMemories: [],
+    })
+    const result = buildMemorySection(project, [memory])
+    expect(result).toContain('implement equivalent behavior using the tech approach')
+    expect(result).not.toContain('NOT framework-specific')
   })
 
   it('includes both shared and custom memories together', () => {

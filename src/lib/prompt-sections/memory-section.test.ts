@@ -1,5 +1,5 @@
 import { buildMemorySection } from './memory-section'
-import { createTestProject, createTestSharedMemory } from '@/test/helpers/project-fixtures'
+import { createTestProject, createTestSharedMemory, createStorybookMemory, createProjectWithStorybookMemory } from '@/test/helpers/project-fixtures'
 
 describe('buildMemorySection', () => {
   it('returns empty string when no memories are selected', () => {
@@ -45,6 +45,14 @@ describe('buildMemorySection', () => {
     const result = buildMemorySection(project, [])
     expect(result).toContain('### Project Notes (custom)')
     expect(result).toContain('Focus on mobile-first design')
+  })
+
+  it('includes built-in storybook memory when selected', () => {
+    const storybookMem = createStorybookMemory()
+    const project = createProjectWithStorybookMemory()
+    const result = buildMemorySection(project, [storybookMem])
+    expect(result).toContain('### Exosphere Storybook (exosphere-storybook.md)')
+    expect(result).toContain('Component Inventory')
   })
 
   it('includes both shared and custom memories together', () => {

@@ -1,5 +1,5 @@
 import { buildDesignSystemSection } from './design-system-section'
-import { createTestProject, createProjectWithDesignSystem } from '@/test/helpers/project-fixtures'
+import { createTestProject, createProjectWithDesignSystem, createProjectWithStorybookMemory } from '@/test/helpers/project-fixtures'
 import { emptyFormField } from '@/lib/types'
 
 describe('buildDesignSystemSection', () => {
@@ -45,6 +45,41 @@ describe('buildDesignSystemSection', () => {
     const result = buildDesignSystemSection(project)
     expect(result).toContain('**Design System Figma URL**: https://www.figma.com/design/ds123/Design-System')
     expect(result).toContain('design tokens, component styles')
+  })
+
+  it('renders section when only storybook memory is selected (no URL)', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('## DESIGN SYSTEM')
+    expect(result).toContain('component inventory')
+    expect(result).toContain('`<memories>` section')
+  })
+
+  it('prefers storybook URL over memory reference when both are present', () => {
+    const project = createProjectWithStorybookMemory({
+      designSystemStorybook: {
+        ...emptyFormField(),
+        urlValue: 'https://storybook.example.com',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('**Storybook URL**: https://storybook.example.com')
+    expect(result).not.toContain('component inventory provided in the `<memories>` section')
+  })
+
+  it('normalizes NPM package with install prefix in CDN URLs', () => {
+    const project = createTestProject({
+      designSystemNpm: {
+        ...emptyFormField(),
+        inputType: 'text',
+        textValue: 'npm install @boomi/exosphere',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('`@boomi/exosphere`')
+    expect(result).not.toContain('npm install @boomi/exosphere`')
+    expect(result).toContain('unpkg.com/@boomi/exosphere')
+    expect(result).not.toContain('unpkg.com/npm install')
   })
 
   it('includes additional context for each sub-section', () => {

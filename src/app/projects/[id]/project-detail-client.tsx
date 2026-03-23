@@ -7,7 +7,7 @@ import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Settings, Brain, Exte
 import { toast } from '@/components/ui/sonner';
 import { useProject } from '@/hooks/use-project';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
-import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, COMPANY_CONTEXT_MEMORY_ID } from '@/hooks/use-shared-memories';
+import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, COMPANY_CONTEXT_MEMORY_ID, DESIGN_SYSTEM_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { Header } from '@/components/layout/header';
@@ -283,6 +283,11 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
     if (fieldKey === 'productInfo') {
       return sharedMemories
         .filter((m) => PRODUCT_CONTEXT_MEMORY_IDS.includes(m.id))
+        .map((memory) => ({ memory, locked: false }));
+    }
+    if (fieldKey === 'designSystemStorybook') {
+      return sharedMemories
+        .filter((m) => DESIGN_SYSTEM_MEMORY_IDS.includes(m.id))
         .map((memory) => ({ memory, locked: false }));
     }
     return [];

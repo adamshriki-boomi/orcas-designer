@@ -1,6 +1,7 @@
 import type { Project, SharedSkill } from '../types';
 import { getActiveSkillsForProject } from '../skill-filter';
-import { MANDATORY_SKILLS } from '../constants';
+import { MANDATORY_SKILLS, DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
+import { normalizeNpmPackage } from './npm-utils';
 
 /** Look up a mandatory skill's invocation by name. Falls back to `/name` if not found. */
 function inv(name: string): string {
@@ -61,9 +62,13 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top';
   const hasScreenshots = project.currentImplementation.files.length > 0 || !!project.currentImplementation.urlValue;
   const hasUrl = !!project.currentImplementation.urlValue;
-  const hasStorybook = !!project.designSystemStorybook.urlValue;
+  const hasStorybookUrl = !!project.designSystemStorybook.urlValue;
+  const hasStorybookMemory = (project.selectedSharedMemoryIds ?? []).some(
+    (id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id),
+  );
+  const hasStorybook = hasStorybookUrl || hasStorybookMemory;
   const hasNpm = !!(project.designSystemNpm.textValue || project.designSystemNpm.urlValue);
-  const npmPkg = project.designSystemNpm.textValue || project.designSystemNpm.urlValue;
+  const npmPkg = normalizeNpmPackage(project.designSystemNpm.textValue || project.designSystemNpm.urlValue || '');
   const protoUrl = project.prototypeSketches.urlValue;
   const hasPrototypeUrl = !!protoUrl && !protoUrl.includes('figma.com');
   const interactionLevel = project.interactionLevel ?? 'static';
@@ -94,8 +99,10 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   if (hasUrl) {
     lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to visit the URL listed in <current-implementation>. If Playwright MCP is available, capture full-page screenshots and save to \`./assets/screenshots/[screen-name].png\`. If the URL is inaccessible, proceed using the embedded context and descriptions in this prompt.`);
   }
-  if (hasStorybook) {
+  if (hasStorybookUrl) {
     lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to crawl the Storybook at the URL listed in <design-system>. Visit the sidebar navigation to enumerate all components, then visit each component's docs page. Extract component names, props, variants, and code examples. Save a complete design system inventory to \`./assets/design-system-inventory.md\`. If the URL is inaccessible, proceed using any NPM package documentation or embedded context.`);
+  } else if (hasStorybookMemory) {
+    lines.push(`${step++}. Read the design system component inventory provided in the \`<memories>\` section. Use it as the authoritative reference for available components, props, tokens, and usage patterns.`);
   }
   if (hasFigma) {
     lines.push(`${step++}. Install and authenticate the **Claude-to-Figma** MCP plugin: ensure the official "Claude-to-Figma" plugin is installed from the Figma marketplace, then complete the OAuth authentication flow. This must be done before any Figma write operations in Phase 3.`);

@@ -5,6 +5,8 @@ import {
   createFullProject,
   createTestFileAttachment,
   createTestSharedMemory,
+  createStorybookMemory,
+  createProjectWithStorybookMemory,
 } from '@/test/helpers/project-fixtures'
 
 describe('generatePrompt', () => {
@@ -95,6 +97,32 @@ describe('generatePrompt', () => {
       const prompt = generatePrompt(project, [], [memory])
       expect(prompt).toContain('<memories>')
       expect(prompt).toContain('</memories>')
+    })
+  })
+
+  describe('project with storybook memory', () => {
+    it('includes storybook memory reference in quick-reference', () => {
+      const storybookMem = createStorybookMemory()
+      const project = createProjectWithStorybookMemory()
+      const prompt = generatePrompt(project, [], [storybookMem])
+      expect(prompt).toContain('component inventory provided via memory')
+    })
+
+    it('includes both design-system and memories sections', () => {
+      const storybookMem = createStorybookMemory()
+      const project = createProjectWithStorybookMemory()
+      const prompt = generatePrompt(project, [], [storybookMem])
+      expect(prompt).toContain('<design-system>')
+      expect(prompt).toContain('</design-system>')
+      expect(prompt).toContain('<memories>')
+      expect(prompt).toContain('</memories>')
+    })
+
+    it('includes design system provided line in quick-reference', () => {
+      const storybookMem = createStorybookMemory()
+      const project = createProjectWithStorybookMemory()
+      const prompt = generatePrompt(project, [], [storybookMem])
+      expect(prompt).toContain('Design system: provided')
     })
   })
 

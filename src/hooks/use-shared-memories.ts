@@ -5,15 +5,20 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import type { SharedMemory } from '@/lib/types';
 import { generateId } from '@/lib/id';
-import { BUILT_IN_COMPANY_CONTEXT, BUILT_IN_PRODUCT_CONTEXT, BUILT_IN_EXOSPHERE_STORYBOOK } from '@/lib/constants';
+import {
+  BUILT_IN_COMPANY_CONTEXT,
+  BUILT_IN_PRODUCT_CONTEXT,
+  BUILT_IN_EXOSPHERE_STORYBOOK,
+  BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
+  BUILT_IN_PRODUCT_MEMORY_ID,
+  BUILT_IN_STORYBOOK_MEMORY_ID,
+  COMPANY_CONTEXT_MEMORY_ID,
+  PRODUCT_CONTEXT_MEMORY_IDS,
+  DESIGN_SYSTEM_MEMORY_IDS,
+} from '@/lib/constants';
 
-const BUILT_IN_MEMORY_ID = 'built-in-company-context';
-const BUILT_IN_PRODUCT_MEMORY_ID = 'built-in-rivery-context';
-const BUILT_IN_STORYBOOK_MEMORY_ID = 'built-in-exosphere-storybook';
-
-export const COMPANY_CONTEXT_MEMORY_ID = BUILT_IN_MEMORY_ID;
-export const PRODUCT_CONTEXT_MEMORY_IDS = [BUILT_IN_PRODUCT_MEMORY_ID];
-export const DESIGN_SYSTEM_MEMORY_IDS = [BUILT_IN_STORYBOOK_MEMORY_ID];
+// Re-export for backward compatibility
+export { COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS };
 
 export function useSharedMemories() {
   const sharedMemories = useLiveQuery(
@@ -26,11 +31,11 @@ export function useSharedMemories() {
     let cancelled = false;
     async function ensureBuiltInMemories() {
       try {
-        const existing = await db.sharedMemories.get(BUILT_IN_MEMORY_ID);
+        const existing = await db.sharedMemories.get(BUILT_IN_COMPANY_CONTEXT_MEMORY_ID);
         if (cancelled) return;
         if (!existing) {
           await db.sharedMemories.add({
-            id: BUILT_IN_MEMORY_ID,
+            id: BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
             name: 'Boomi Context',
             description: 'Built-in company context for Boomi',
             content: BUILT_IN_COMPANY_CONTEXT,
@@ -40,7 +45,7 @@ export function useSharedMemories() {
             updatedAt: new Date().toISOString(),
           });
         } else if (existing.name !== 'Boomi Context') {
-          await db.sharedMemories.update(BUILT_IN_MEMORY_ID, {
+          await db.sharedMemories.update(BUILT_IN_COMPANY_CONTEXT_MEMORY_ID, {
             name: 'Boomi Context',
             description: 'Built-in company context for Boomi',
             fileName: 'boomi-context.md',

@@ -1,5 +1,5 @@
 import { buildWorkflowSection } from './workflow-section'
-import { createTestProject, createProjectWithFigma, createProjectWithDesignSystem, createProjectWithCurrentImpl, createFullProject, createTestSharedSkill } from '@/test/helpers/project-fixtures'
+import { createTestProject, createProjectWithFigma, createProjectWithDesignSystem, createProjectWithCurrentImpl, createFullProject, createTestSharedSkill, createProjectWithStorybookMemory } from '@/test/helpers/project-fixtures'
 import { emptyFormField, emptyCurrentImplementation } from '@/lib/types'
 
 describe('buildWorkflowSection', () => {
@@ -64,6 +64,39 @@ describe('buildWorkflowSection', () => {
     const result = buildWorkflowSection(project)
     expect(result).toContain('Cross-browser compatible CSS/JS')
     expect(result).toContain('chrome, firefox, safari')
+  })
+
+  it('includes memory read step when only storybook memory is selected (no URL)', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('design system component inventory')
+    expect(result).toContain('`<memories>` section')
+    expect(result).not.toContain('crawl the Storybook')
+  })
+
+  it('prefers URL crawl over memory when storybook URL is present with memory', () => {
+    const project = createProjectWithStorybookMemory({
+      designSystemStorybook: {
+        ...emptyFormField(),
+        urlValue: 'https://storybook.example.com',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('crawl the Storybook')
+    expect(result).not.toContain('Read the design system component inventory provided in the `<memories>` section')
+  })
+
+  it('normalizes NPM package name in install command', () => {
+    const project = createTestProject({
+      designSystemNpm: {
+        ...emptyFormField(),
+        inputType: 'text',
+        textValue: 'npm install @boomi/exosphere',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('npm i @boomi/exosphere')
+    expect(result).not.toContain('npm i npm install')
   })
 
   it('slugifies the project name for the git branch name', () => {

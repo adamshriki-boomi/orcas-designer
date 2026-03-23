@@ -323,3 +323,11 @@ export const WIZARD_STEPS = [
 ] as const;
 
 export const TOTAL_STEPS = WIZARD_STEPS.length;
+
+// Built-in memory IDs — used by prompt section builders (pure functions) and hooks
+export const BUILT_IN_COMPANY_CONTEXT_MEMORY_ID = 'built-in-company-context';
+export const BUILT_IN_PRODUCT_MEMORY_ID = 'built-in-rivery-context';
+export const BUILT_IN_STORYBOOK_MEMORY_ID = 'built-in-exosphere-storybook';
+export const COMPANY_CONTEXT_MEMORY_ID = BUILT_IN_COMPANY_CONTEXT_MEMORY_ID;
+export const PRODUCT_CONTEXT_MEMORY_IDS = [BUILT_IN_PRODUCT_MEMORY_ID];
+export const DESIGN_SYSTEM_MEMORY_IDS = [BUILT_IN_STORYBOOK_MEMORY_ID];

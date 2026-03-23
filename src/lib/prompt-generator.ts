@@ -1,4 +1,5 @@
 import type { Project, SharedSkill, SharedMemory } from './types';
+import { DESIGN_SYSTEM_MEMORY_IDS } from './constants';
 import { buildContextSection } from './prompt-sections/context-section';
 import { buildImplementationSection } from './prompt-sections/implementation-section';
 import { buildFigmaSection } from './prompt-sections/figma-section';
@@ -43,10 +44,15 @@ function buildQuickReference(project: Project): string {
     'full-prototype': 'Full Interactive Prototype',
   };
 
+  const hasStorybookMemory = (project.selectedSharedMemoryIds ?? []).some(
+    (id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id),
+  );
+
   const hasDs = !!(
     project.designSystemStorybook.urlValue || project.designSystemStorybook.files.length > 0 ||
     project.designSystemNpm.urlValue || project.designSystemNpm.textValue ||
-    project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0
+    project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0 ||
+    hasStorybookMemory
   );
 
   const lines: string[] = [
@@ -60,6 +66,8 @@ function buildQuickReference(project: Project): string {
     lines.push('- Design system: provided (see Design System section)');
     if (project.designSystemStorybook.urlValue) {
       lines.push(`- Storybook: ${project.designSystemStorybook.urlValue}`);
+    } else if (hasStorybookMemory) {
+      lines.push('- Storybook: component inventory provided via memory');
     }
   }
 

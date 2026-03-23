@@ -7,12 +7,14 @@ interface SharedMemoriesPickerProps {
   sharedMemories: SharedMemory[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  lockedIds?: string[];
 }
 
 export function SharedMemoriesPicker({
   sharedMemories,
   selectedIds,
   onChange,
+  lockedIds = [],
 }: SharedMemoriesPickerProps) {
   function handleToggle(memoryId: string) {
     if (selectedIds.includes(memoryId)) {
@@ -32,14 +34,18 @@ export function SharedMemoriesPicker({
 
   return (
     <div className="grid gap-2">
-      {sharedMemories.map((memory) => (
-        <MemoryCard
-          key={memory.id}
-          memory={memory}
-          selected={memory.isBuiltIn || selectedIds.includes(memory.id)}
-          onToggle={memory.isBuiltIn ? undefined : () => handleToggle(memory.id)}
-        />
-      ))}
+      {sharedMemories.map((memory) => {
+        const isLocked = lockedIds.includes(memory.id);
+        return (
+          <MemoryCard
+            key={memory.id}
+            memory={memory}
+            selected={isLocked || selectedIds.includes(memory.id)}
+            locked={isLocked}
+            onToggle={isLocked ? undefined : () => handleToggle(memory.id)}
+          />
+        );
+      })}
     </div>
   );
 }

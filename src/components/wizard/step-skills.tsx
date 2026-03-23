@@ -1,12 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
 import { MandatorySkillsList } from "@/components/skills/mandatory-skills-list";
 import { SharedSkillsPicker } from "@/components/skills/shared-skills-picker";
 import { CustomSkillAdder } from "@/components/skills/custom-skill-adder";
 import { WizardStep } from "./wizard-step";
-import type { SharedSkill, CustomSkill } from "@/lib/types";
+import { getActiveSkillsForProject } from "@/lib/skill-filter";
+import type { Project, SharedSkill, CustomSkill } from "@/lib/types";
 
 interface StepSkillsProps {
+  formData: Project;
   selectedSharedSkillIds: string[];
   onSharedSkillsChange: (ids: string[]) => void;
   customSkills: CustomSkill[];
@@ -15,12 +18,18 @@ interface StepSkillsProps {
 }
 
 export function StepSkills({
+  formData,
   selectedSharedSkillIds,
   onSharedSkillsChange,
   customSkills,
   onCustomSkillsChange,
   sharedSkills,
 }: StepSkillsProps) {
+  const activeSkills = useMemo(
+    () => getActiveSkillsForProject(formData),
+    [formData]
+  );
+
   return (
     <WizardStep
       title="Skills Configuration"
@@ -28,8 +37,8 @@ export function StepSkills({
     >
       <div className="space-y-8">
         <section className="space-y-3">
-          <h3 className="text-sm font-medium">Mandatory Skills</h3>
-          <MandatorySkillsList />
+          <h3 className="text-sm font-medium">Mandatory Skills ({activeSkills.length})</h3>
+          <MandatorySkillsList skills={activeSkills} />
         </section>
 
         <section className="space-y-3">

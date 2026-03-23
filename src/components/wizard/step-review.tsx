@@ -8,7 +8,7 @@ import { PromptRenderer } from "@/components/prompt/prompt-renderer";
 import { WizardStep } from "./wizard-step";
 import { generatePrompt } from "@/lib/prompt-generator";
 import { isFieldFilled } from "@/lib/validators";
-import { MANDATORY_SKILLS } from "@/lib/constants";
+import { getActiveSkillsForProject } from "@/lib/skill-filter";
 import { PRODUCT_CONTEXT_MEMORY_IDS } from "@/hooks/use-shared-memories";
 import type { Project, SharedSkill, SharedMemory } from "@/lib/types";
 
@@ -73,7 +73,7 @@ export function StepReview({
   const prompt = generatePrompt(formData, sharedSkills, sharedMemories);
   const filledFields = countFilledFields(formData);
   const totalSkills =
-    MANDATORY_SKILLS.length +
+    getActiveSkillsForProject(formData).length +
     formData.selectedSharedSkillIds.length +
     formData.customSkills.length;
   const totalMemories =

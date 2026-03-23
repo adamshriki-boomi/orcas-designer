@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWizardForm } from '@/hooks/use-wizard-form';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
-import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS } from '@/hooks/use-shared-memories';
+import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { db } from '@/lib/db';
 import { generateId } from '@/lib/id';
@@ -214,6 +214,7 @@ function WizardContent() {
       case 12:
         return (
           <StepSkills
+            formData={formData}
             selectedSharedSkillIds={formData.selectedSharedSkillIds}
             onSharedSkillsChange={setSharedSkills}
             customSkills={formData.customSkills}
@@ -229,6 +230,7 @@ function WizardContent() {
             onSharedMemoriesChange={setSharedMemories}
             customMemories={formData.customMemories ?? []}
             onCustomMemoriesChange={setCustomMemories}
+            lockedMemoryIds={[COMPANY_CONTEXT_MEMORY_ID]}
           />
         );
       case 14:

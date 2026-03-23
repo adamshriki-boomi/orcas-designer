@@ -21,6 +21,7 @@ interface StepMemoriesProps {
   onSharedMemoriesChange: (ids: string[]) => void;
   customMemories: CustomMemory[];
   onCustomMemoriesChange: (memories: CustomMemory[]) => void;
+  lockedMemoryIds?: string[];
 }
 
 export function StepMemories({
@@ -29,6 +30,7 @@ export function StepMemories({
   onSharedMemoriesChange,
   customMemories,
   onCustomMemoriesChange,
+  lockedMemoryIds = [],
 }: StepMemoriesProps) {
   const { addMemory } = useSharedMemories();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,9 +97,15 @@ export function StepMemories({
         <section className="space-y-3">
           <h3 className="text-sm font-medium">Shared Memories</h3>
           <SharedMemoriesPicker
-            sharedMemories={sharedMemories}
+            sharedMemories={sharedMemories.filter(
+              (m) =>
+                !m.isBuiltIn ||
+                lockedMemoryIds.includes(m.id) ||
+                selectedSharedMemoryIds.includes(m.id)
+            )}
             selectedIds={selectedSharedMemoryIds}
             onChange={onSharedMemoriesChange}
+            lockedIds={lockedMemoryIds}
           />
         </section>
 

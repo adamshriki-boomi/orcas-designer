@@ -11,6 +11,7 @@ import { Lock, Trash2, Edit, FileText } from 'lucide-react';
 interface MemoryCardProps {
   memory: SharedMemory;
   selected?: boolean;
+  locked?: boolean;
   onToggle?: () => void;
   onView?: () => void;
   onEdit?: () => void;
@@ -20,6 +21,7 @@ interface MemoryCardProps {
 export function MemoryCard({
   memory,
   selected = false,
+  locked = false,
   onToggle,
   onView,
   onEdit,
@@ -37,7 +39,7 @@ export function MemoryCard({
     >
       <CardHeader>
         <div className="flex items-center gap-2">
-          {memory.isBuiltIn ? (
+          {locked ? (
             <Lock className="size-4 shrink-0 text-muted-foreground" />
           ) : onToggle ? (
             <Checkbox

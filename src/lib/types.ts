@@ -83,6 +83,7 @@ export interface Project {
   productInfo: FormFieldData;
   featureInfo: FormFieldData;
   currentImplementation: CurrentImplementationData;
+  uxResearch: FormFieldData;
   figmaFileLink: FormFieldData;
   designSystemStorybook: FormFieldData;
   designSystemNpm: FormFieldData;
@@ -127,6 +128,7 @@ export const emptyProject = (id: string, name: string): Project => ({
   productInfo: emptyFormField(),
   featureInfo: emptyFormField(),
   currentImplementation: emptyCurrentImplementation(),
+  uxResearch: emptyFormField(),
   figmaFileLink: emptyFormField(),
   designSystemStorybook: emptyFormField(),
   designSystemNpm: { ...emptyFormField(), inputType: 'text' },

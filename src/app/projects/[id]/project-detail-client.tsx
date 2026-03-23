@@ -58,6 +58,7 @@ const FIELD_LABELS: Record<string, string> = {
   companyInfo: 'Company Info',
   productInfo: 'Product Info',
   featureInfo: 'Feature Info',
+  uxResearch: 'UX Research',
   figmaFileLink: 'Figma File',
   designSystemStorybook: 'Storybook',
   designSystemNpm: 'NPM Package',

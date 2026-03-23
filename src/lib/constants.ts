@@ -309,6 +309,7 @@ export const WIZARD_STEPS = [
   { key: 'product-info', label: 'Product Info', required: true },
   { key: 'feature-info', label: 'Feature Info', required: true },
   { key: 'current-impl', label: 'Current Implementation', required: false },
+  { key: 'ux-research', label: 'UX Research', required: false },
   { key: 'figma-link', label: 'Figma File', required: false },
   { key: 'ds-storybook', label: 'Storybook', required: false },
   { key: 'ds-npm', label: 'NPM Package', required: false },

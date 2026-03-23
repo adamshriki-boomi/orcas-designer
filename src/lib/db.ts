@@ -44,4 +44,12 @@ db.version(4).stores({}).upgrade((tx) => {
   });
 });
 
+db.version(5).stores({}).upgrade((tx) => {
+  return tx.table('projects').toCollection().modify((project: Record<string, unknown>) => {
+    if (project.uxResearch === undefined) {
+      project.uxResearch = { inputType: 'url', urlValue: '', textValue: '', files: [], additionalContext: '' };
+    }
+  });
+});
+
 export { db };

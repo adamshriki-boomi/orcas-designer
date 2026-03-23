@@ -23,6 +23,7 @@ import { StepFigmaLink } from '@/components/wizard/step-figma-link';
 import { StepDesignSystemStorybook } from '@/components/wizard/step-design-system-storybook';
 import { StepDesignSystemNpm } from '@/components/wizard/step-design-system-npm';
 import { StepDesignSystemFigma } from '@/components/wizard/step-design-system-figma';
+import { StepUxResearch } from '@/components/wizard/step-ux-research';
 import { StepPrototypes } from '@/components/wizard/step-prototypes';
 import { StepOutputType } from '@/components/wizard/step-output-type';
 import { StepAdvancedOptions } from '@/components/wizard/step-advanced-options';
@@ -80,7 +81,7 @@ function WizardContent() {
         const ok = isFieldFilled(formData.featureInfo);
         return { canProceed: ok, validationMessage: ok ? null : 'Feature info is required' };
       }
-      case 9: {
+      case 10: {
         const ok = !!formData.interactionLevel;
         return { canProceed: ok, validationMessage: ok ? null : 'Please select an interaction level' };
       }
@@ -94,22 +95,23 @@ function WizardContent() {
     if (isFieldFilled(formData.productInfo) || (formData.selectedSharedMemoryIds ?? []).some((id) => PRODUCT_CONTEXT_MEMORY_IDS.includes(id))) set.add(1);
     if (isFieldFilled(formData.featureInfo)) set.add(2);
     if (isFieldFilled(formData.currentImplementation) || formData.currentImplementation.figmaLinks.length > 0) set.add(3);
-    if (formData.figmaFileLink.urlValue.trim().length > 0) set.add(4);
-    if (isFieldFilled(formData.designSystemStorybook) || (formData.selectedSharedMemoryIds ?? []).some((id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id))) set.add(5);
-    if (isFieldFilled(formData.designSystemNpm)) set.add(6);
-    if (isFieldFilled(formData.designSystemFigma)) set.add(7);
-    if (isFieldFilled(formData.prototypeSketches)) set.add(8);
-    if (formData.interactionLevel) set.add(9);
+    if (isFieldFilled(formData.uxResearch)) set.add(4);
+    if (formData.figmaFileLink.urlValue.trim().length > 0) set.add(5);
+    if (isFieldFilled(formData.designSystemStorybook) || (formData.selectedSharedMemoryIds ?? []).some((id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id))) set.add(6);
+    if (isFieldFilled(formData.designSystemNpm)) set.add(7);
+    if (isFieldFilled(formData.designSystemFigma)) set.add(8);
+    if (isFieldFilled(formData.prototypeSketches)) set.add(9);
+    if (formData.interactionLevel) set.add(10);
     // Advanced options — completed if any non-default value is set
     if (
       formData.accessibilityLevel !== 'none' ||
       formData.browserCompatibility.length > 1 ||
       !formData.externalResourcesAccessible ||
       formData.designDirection !== null
-    ) set.add(10);
-    set.add(11); // Always completed — mandatory skills are always included
-    if ((formData.selectedSharedMemoryIds?.length ?? 0) > 0 || (formData.customMemories?.length ?? 0) > 0) set.add(12);
-    if (formData.generatedPrompt) set.add(13);
+    ) set.add(11);
+    set.add(12); // Always completed — mandatory skills are always included
+    if ((formData.selectedSharedMemoryIds?.length ?? 0) > 0 || (formData.customMemories?.length ?? 0) > 0) set.add(13);
+    if (formData.generatedPrompt) set.add(14);
     return set;
   }, [formData]);
 
@@ -164,8 +166,10 @@ function WizardContent() {
       case 3:
         return <StepCurrentImpl data={formData.currentImplementation} onChange={setCurrentImpl} />;
       case 4:
+        return <StepUxResearch data={formData.uxResearch} onChange={(d: FormFieldData) => setField('uxResearch', d)} />;
+      case 5:
         return <StepFigmaLink data={formData.figmaFileLink} onChange={(d: FormFieldData) => setField('figmaFileLink', d)} />;
-      case 5: {
+      case 6: {
         const storybookMemories = sharedMemories.filter((m) => DESIGN_SYSTEM_MEMORY_IDS.includes(m.id));
         return (
           <StepDesignSystemStorybook
@@ -177,13 +181,13 @@ function WizardContent() {
           />
         );
       }
-      case 6:
-        return <StepDesignSystemNpm data={formData.designSystemNpm} onChange={(d: FormFieldData) => setField('designSystemNpm', d)} />;
       case 7:
-        return <StepDesignSystemFigma data={formData.designSystemFigma} onChange={(d: FormFieldData) => setField('designSystemFigma', d)} />;
+        return <StepDesignSystemNpm data={formData.designSystemNpm} onChange={(d: FormFieldData) => setField('designSystemNpm', d)} />;
       case 8:
-        return <StepPrototypes data={formData.prototypeSketches} onChange={(d: FormFieldData) => setField('prototypeSketches', d)} />;
+        return <StepDesignSystemFigma data={formData.designSystemFigma} onChange={(d: FormFieldData) => setField('designSystemFigma', d)} />;
       case 9:
+        return <StepPrototypes data={formData.prototypeSketches} onChange={(d: FormFieldData) => setField('prototypeSketches', d)} />;
+      case 10:
         return (
           <StepOutputType
             interactionLevel={formData.interactionLevel}
@@ -194,7 +198,7 @@ function WizardContent() {
             onPromptModeChange={setPromptMode}
           />
         );
-      case 10:
+      case 11:
         return (
           <StepAdvancedOptions
             accessibilityLevel={formData.accessibilityLevel}
@@ -207,7 +211,7 @@ function WizardContent() {
             onDesignDirectionChange={setDesignDirection}
           />
         );
-      case 11:
+      case 12:
         return (
           <StepSkills
             selectedSharedSkillIds={formData.selectedSharedSkillIds}
@@ -217,7 +221,7 @@ function WizardContent() {
             sharedSkills={sharedSkills}
           />
         );
-      case 12:
+      case 13:
         return (
           <StepMemories
             sharedMemories={sharedMemories}
@@ -227,7 +231,7 @@ function WizardContent() {
             onCustomMemoriesChange={setCustomMemories}
           />
         );
-      case 13:
+      case 14:
         return <StepReview formData={formData} sharedSkills={sharedSkills} sharedMemories={sharedMemories} onCopy={handleCopy} copied={copied} />;
       default:
         return null;

@@ -3,6 +3,7 @@ import { buildContextSection } from './prompt-sections/context-section';
 import { buildImplementationSection } from './prompt-sections/implementation-section';
 import { buildFigmaSection } from './prompt-sections/figma-section';
 import { buildDesignSystemSection } from './prompt-sections/design-system-section';
+import { buildUxResearchSection } from './prompt-sections/ux-research-section';
 import { buildPrototypeSection } from './prompt-sections/prototype-section';
 import { buildOutputTypeSection } from './prompt-sections/output-type-section';
 import { buildUserStoriesSection } from './prompt-sections/user-stories-section';
@@ -23,6 +24,7 @@ function hasAnyFileAttachments(project: Project): boolean {
     project.productInfo,
     project.featureInfo,
     project.currentImplementation,
+    project.uxResearch,
     project.figmaFileLink,
     project.designSystemStorybook,
     project.designSystemNpm,
@@ -83,6 +85,7 @@ export function generatePrompt(project: Project, sharedSkills: SharedSkill[], sh
     wrapXml('quick-reference', buildQuickReference(project)),
     wrapXml('fallback-strategy', buildFallbackSection(project)),
     wrapXml('context', buildContextSection(project)),
+    wrapXml('ux-research', buildUxResearchSection(project)),
     wrapXml('current-implementation', buildImplementationSection(project)),
     wrapXml('figma-target', buildFigmaSection(project)),
     wrapXml('design-system', buildDesignSystemSection(project)),

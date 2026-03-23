@@ -38,6 +38,7 @@ function countFilledFields(project: Project): number {
   const otherFields = [
     project.featureInfo,
     project.currentImplementation,
+    project.uxResearch,
     project.figmaFileLink,
     project.designSystemStorybook,
     project.designSystemNpm,
@@ -93,7 +94,7 @@ export function StepReview({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Filled Fields</span>
-              <span className="text-sm font-medium">{filledFields} / 9</span>
+              <span className="text-sm font-medium">{filledFields} / 10</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Prompt Mode</span>

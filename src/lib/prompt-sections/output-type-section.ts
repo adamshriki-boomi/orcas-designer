@@ -20,7 +20,7 @@ export function buildOutputTypeSection(project: Project): string {
   }
 
   if (hasFigma) {
-    lines.push('HTML/CSS/JS files are the **primary, always-required output**. After all HTML files are complete, if the Figma MCP `generate_figma_design` tool is available, write designs to the Figma target file. If the tool is not available, skip Figma output entirely.');
+    lines.push('HTML/CSS/JS files are the **primary, always-required output**. After all HTML files are complete, use the **Claude-to-Figma** plugin (`generate_figma_design` tool) to write designs to the Figma target file. If Figma authentication fails, skip Figma output and inform the user.');
   } else {
     lines.push('Do NOT create Figma files.');
   }

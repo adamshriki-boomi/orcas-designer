@@ -80,10 +80,6 @@ function WizardContent() {
         const ok = isFieldFilled(formData.featureInfo);
         return { canProceed: ok, validationMessage: ok ? null : 'Feature info is required' };
       }
-      case 4: {
-        const ok = formData.figmaFileLink.urlValue.trim().length > 0;
-        return { canProceed: ok, validationMessage: ok ? null : 'Figma file link is required' };
-      }
       case 9: {
         const ok = !!formData.interactionLevel;
         return { canProceed: ok, validationMessage: ok ? null : 'Please select an interaction level' };

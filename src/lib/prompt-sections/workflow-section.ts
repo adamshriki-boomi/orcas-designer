@@ -97,6 +97,9 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   if (hasStorybook) {
     lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to crawl the Storybook at the URL listed in <design-system>. Visit the sidebar navigation to enumerate all components, then visit each component's docs page. Extract component names, props, variants, and code examples. Save a complete design system inventory to \`./assets/design-system-inventory.md\`. If the URL is inaccessible, proceed using any NPM package documentation or embedded context.`);
   }
+  if (hasFigma) {
+    lines.push(`${step++}. Install and authenticate the **Claude-to-Figma** MCP plugin: ensure the official "Claude-to-Figma" plugin is installed from the Figma marketplace, then complete the OAuth authentication flow. This must be done before any Figma write operations in Phase 3.`);
+  }
   lines.push(`${step++}. Read all provided context (company, product, feature info)`);
   if (hasPrototypeUrl) {
     lines.push(`${step++}. Visit the prototype at \`${protoUrl}\` using Playwright MCP or WebFetch. Document all screens, states, and interactions found. Save findings to \`./assets/prototype-analysis.md\`. If inaccessible, use the wireframe descriptions in <prototypes>.`);
@@ -141,7 +144,7 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   }
   lines.push(`${step++}. Link user stories to their relevant HTML file/screen in the prototype output`);
   if (hasFigma) {
-    lines.push(`${step++}. If the Figma MCP \`generate_figma_design\` tool is available, write completed designs to the Figma target file. Do this ONLY after all HTML prototype files are done and verified. If the tool is not available, skip this step.`);
+    lines.push(`${step++}. Use the **Claude-to-Figma** plugin (\`generate_figma_design\` tool) to write completed designs to the Figma target file. Do this ONLY after all HTML prototype files are done and verified. If Figma authentication failed in Phase 1, skip this step and inform the user.`);
   }
 
   // Phase 4: Verify & Wrap Up
@@ -158,7 +161,7 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
     lines.push('   - CSS transitions and micro-interactions work smoothly');
   }
   if (hasFigma) {
-    lines.push('   - Figma target file populated with all design frames (if Figma MCP tool was available)');
+    lines.push('   - Figma target file populated with all design frames (via Claude-to-Figma plugin)');
   }
   if (!isLite) {
     lines.push('   - Responsive layouts verified: desktop (primary), tablet (required), mobile (stretch)');

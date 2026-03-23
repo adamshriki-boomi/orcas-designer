@@ -2,6 +2,7 @@
 
 import { Pencil } from 'lucide-react';
 import { FieldSummary } from './field-summary';
+import { getMemoryNames } from './field-memory-map';
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -50,34 +51,8 @@ const FIELD_KEYS = [
   'prototypeSketches',
 ] as const;
 
-// Memories always shown for a field (locked, not toggleable)
-const LOCKED_MEMORY_MAP: Record<string, string[]> = {
-  companyInfo: ['built-in-company-context'],
-};
-
-// Memories shown only when selected
-const SELECTABLE_MEMORY_MAP: Record<string, string[]> = {
-  productInfo: ['built-in-rivery-context'],
-};
-
 export function FieldsGrid({ project, onEditField, onEditInteractionLevel, onEditImplementationMode, sharedMemories = [] }: FieldsGridProps) {
-  function getMemoryNames(fieldKey: string): string[] {
-    const names: string[] = [];
-    const lockedIds = LOCKED_MEMORY_MAP[fieldKey] ?? [];
-    for (const id of lockedIds) {
-      const name = sharedMemories.find((m) => m.id === id)?.name;
-      if (name) names.push(name);
-    }
-    const selectableIds = SELECTABLE_MEMORY_MAP[fieldKey] ?? [];
-    const selectedIds = project.selectedSharedMemoryIds ?? [];
-    for (const id of selectableIds) {
-      if (selectedIds.includes(id)) {
-        const name = sharedMemories.find((m) => m.id === id)?.name;
-        if (name) names.push(name);
-      }
-    }
-    return names;
-  }
+  const selectedIds = project.selectedSharedMemoryIds ?? [];
 
   return (
     <div className="space-y-6">
@@ -88,7 +63,7 @@ export function FieldsGrid({ project, onEditField, onEditInteractionLevel, onEdi
             label={FIELD_LABELS[key]}
             field={project[key]}
             onEdit={() => onEditField(key)}
-            memoryNames={getMemoryNames(key)}
+            memoryNames={getMemoryNames(key, selectedIds, sharedMemories)}
           />
         ))}
       </div>

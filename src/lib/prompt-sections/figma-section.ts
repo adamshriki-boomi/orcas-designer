@@ -9,13 +9,11 @@ export function buildFigmaSection(project: Project): string {
   if (field.urlValue) {
     lines.push(`**Figma Destination File URL**: ${field.urlValue}`);
     lines.push('');
-    lines.push('### Setup: Claude-to-Figma Plugin');
-    lines.push('Before writing to Figma, ensure the **Claude-to-Figma** MCP plugin is installed and authenticated:');
-    lines.push('1. Install the official **"Claude-to-Figma"** MCP plugin (Figma marketplace) if not already installed.');
-    lines.push('2. Authenticate with Figma via the plugin\'s OAuth flow when prompted.');
-    lines.push('3. Once authenticated, use the `generate_figma_design` tool to write designs to the destination file above.');
+    lines.push('### Prerequisite: Claude-to-Figma Plugin');
+    lines.push('Check that `generate_figma_design` is available in your tools. If it is, use it to write designs to the destination file above.');
+    lines.push('If not available, Figma output will be skipped — continue with HTML/CSS/JS output only.');
     lines.push('');
-    lines.push('This is a **write-only destination**. Do NOT attempt to extract or read designs from this file.');
+    lines.push('This destination URL is **write-only**. Do NOT extract or read designs from this URL. You MAY read from other Figma URLs listed in this brief (e.g., in `<current-implementation>`, `<design-system>`, or `<prototypes>`).');
     lines.push('If authentication fails, inform the user and continue with HTML/CSS/JS output only.');
   }
 

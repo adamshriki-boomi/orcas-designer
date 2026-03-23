@@ -59,4 +59,29 @@ describe('buildContextSection', () => {
     const result = buildContextSection(project)
     expect(result).toContain('> Additional context: We are a B2B SaaS company')
   })
+
+  it('includes Google Docs access strategy when feature info is a Google Docs URL', () => {
+    const project = createTestProject({
+      featureInfo: {
+        ...emptyFormField(),
+        urlValue: 'https://docs.google.com/document/d/abc123/edit',
+      },
+    })
+    const result = buildContextSection(project)
+    expect(result).toContain('**Feature Info**:')
+    expect(result).toContain('Access strategy')
+    expect(result).toContain('export?format=txt')
+  })
+
+  it('does not include access strategy for non-Google feature info URL', () => {
+    const project = createTestProject({
+      featureInfo: {
+        ...emptyFormField(),
+        urlValue: 'https://notion.so/my-feature-spec',
+      },
+    })
+    const result = buildContextSection(project)
+    expect(result).toContain('**Feature Info**: https://notion.so/my-feature-spec')
+    expect(result).not.toContain('Access strategy')
+  })
 })

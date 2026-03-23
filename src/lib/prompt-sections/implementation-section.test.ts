@@ -68,4 +68,17 @@ describe('buildImplementationSection', () => {
     const result = buildImplementationSection(project)
     expect(result).toContain('> Additional context: The header needs a refresh')
   })
+
+  it('includes visual baseline explanation for add-on-top mode', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildImplementationSection(project)
+    expect(result).toContain('visual baseline')
+    expect(result).toContain('typography, colors, component choices, layout patterns')
+  })
 })

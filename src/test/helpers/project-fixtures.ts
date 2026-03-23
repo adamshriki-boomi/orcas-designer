@@ -80,6 +80,16 @@ export function createFullProject(overrides: Partial<Project> = {}): Project {
   })
 }
 
+export function createProjectWithPrototypeFigma(overrides: Partial<Project> = {}): Project {
+  return createTestProject({
+    prototypeSketches: {
+      ...emptyFormField(),
+      urlValue: 'https://www.figma.com/proto/proto123/My-Prototype',
+    },
+    ...overrides,
+  })
+}
+
 export function createTestFileAttachment(overrides: Partial<FileAttachment> = {}): FileAttachment {
   return {
     id: 'file-1',

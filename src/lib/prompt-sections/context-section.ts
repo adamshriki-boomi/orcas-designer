@@ -1,4 +1,5 @@
 import type { Project, FormFieldData } from '../types';
+import { parseGoogleDocUrl, buildGoogleDocsInstructions } from './url-utils';
 
 function renderField(label: string, field: FormFieldData): string {
   const parts: string[] = [];
@@ -22,7 +23,22 @@ export function buildContextSection(project: Project): string {
   const lines: string[] = ['## CONTEXT'];
   const company = renderField('Company Info', project.companyInfo);
   const product = renderField('Product Info', project.productInfo);
-  const feature = renderField('Feature Info', project.featureInfo);
+  // Feature info: detect Google Docs URLs for access strategy
+  let feature: string;
+  if (project.featureInfo.inputType === 'url' && project.featureInfo.urlValue) {
+    const docInfo = parseGoogleDocUrl(project.featureInfo.urlValue);
+    if (docInfo) {
+      feature = buildGoogleDocsInstructions(project.featureInfo.urlValue, docInfo, 'Feature Info');
+      if (project.featureInfo.additionalContext) {
+        feature += `\n> Additional context: ${project.featureInfo.additionalContext}`;
+      }
+    } else {
+      feature = renderField('Feature Info', project.featureInfo);
+    }
+  } else {
+    feature = renderField('Feature Info', project.featureInfo);
+  }
+
   if (company) lines.push(company);
   if (product) lines.push(product);
   if (feature) lines.push(feature);

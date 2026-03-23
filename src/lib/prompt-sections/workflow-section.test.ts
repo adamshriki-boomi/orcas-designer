@@ -1,5 +1,5 @@
 import { buildWorkflowSection } from './workflow-section'
-import { createTestProject, createProjectWithFigma, createProjectWithDesignSystem, createProjectWithCurrentImpl, createFullProject, createTestSharedSkill, createProjectWithStorybookMemory } from '@/test/helpers/project-fixtures'
+import { createTestProject, createProjectWithFigma, createProjectWithDesignSystem, createProjectWithCurrentImpl, createFullProject, createTestSharedSkill, createProjectWithStorybookMemory, createProjectWithPrototypeFigma } from '@/test/helpers/project-fixtures'
 import { emptyFormField, emptyCurrentImplementation } from '@/lib/types'
 
 describe('buildWorkflowSection', () => {
@@ -20,11 +20,13 @@ describe('buildWorkflowSection', () => {
     expect(result).toContain('design-system-inventory.md')
   })
 
-  it('includes Claude-to-Figma install step when figma target is set', () => {
+  it('includes Claude-to-Figma verify step when figma target is set', () => {
     const project = createProjectWithFigma()
     const result = buildWorkflowSection(project)
     expect(result).toContain('Claude-to-Figma')
-    expect(result).toContain('OAuth authentication flow')
+    expect(result).toContain('generate_figma_design')
+    expect(result).toContain('Verify')
+    expect(result).not.toContain('Install and authenticate')
   })
 
   it('includes implement-design skill step when source figma is present', () => {
@@ -103,5 +105,91 @@ describe('buildWorkflowSection', () => {
     const project = createTestProject({ name: 'My Cool Design Project' })
     const result = buildWorkflowSection(project)
     expect(result).toContain('feat/my-cool-design-project')
+  })
+
+  it('uses Figma MCP instead of Playwright when current implementation URL is a Figma URL', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://www.figma.com/design/abc/Current',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Figma MCP tools')
+    expect(result).toContain('get_design_context')
+    expect(result).not.toContain('Use Playwright MCP (preferred) or WebFetch to visit the URL')
+  })
+
+  it('uses Playwright for non-Figma current implementation URL', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Use Playwright MCP (preferred) or WebFetch to visit the URL')
+    expect(result).not.toContain('Figma MCP tools (`get_design_context`')
+  })
+
+  it('adds Figma extraction step when prototype URL is a Figma URL', () => {
+    const project = createProjectWithPrototypeFigma()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Figma MCP tools')
+    expect(result).toContain('proto123')
+    expect(result).toContain('prototype-analysis.md')
+  })
+
+  it('does not add Figma extraction step for non-Figma prototype URL', () => {
+    const project = createTestProject({
+      prototypeSketches: {
+        ...emptyFormField(),
+        urlValue: 'https://prototype.example.com',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Visit the prototype')
+    expect(result).not.toContain('Figma MCP tools (`get_design_context`, `get_screenshot`) to extract design specs from the Figma prototype')
+  })
+
+  it('includes Figma access status in checkpoint when source Figma is present', () => {
+    const project = createProjectWithCurrentImpl()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Figma access:')
+    expect(result).toContain('Design patterns extracted:')
+  })
+
+  it('includes Figma access status in checkpoint when prototype Figma is present', () => {
+    const project = createProjectWithPrototypeFigma()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Figma access:')
+    expect(result).toContain('Design patterns extracted:')
+  })
+
+  it('does not include Figma checkpoint bullets when no Figma sources', () => {
+    const project = createTestProject()
+    const result = buildWorkflowSection(project)
+    expect(result).not.toContain('Figma access:')
+    expect(result).not.toContain('Design patterns extracted:')
+  })
+
+  it('references <memories> instead of inventory file when using storybook memory in build step', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Reference the component inventory in `<memories>`')
+    expect(result).not.toContain('design-system-inventory.md')
+  })
+
+  it('references design-system-inventory.md when storybook URL is present in build step', () => {
+    const project = createProjectWithDesignSystem()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('design-system-inventory.md')
+  })
+
+  it('omits component reference when no storybook at all in build step', () => {
+    const project = createTestProject()
+    const result = buildWorkflowSection(project)
+    expect(result).not.toContain('design-system-inventory.md')
+    expect(result).not.toContain('Reference the component inventory in `<memories>`')
   })
 })

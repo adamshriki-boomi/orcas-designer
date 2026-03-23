@@ -18,6 +18,21 @@ describe('buildFigmaSection', () => {
     expect(result).toContain('FIGMA TARGET (DESTINATION)')
   })
 
+  it('scopes write-only restriction to "this URL" and allows reading other Figma URLs', () => {
+    const project = createProjectWithFigma()
+    const result = buildFigmaSection(project)
+    expect(result).toContain('this URL')
+    expect(result).toContain('You MAY read from other Figma URLs')
+    expect(result).not.toContain('this file')
+  })
+
+  it('uses "Prerequisite" heading instead of "Setup"', () => {
+    const project = createProjectWithFigma()
+    const result = buildFigmaSection(project)
+    expect(result).toContain('Prerequisite: Claude-to-Figma Plugin')
+    expect(result).not.toContain('Setup: Claude-to-Figma Plugin')
+  })
+
   it('includes additional context when provided', () => {
     const project = createProjectWithFigma({
       figmaFileLink: {

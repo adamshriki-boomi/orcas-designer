@@ -1,6 +1,7 @@
 import type { Project } from './types';
 import type { MandatorySkill } from './constants';
 import { MANDATORY_SKILLS } from './constants';
+import { isFigmaUrl } from './prompt-sections/url-utils';
 
 export function getActiveSkillsForProject(project: Project): MandatorySkill[] {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
@@ -9,7 +10,7 @@ export function getActiveSkillsForProject(project: Project): MandatorySkill[] {
     project.currentImplementation.figmaLinks.length > 0 ||
     project.designSystemFigma.urlValue ||
     project.designSystemFigma.files.length > 0 ||
-    (project.prototypeSketches.urlValue && project.prototypeSketches.urlValue.includes('figma.com'))
+    (project.prototypeSketches.urlValue && isFigmaUrl(project.prototypeSketches.urlValue))
   );
   const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top';
   return MANDATORY_SKILLS.filter(skill => {

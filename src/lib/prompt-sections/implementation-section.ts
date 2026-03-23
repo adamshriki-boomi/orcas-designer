@@ -19,8 +19,9 @@ export function buildImplementationSection(project: Project): string {
 
   if (impl.implementationMode === 'add-on-top') {
     lines.push('**Mode**: Add on top of existing implementation');
+    lines.push('New screens must match the existing UI\'s visual baseline (typography, colors, component choices, layout patterns). Extract these patterns before building.');
     if (impl.urlValue || impl.files.length > 0) {
-      lines.push(`Use the ${inv('screenshot-overlay-positioning')} skill to analyze the current UI screenshots and position new elements precisely on top of the existing design.`);
+      lines.push(`When screenshots are available, use the ${inv('screenshot-overlay-positioning')} skill to find precise coordinates for positioning new elements within the existing layout.`);
     }
   } else {
     lines.push('**Mode**: Redesign from scratch');

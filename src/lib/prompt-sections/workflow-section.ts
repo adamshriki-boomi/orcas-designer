@@ -2,6 +2,7 @@ import type { Project, SharedSkill } from '../types';
 import { getActiveSkillsForProject } from '../skill-filter';
 import { MANDATORY_SKILLS, DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
 import { normalizeNpmPackage } from './npm-utils';
+import { isFigmaUrl } from './url-utils';
 
 /** Look up a mandatory skill's invocation by name. Falls back to `/name` if not found. */
 function inv(name: string): string {
@@ -58,10 +59,14 @@ function slugify(name: string): string {
 export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill[] = []): string {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
   const hasDesignFigma = !!(project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
-  const hasSourceFigma = !!(project.currentImplementation.figmaLinks.length > 0 || project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
+  const protoUrl = project.prototypeSketches.urlValue;
+  const hasPrototypeFigma = !!protoUrl && isFigmaUrl(protoUrl);
+  const hasSourceFigma = !!(project.currentImplementation.figmaLinks.length > 0 || project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0) || hasPrototypeFigma;
   const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top';
   const hasScreenshots = project.currentImplementation.files.length > 0 || !!project.currentImplementation.urlValue;
-  const hasUrl = !!project.currentImplementation.urlValue;
+  const implUrl = project.currentImplementation.urlValue;
+  const hasUrl = !!implUrl;
+  const hasImplFigma = hasUrl && isFigmaUrl(implUrl);
   const hasStorybookUrl = !!project.designSystemStorybook.urlValue;
   const hasStorybookMemory = (project.selectedSharedMemoryIds ?? []).some(
     (id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id),
@@ -69,8 +74,7 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   const hasStorybook = hasStorybookUrl || hasStorybookMemory;
   const hasNpm = !!(project.designSystemNpm.textValue || project.designSystemNpm.urlValue);
   const npmPkg = normalizeNpmPackage(project.designSystemNpm.textValue || project.designSystemNpm.urlValue || '');
-  const protoUrl = project.prototypeSketches.urlValue;
-  const hasPrototypeUrl = !!protoUrl && !protoUrl.includes('figma.com');
+  const hasPrototypeUrl = !!protoUrl && !hasPrototypeFigma;
   const interactionLevel = project.interactionLevel ?? 'static';
   const isLite = project.promptMode === 'lite';
   const accessibilityLevel = project.accessibilityLevel ?? 'none';
@@ -97,7 +101,11 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
     lines.push(`${step++}. Run \`npm i ${npmPkg}\` to install the design system package. If installation fails (package not found or network error), skip and proceed — use the Storybook inventory or CDN references instead.`);
   }
   if (hasUrl) {
-    lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to visit the URL listed in <current-implementation>. If Playwright MCP is available, capture full-page screenshots and save to \`./assets/screenshots/[screen-name].png\`. If the URL is inaccessible, proceed using the embedded context and descriptions in this prompt.`);
+    if (hasImplFigma) {
+      lines.push(`${step++}. Use Figma MCP tools (\`get_design_context\`, \`get_screenshot\`) to extract the current implementation from the Figma URL in <current-implementation>. Save screenshots to \`./assets/screenshots/\`. If Figma MCP is unavailable, proceed using the embedded context and descriptions in this prompt.`);
+    } else {
+      lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to visit the URL listed in <current-implementation>. If Playwright MCP is available, capture full-page screenshots and save to \`./assets/screenshots/[screen-name].png\`. If the URL is inaccessible, proceed using the embedded context and descriptions in this prompt.`);
+    }
   }
   if (hasStorybookUrl) {
     lines.push(`${step++}. Use Playwright MCP (preferred) or WebFetch to crawl the Storybook at the URL listed in <design-system>. Visit the sidebar navigation to enumerate all components, then visit each component's docs page. Extract component names, props, variants, and code examples. Save a complete design system inventory to \`./assets/design-system-inventory.md\`. If the URL is inaccessible, proceed using any NPM package documentation or embedded context.`);
@@ -105,11 +113,14 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
     lines.push(`${step++}. Read the design system component inventory provided in the \`<memories>\` section. Use it as the authoritative reference for available components, props, tokens, and usage patterns.`);
   }
   if (hasFigma) {
-    lines.push(`${step++}. Install and authenticate the **Claude-to-Figma** MCP plugin: ensure the official "Claude-to-Figma" plugin is installed from the Figma marketplace, then complete the OAuth authentication flow. This must be done before any Figma write operations in Phase 3.`);
+    lines.push(`${step++}. Verify the **Claude-to-Figma** MCP plugin is available: check that \`generate_figma_design\` exists in available tools. If unavailable, note Figma output will be skipped.`);
   }
   lines.push(`${step++}. Read all provided context (company, product, feature info)`);
   if (hasPrototypeUrl) {
     lines.push(`${step++}. Visit the prototype at \`${protoUrl}\` using Playwright MCP or WebFetch. Document all screens, states, and interactions found. Save findings to \`./assets/prototype-analysis.md\`. If inaccessible, use the wireframe descriptions in <prototypes>.`);
+  }
+  if (hasPrototypeFigma) {
+    lines.push(`${step++}. Use Figma MCP tools (\`get_design_context\`, \`get_screenshot\`) to extract design specs from the Figma prototype at \`${protoUrl}\`. Document screens, interactions, and design patterns found. Save findings to \`./assets/prototype-analysis.md\`. If Figma MCP is unavailable, use the wireframe descriptions in <prototypes>.`);
   }
   // Figma extraction BEFORE brainstorming
   if (hasSourceFigma) {
@@ -124,8 +135,12 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   lines.push('   - Inaccessible URLs (if any)');
   lines.push('   - Assumptions made');
   lines.push('   - Proposed approach');
-  if (hasPrototypeUrl) {
+  if (hasPrototypeUrl || hasPrototypeFigma) {
     lines.push('   - Prototype screens and interactions documented: [list key screens found]');
+  }
+  if (hasSourceFigma || hasPrototypeFigma) {
+    lines.push('   - Figma access: [which URLs were accessible vs. inaccessible]');
+    lines.push('   - Design patterns extracted: [key patterns, tokens, components found]');
   }
   lines.push('   Wait for user confirmation before proceeding to Phase 2.');
 
@@ -143,7 +158,13 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   // Phase 3: Build
   lines.push('');
   lines.push('### Phase 3: Build');
-  lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). Reference \`./assets/design-system-inventory.md\` (if generated) when choosing components.`);
+  if (hasStorybookUrl) {
+    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). Reference \`./assets/design-system-inventory.md\` (if generated) when choosing components.`);
+  } else if (hasStorybookMemory) {
+    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). Reference the component inventory in \`<memories>\` when choosing components.`);
+  } else {
+    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS).`);
+  }
   if (interactionLevel === 'click-through') {
     lines.push(`${step++}. Build click-through flows with basic navigation between pages`);
   } else if (interactionLevel === 'full-prototype') {

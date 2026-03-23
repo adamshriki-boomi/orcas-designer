@@ -37,12 +37,14 @@ If the sidebar content is not scrapable (common with SPAs), try accessing the St
   }
   if (!sb.urlValue && hasStorybookMemory) {
     lines.push('**Storybook**: A component inventory for the design system is provided in the `<memories>` section. Use it as the primary reference for available components, props, tokens, and patterns.');
+    lines.push('**Note**: The memory uses React prop notation (PascalCase components, camelCase props). For the HTML/CSS/JS prototype, convert to web component equivalents: PascalCase → kebab-case tag names (e.g., `ExButton` → `<ex-button>`), camelCase props → kebab-case attributes (e.g., `tooltipText` → `tooltip-text`), boolean props → attributes present/absent.');
   }
   if (sb.additionalContext) lines.push(`> Storybook context: ${sb.additionalContext}`);
 
   if (npm.textValue) {
     const normalizedNpm = normalizeNpmPackage(npm.textValue);
-    lines.push(`**NPM Install Command**: \`${normalizedNpm}\``);
+    lines.push(`**Package**: \`${normalizedNpm}\``);
+    lines.push(`**Install**: \`npm i ${normalizedNpm}\``);
   }
   if (npm.urlValue) {
     lines.push(`**NPM Package URL**: ${npm.urlValue}`);

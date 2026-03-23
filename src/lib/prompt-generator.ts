@@ -13,6 +13,8 @@ import { buildWorkflowSection } from './prompt-sections/workflow-section';
 import { buildFallbackSection } from './prompt-sections/fallback-section';
 import { buildDesignDirectionSection } from './prompt-sections/design-direction-section';
 import { buildRequirementsSection } from './prompt-sections/requirements-section';
+import { buildPrerequisitesSection } from './prompt-sections/prerequisites-section';
+import { normalizeNpmPackage } from './prompt-sections/npm-utils';
 
 function wrapXml(tag: string, content: string): string {
   if (!content) return '';
@@ -63,12 +65,16 @@ function buildQuickReference(project: Project): string {
   ];
 
   if (hasDs) {
-    lines.push('- Design system: provided (see Design System section)');
+    const dsDetails: string[] = [];
+    const npmVal = project.designSystemNpm.textValue || project.designSystemNpm.urlValue;
+    if (npmVal) dsDetails.push(normalizeNpmPackage(npmVal));
     if (project.designSystemStorybook.urlValue) {
-      lines.push(`- Storybook: ${project.designSystemStorybook.urlValue}`);
+      dsDetails.push(`Storybook: ${project.designSystemStorybook.urlValue}`);
     } else if (hasStorybookMemory) {
-      lines.push('- Storybook: component inventory provided via memory');
+      dsDetails.push('Storybook: via memory');
     }
+    if (project.designSystemFigma.urlValue) dsDetails.push('Figma reference');
+    lines.push(`- Design system: ${dsDetails.length > 0 ? dsDetails.join(' | ') : 'provided (see Design System section)'}`);
   }
 
   const accessibility = project.accessibilityLevel ?? 'none';
@@ -103,6 +109,7 @@ export function generatePrompt(project: Project, sharedSkills: SharedSkill[], sh
     wrapXml('requirements', buildRequirementsSection(project)),
     wrapXml('user-stories', buildUserStoriesSection(project)),
     wrapXml('memories', buildMemorySection(project, sharedMemories)),
+    wrapXml('prerequisites', buildPrerequisitesSection(project)),
     wrapXml('execution-workflow', buildWorkflowSection(project, sharedSkills)),
   ].filter(Boolean);
 

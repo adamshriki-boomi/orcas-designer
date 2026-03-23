@@ -50,4 +50,11 @@ describe('buildOutputTypeSection', () => {
     expect(result).toContain('Responsive breakpoints')
     expect(result).toContain('tablet')
   })
+
+  it('includes mock data guidance referencing <context> for domain-specific data', () => {
+    const project = createTestProject()
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('Derive mock data entities and fields from the feature description in `<context>`')
+    expect(result).toContain('actual domain being prototyped')
+  })
 })

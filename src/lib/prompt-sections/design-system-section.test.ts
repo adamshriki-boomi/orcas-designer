@@ -22,7 +22,7 @@ describe('buildDesignSystemSection', () => {
     expect(result).toContain('design-system-inventory.md')
   })
 
-  it('includes NPM install command for text-based npm input', () => {
+  it('includes NPM package and install command for text-based npm input', () => {
     const project = createTestProject({
       designSystemNpm: {
         ...emptyFormField(),
@@ -31,8 +31,9 @@ describe('buildDesignSystemSection', () => {
       },
     })
     const result = buildDesignSystemSection(project)
-    expect(result).toContain('`@example/design-system`')
-    expect(result).toContain('NPM Install Command')
+    expect(result).toContain('**Package**: `@example/design-system`')
+    expect(result).toContain('**Install**: `npm i @example/design-system`')
+    expect(result).not.toContain('NPM Install Command')
   })
 
   it('includes design system Figma URL', () => {
@@ -80,6 +81,25 @@ describe('buildDesignSystemSection', () => {
     expect(result).not.toContain('npm install @boomi/exosphere`')
     expect(result).toContain('unpkg.com/@boomi/exosphere')
     expect(result).not.toContain('unpkg.com/npm install')
+  })
+
+  it('includes React-to-web-component bridging note when using storybook memory', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('PascalCase')
+    expect(result).toContain('kebab-case')
+    expect(result).toContain('web component')
+  })
+
+  it('does not include bridging note when storybook URL is present', () => {
+    const project = createProjectWithStorybookMemory({
+      designSystemStorybook: {
+        ...emptyFormField(),
+        urlValue: 'https://storybook.example.com',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).not.toContain('PascalCase')
   })
 
   it('includes additional context for each sub-section', () => {

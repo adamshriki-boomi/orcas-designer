@@ -105,7 +105,7 @@ describe('generatePrompt', () => {
       const storybookMem = createStorybookMemory()
       const project = createProjectWithStorybookMemory()
       const prompt = generatePrompt(project, [], [storybookMem])
-      expect(prompt).toContain('component inventory provided via memory')
+      expect(prompt).toContain('Storybook: via memory')
     })
 
     it('includes both design-system and memories sections', () => {
@@ -118,11 +118,12 @@ describe('generatePrompt', () => {
       expect(prompt).toContain('</memories>')
     })
 
-    it('includes design system provided line in quick-reference', () => {
+    it('includes design system line with storybook via memory in quick-reference', () => {
       const storybookMem = createStorybookMemory()
       const project = createProjectWithStorybookMemory()
       const prompt = generatePrompt(project, [], [storybookMem])
-      expect(prompt).toContain('Design system: provided')
+      expect(prompt).toContain('Design system:')
+      expect(prompt).toContain('Storybook: via memory')
     })
   })
 
@@ -132,6 +133,46 @@ describe('generatePrompt', () => {
       const prompt = generatePrompt(project, [])
       expect(prompt).toContain('# Design & Development Brief for Claude Code')
       expect(prompt).toContain('## Project: ')
+    })
+  })
+
+  describe('project with prerequisites', () => {
+    it('includes prerequisites section for full project with Figma and URLs', () => {
+      const project = createFullProject()
+      const prompt = generatePrompt(project, [])
+      expect(prompt).toContain('<prerequisites>')
+      expect(prompt).toContain('</prerequisites>')
+    })
+
+    it('does not include prerequisites section for minimal project', () => {
+      const project = createTestProject()
+      const prompt = generatePrompt(project, [])
+      expect(prompt).not.toContain('<prerequisites>')
+    })
+  })
+
+  describe('quick reference design system details', () => {
+    it('shows NPM package name in quick reference', () => {
+      const project = createTestProject({
+        designSystemNpm: {
+          ...emptyFormField(),
+          inputType: 'text',
+          textValue: '@example/ds',
+        },
+      })
+      const prompt = generatePrompt(project, [])
+      expect(prompt).toContain('@example/ds')
+    })
+
+    it('shows storybook URL in quick reference', () => {
+      const project = createTestProject({
+        designSystemStorybook: {
+          ...emptyFormField(),
+          urlValue: 'https://storybook.example.com',
+        },
+      })
+      const prompt = generatePrompt(project, [])
+      expect(prompt).toContain('Storybook: https://storybook.example.com')
     })
   })
 

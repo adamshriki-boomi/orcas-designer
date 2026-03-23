@@ -38,7 +38,7 @@ export function buildOutputTypeSection(project: Project): string {
   lines.push('');
   lines.push('**Tech approach**: This is a standalone HTML/CSS/JS prototype — not a React/Vue/Angular application. Use vanilla JavaScript or lightweight standalone libraries. If project memories mention framework-specific libraries (e.g., React components), implement equivalent behavior with vanilla JS for the prototype. For complex interactions like drag-and-drop and virtualized lists, use lightweight standalone libraries (e.g., SortableJS) or simulate the interaction with mock data and CSS transitions. Full data virtualization is not required for the prototype.');
   lines.push('');
-  lines.push('**Mock data**: Create a shared `./output/assets/mock-data.js` with realistic sample data used across all views. Include variety in status, priority, assignee, project, and dates (some overdue). Use realistic names and content appropriate for demos.');
+  lines.push('**Mock data**: Create a shared `./output/assets/mock-data.js` with realistic sample data used across all views. Include variety in status, priority, assignee, project, and dates (some overdue). Use realistic names and content appropriate for demos. Derive mock data entities and fields from the feature description in `<context>` — the mock data should reflect the actual domain being prototyped.');
 
   if (!isLite) {
     lines.push('');

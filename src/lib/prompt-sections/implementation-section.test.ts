@@ -69,7 +69,7 @@ describe('buildImplementationSection', () => {
     expect(result).toContain('> Additional context: The header needs a refresh')
   })
 
-  it('includes visual baseline explanation for add-on-top mode', () => {
+  it('includes CRITICAL BUILD ON TOP mandate for add-on-top mode', () => {
     const project = createTestProject({
       currentImplementation: {
         ...emptyCurrentImplementation(),
@@ -78,7 +78,40 @@ describe('buildImplementationSection', () => {
       },
     })
     const result = buildImplementationSection(project)
-    expect(result).toContain('visual baseline')
-    expect(result).toContain('typography, colors, component choices, layout patterns')
+    expect(result).toContain('CRITICAL')
+    expect(result).toContain('BUILD ON TOP, DO NOT REPLACE')
+    expect(result).toContain('FIRST')
+    expect(result).toContain('Faithfully reconstruct the existing UI')
+    expect(result).toContain('THEN')
+    expect(result).toContain('Do NOT start from a blank canvas')
+    expect(result).toContain('Do NOT redesign existing screens')
+  })
+
+  it('includes REQUIRED screenshot-overlay-positioning instruction for add-on-top with URL', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildImplementationSection(project)
+    expect(result).toContain('REQUIRED')
+    expect(result).toContain('screenshot-overlay-positioning')
+    expect(result).toContain('not optional')
+  })
+
+  it('includes two-step process (reconstruct then add) for add-on-top', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildImplementationSection(project)
+    const firstIdx = result.indexOf('FIRST')
+    const thenIdx = result.indexOf('THEN')
+    expect(firstIdx).toBeLessThan(thenIdx)
   })
 })

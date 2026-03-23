@@ -1,10 +1,23 @@
 import type { Project } from '../types';
+import { DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
 
 export function buildOutputTypeSection(project: Project): string {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
   const interactionLevel = project.interactionLevel ?? 'static';
   const outputDir = project.outputDirectory || './output/';
   const isLite = project.promptMode === 'lite';
+
+  const hasDesignSystem = !!(
+    project.designSystemStorybook.urlValue ||
+    project.designSystemNpm.textValue ||
+    project.designSystemNpm.urlValue ||
+    (project.selectedSharedMemoryIds ?? []).some((id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id))
+  );
+  const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top' &&
+    !!(project.currentImplementation.urlValue ||
+       project.currentImplementation.files.length > 0 ||
+       project.currentImplementation.textValue ||
+       project.currentImplementation.figmaLinks.length > 0);
 
   const lines: string[] = ['## OUTPUT REQUIREMENTS'];
 
@@ -36,7 +49,15 @@ export function buildOutputTypeSection(project: Project): string {
   lines.push('- All UI states (default, hover, active, disabled, error, loading, empty)');
   lines.push('- Consistent use of the design system tokens and components');
   lines.push('');
-  lines.push('**Tech approach**: This is a standalone HTML/CSS/JS prototype — not a React/Vue/Angular application. Use vanilla JavaScript or lightweight standalone libraries. If project memories mention framework-specific libraries (e.g., React components), implement equivalent behavior with vanilla JS for the prototype. For complex interactions like drag-and-drop and virtualized lists, use lightweight standalone libraries (e.g., SortableJS) or simulate the interaction with mock data and CSS transitions. Full data virtualization is not required for the prototype.');
+  if (hasDesignSystem) {
+    lines.push('**Tech approach**: This is a standalone HTML/CSS/JS prototype — not a React/Vue/Angular application. Use vanilla JavaScript or lightweight standalone libraries. **IMPORTANT**: The design system provides web components (custom elements) — these are NOT framework-specific libraries. Web components work natively in any HTML page. You MUST import and use these web components directly in your HTML files. For complex interactions like drag-and-drop and virtualized lists, use lightweight standalone libraries (e.g., SortableJS) or simulate the interaction with mock data and CSS transitions. Full data virtualization is not required for the prototype.');
+  } else {
+    lines.push('**Tech approach**: This is a standalone HTML/CSS/JS prototype — not a React/Vue/Angular application. Use vanilla JavaScript or lightweight standalone libraries. If project memories mention framework-specific libraries (e.g., React components), implement equivalent behavior with vanilla JS for the prototype. For complex interactions like drag-and-drop and virtualized lists, use lightweight standalone libraries (e.g., SortableJS) or simulate the interaction with mock data and CSS transitions. Full data virtualization is not required for the prototype.');
+  }
+
+  if (isAddOnTop) {
+    lines.push('**EXISTING UI PRESERVATION**: The existing implementation (see <current-implementation>) MUST be faithfully recreated as the base. Do NOT start from a blank canvas. Reproduce the existing screens first, then add new features on top.');
+  }
   lines.push('');
   lines.push('**Mock data**: Create a shared `./output/assets/mock-data.js` with realistic sample data used across all views. Include variety in status, priority, assignee, project, and dates (some overdue). Use realistic names and content appropriate for demos. Derive mock data entities and fields from the feature description in `<context>` — the mock data should reflect the actual domain being prototyped.');
 

@@ -1,5 +1,6 @@
 import { buildOutputTypeSection } from './output-type-section'
-import { createTestProject, createProjectWithFigma } from '@/test/helpers/project-fixtures'
+import { createTestProject, createProjectWithFigma, createProjectWithStorybookMemory } from '@/test/helpers/project-fixtures'
+import { emptyCurrentImplementation } from '@/lib/types'
 
 describe('buildOutputTypeSection', () => {
   it('includes "Static Mockups Only" for static interaction level', () => {
@@ -56,5 +57,45 @@ describe('buildOutputTypeSection', () => {
     const result = buildOutputTypeSection(project)
     expect(result).toContain('Derive mock data entities and fields from the feature description in `<context>`')
     expect(result).toContain('actual domain being prototyped')
+  })
+
+  it('clarifies web components are not framework-specific when design system is present', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('NOT framework-specific libraries')
+    expect(result).toContain('MUST import and use these web components')
+  })
+
+  it('includes EXISTING UI PRESERVATION bullet for add-on-top mode', () => {
+    const project = createProjectWithStorybookMemory({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('EXISTING UI PRESERVATION')
+    expect(result).toContain('MUST be faithfully recreated as the base')
+    expect(result).toContain('Do NOT start from a blank canvas')
+  })
+
+  it('does not include preservation bullet for redesign mode', () => {
+    const project = createProjectWithStorybookMemory({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'redesign',
+      },
+    })
+    const result = buildOutputTypeSection(project)
+    expect(result).not.toContain('EXISTING UI PRESERVATION')
+  })
+
+  it('uses standard tech approach when no design system is present', () => {
+    const project = createTestProject()
+    const result = buildOutputTypeSection(project)
+    expect(result).toContain('implement equivalent behavior with vanilla JS')
+    expect(result).not.toContain('NOT framework-specific libraries')
   })
 })

@@ -55,6 +55,53 @@ describe('buildMemorySection', () => {
     expect(result).toContain('Component Inventory')
   })
 
+  it('marks design system memories as AUTHORITATIVE', () => {
+    const storybookMem = createStorybookMemory()
+    const project = createProjectWithStorybookMemory()
+    const result = buildMemorySection(project, [storybookMem])
+    expect(result).toContain('EXCEPTION')
+    expect(result).toContain('Design system memories are AUTHORITATIVE')
+    expect(result).toContain('MANDATORY component palette')
+  })
+
+  it('omits non-design-system context line when storybook memory is the only memory', () => {
+    const storybookMem = createStorybookMemory()
+    const project = createProjectWithStorybookMemory()
+    const result = buildMemorySection(project, [storybookMem])
+    expect(result).not.toContain('non-design-system memories provide supporting context only')
+  })
+
+  it('includes non-design-system context line when both DS and non-DS memories are present', () => {
+    const storybookMem = createStorybookMemory()
+    const otherMem = createTestSharedMemory({
+      id: 'mem-other',
+      name: 'Other Context',
+      fileName: 'other.md',
+      content: 'Some extra context',
+    })
+    const project = createProjectWithStorybookMemory({
+      selectedSharedMemoryIds: ['built-in-exosphere-storybook', 'mem-other'],
+    })
+    const result = buildMemorySection(project, [storybookMem, otherMem])
+    expect(result).toContain('non-design-system memories provide supporting context only')
+  })
+
+  it('uses standard supporting context language for non-design-system memories', () => {
+    const memory = createTestSharedMemory({
+      id: 'mem-1',
+      name: 'Company Standards',
+      fileName: 'company-standards.md',
+      content: 'Use blue for primary color.',
+    })
+    const project = createTestProject({
+      selectedSharedMemoryIds: ['mem-1'],
+      customMemories: [],
+    })
+    const result = buildMemorySection(project, [memory])
+    expect(result).toContain('memories provide supporting context only')
+    expect(result).not.toContain('AUTHORITATIVE')
+  })
+
   it('includes both shared and custom memories together', () => {
     const sharedMemory = createTestSharedMemory({
       id: 'mem-1',

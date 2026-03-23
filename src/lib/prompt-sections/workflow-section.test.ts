@@ -176,7 +176,7 @@ describe('buildWorkflowSection', () => {
   it('references <memories> instead of inventory file when using storybook memory in build step', () => {
     const project = createProjectWithStorybookMemory()
     const result = buildWorkflowSection(project)
-    expect(result).toContain('Reference the component inventory in `<memories>`')
+    expect(result).toContain('component inventory in `<memories>`')
     expect(result).not.toContain('design-system-inventory.md')
   })
 
@@ -191,5 +191,104 @@ describe('buildWorkflowSection', () => {
     const result = buildWorkflowSection(project)
     expect(result).not.toContain('design-system-inventory.md')
     expect(result).not.toContain('Reference the component inventory in `<memories>`')
+  })
+
+  it('includes existing UI reconstruction step in Phase 3 for add-on-top mode', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('FIRST — Recreate the existing UI')
+    expect(result).toContain('faithfully reconstruct every screen')
+  })
+
+  it('includes design system enforcement step when storybook memory is present', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Design system enforcement')
+    expect(result).toContain('FIRST check')
+    expect(result).toContain('MUST use it')
+  })
+
+  it('includes add-on-top verification item in Phase 4', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Existing UI faithfully recreated')
+  })
+
+  it('includes design system verification item in Phase 4 when storybook is present', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Design system components used for ALL matching UI elements')
+  })
+
+  it('does not include add-on-top steps for redesign mode', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'redesign',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).not.toContain('FIRST — Recreate the existing UI')
+    expect(result).not.toContain('Existing UI faithfully recreated')
+  })
+
+  it('uses stronger build step language with design system inventory', () => {
+    const project = createProjectWithDesignSystem()
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('FIRST check the design system inventory')
+    expect(result).toContain('do NOT create custom alternatives')
+  })
+
+  it('includes existing-ui-analysis.md step in Phase 1 for add-on-top with URL', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('Document the existing UI thoroughly')
+    expect(result).toContain('existing-ui-analysis.md')
+  })
+
+  it('includes design system reminder in executing-plans step for NPM-only scenario', () => {
+    const project = createTestProject({
+      designSystemNpm: {
+        ...emptyFormField(),
+        inputType: 'text',
+        textValue: '@example/design-system',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('FIRST check the NPM package documentation')
+    expect(result).toContain('do NOT create custom alternatives')
+  })
+
+  it('uses REQUIRED language for screenshot-overlay-positioning in Phase 2', () => {
+    const project = createTestProject({
+      currentImplementation: {
+        ...emptyCurrentImplementation(),
+        urlValue: 'https://app.example.com',
+        implementationMode: 'add-on-top',
+      },
+    })
+    const result = buildWorkflowSection(project)
+    expect(result).toContain('REQUIRED')
+    expect(result).toContain('screenshot-overlay-positioning')
+    expect(result).toContain('exact pixel coordinates')
   })
 })

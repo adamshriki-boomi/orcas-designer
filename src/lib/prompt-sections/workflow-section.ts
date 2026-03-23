@@ -62,7 +62,13 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   const protoUrl = project.prototypeSketches.urlValue;
   const hasPrototypeFigma = !!protoUrl && isFigmaUrl(protoUrl);
   const hasSourceFigma = !!(project.currentImplementation.figmaLinks.length > 0 || project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0) || hasPrototypeFigma;
-  const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top';
+  const hasImplContent = !!(
+    project.currentImplementation.urlValue ||
+    project.currentImplementation.files.length > 0 ||
+    project.currentImplementation.textValue ||
+    project.currentImplementation.figmaLinks.length > 0
+  );
+  const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top' && hasImplContent;
   const hasScreenshots = project.currentImplementation.files.length > 0 || !!project.currentImplementation.urlValue;
   const implUrl = project.currentImplementation.urlValue;
   const hasUrl = !!implUrl;
@@ -115,6 +121,9 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   if (hasFigma) {
     lines.push(`${step++}. Verify the **Claude-to-Figma** MCP plugin is available: check that \`generate_figma_design\` exists in available tools. If unavailable, note Figma output will be skipped.`);
   }
+  if (isAddOnTop && hasUrl) {
+    lines.push(`${step++}. **Document the existing UI thoroughly**: Visit the reference URL in <current-implementation> and catalog every screen, layout section, navigation element, and interactive component. Save findings to \`./assets/existing-ui-analysis.md\`. This analysis is the baseline you MUST reconstruct before adding new features.`);
+  }
   lines.push(`${step++}. Read all provided context (company, product, feature info)`);
   if (hasPrototypeUrl) {
     lines.push(`${step++}. Visit the prototype at \`${protoUrl}\` using Playwright MCP or WebFetch. Document all screens, states, and interactions found. Save findings to \`./assets/prototype-analysis.md\`. If inaccessible, use the wireframe descriptions in <prototypes>.`);
@@ -152,16 +161,29 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   }
   lines.push(`${step++}. Use ${inv('writing-plans')} to create a detailed implementation plan`);
   if (isAddOnTop && hasScreenshots) {
-    lines.push(`${step++}. Use ${inv('screenshot-overlay-positioning')} to analyze current UI and position new elements`);
+    lines.push(`${step++}. **REQUIRED**: Use ${inv('screenshot-overlay-positioning')} to analyze the existing UI screenshots. Extract exact pixel coordinates for: sidebar boundaries, header/toolbar positions, content area bounds, and all interactive element locations. Use these coordinates to position new elements precisely within the existing layout.`);
   }
 
   // Phase 3: Build
   lines.push('');
   lines.push('### Phase 3: Build');
+  if (isAddOnTop) {
+    lines.push(`${step++}. **FIRST — Recreate the existing UI**: Before building any new features, faithfully reconstruct every screen from the existing implementation reference. The output must visually match the current UI. Only proceed to new features after the existing UI is complete.`);
+  }
+  if (hasStorybook || hasNpm) {
+    const inventoryRef = hasStorybookUrl
+      ? '`./assets/design-system-inventory.md`'
+      : hasStorybookMemory
+        ? 'the component inventory in `<memories>`'
+        : 'the NPM package documentation';
+    lines.push(`${step++}. **Design system enforcement**: For EVERY UI element you are about to create, FIRST check ${inventoryRef} for a matching component. If a design system component exists, you MUST use it. Do NOT create custom HTML/CSS alternatives.`);
+  }
   if (hasStorybookUrl) {
-    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). Reference \`./assets/design-system-inventory.md\` (if generated) when choosing components.`);
+    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). FIRST check the design system inventory before writing any UI element — do NOT create custom alternatives when a component exists.`);
   } else if (hasStorybookMemory) {
-    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). Reference the component inventory in \`<memories>\` when choosing components.`);
+    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). FIRST check the component inventory in \`<memories>\` before writing any UI element — do NOT create custom alternatives when a component exists.`);
+  } else if (hasNpm) {
+    lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS). FIRST check the NPM package documentation before writing any UI element — do NOT create custom alternatives when a component exists.`);
   } else {
     lines.push(`${step++}. Use ${inv('executing-plans')} to implement the plan (static mockups as HTML/CSS/JS).`);
   }
@@ -184,6 +206,12 @@ export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill
   lines.push('   - All interactive flows work — no broken links or JS errors');
   lines.push('   - All UI states present: default, hover, active, disabled, error, loading, empty');
   lines.push('   - Design system tokens and components used consistently');
+  if (isAddOnTop) {
+    lines.push('   - **Existing UI faithfully recreated** — every screen from the reference matches the original');
+  }
+  if (hasStorybook || hasNpm) {
+    lines.push('   - **Design system components used for ALL matching UI elements** — no custom HTML/CSS recreations of components that exist in the design system');
+  }
   lines.push('   - No placeholder content or lorem ipsum remains');
   if (interactionLevel === 'full-prototype') {
     lines.push('   - CSS transitions and micro-interactions work smoothly');

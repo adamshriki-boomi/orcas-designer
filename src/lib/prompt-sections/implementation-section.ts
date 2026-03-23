@@ -19,9 +19,13 @@ export function buildImplementationSection(project: Project): string {
 
   if (impl.implementationMode === 'add-on-top') {
     lines.push('**Mode**: Add on top of existing implementation');
-    lines.push('New screens must match the existing UI\'s visual baseline (typography, colors, component choices, layout patterns). Extract these patterns before building.');
+    lines.push(`**⚠️ CRITICAL — BUILD ON TOP, DO NOT REPLACE**: You MUST follow this two-step process:
+1. **FIRST**: Faithfully reconstruct the existing UI from the reference provided below. Match typography, colors, component choices, layout patterns, and spacing exactly.
+2. **THEN**: Add the new features described in <context> as additions to the reconstructed UI.
+
+Do NOT start from a blank canvas. Do NOT redesign existing screens. The existing UI must appear unchanged — new features are layered on top.`);
     if (impl.urlValue || impl.files.length > 0) {
-      lines.push(`When screenshots are available, use the ${inv('screenshot-overlay-positioning')} skill to find precise coordinates for positioning new elements within the existing layout.`);
+      lines.push(`**REQUIRED**: Use the ${inv('screenshot-overlay-positioning')} skill to analyze the existing UI and find precise coordinates for positioning new elements within the existing layout. This is REQUIRED, not optional.`);
     }
   } else {
     lines.push('**Mode**: Redesign from scratch');

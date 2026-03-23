@@ -102,6 +102,49 @@ describe('buildDesignSystemSection', () => {
     expect(result).not.toContain('PascalCase')
   })
 
+  it('includes CRITICAL RULE block when any design system content is present', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('CRITICAL RULE')
+    expect(result).toContain('MUST use design system components for ALL UI elements')
+  })
+
+  it('includes AUTHORITATIVE language for storybook memory', () => {
+    const project = createProjectWithStorybookMemory()
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('AUTHORITATIVE')
+    expect(result).toContain('MUST use these components')
+    expect(result).toContain('Do NOT create custom HTML/CSS alternatives')
+  })
+
+  it('includes INTEGRATION block when both storybook memory and NPM are present', () => {
+    const project = createProjectWithStorybookMemory({
+      designSystemNpm: {
+        ...emptyFormField(),
+        inputType: 'text',
+        textValue: '@boomi/exosphere',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('INTEGRATION')
+    expect(result).toContain('Loading Web Components in HTML')
+    expect(result).toContain('NOT framework-specific')
+    expect(result).toContain('unpkg.com/@boomi/exosphere')
+  })
+
+  it('includes MUST language for NPM package', () => {
+    const project = createTestProject({
+      designSystemNpm: {
+        ...emptyFormField(),
+        inputType: 'text',
+        textValue: '@example/design-system',
+      },
+    })
+    const result = buildDesignSystemSection(project)
+    expect(result).toContain('MUST install and use')
+    expect(result).toContain('Do NOT recreate components')
+  })
+
   it('includes additional context for each sub-section', () => {
     const project = createProjectWithDesignSystem({
       designSystemStorybook: {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Upload, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { HistoryList } from './history-list';
 import type { AnalysisEntry } from '@/hooks/use-ux-writer';
@@ -107,9 +108,9 @@ export function InputPanel({
           <label className="text-xs font-medium text-muted-foreground" htmlFor="ux-description">
             Description *
           </label>
-          <Input
+          <Textarea
             id="ux-description"
-            type="text"
+            rows={3}
             placeholder="e.g., Login dialog with error states for invalid credentials"
             value={description}
             onChange={(e) => setDescription(e.target.value)}

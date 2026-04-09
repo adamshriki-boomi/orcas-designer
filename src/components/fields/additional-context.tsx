@@ -11,7 +11,7 @@ interface AdditionalContextProps {
 export function AdditionalContext({ value, onChange }: AdditionalContextProps) {
   return (
     <div className="space-y-1.5">
-      <Label>Additional Context (optional)</Label>
+      <Label>Additional Context</Label>
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}

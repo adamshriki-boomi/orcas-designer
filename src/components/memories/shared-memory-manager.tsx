@@ -104,7 +104,7 @@ export function SharedMemoryManager() {
           content: form.content,
           fileName: form.fileName || `${form.name.trim().toLowerCase().replace(/\s+/g, '-')}.md`,
         });
-        toast.success('Memory updated successfully.');
+        toast.success('Memory updated');
       } else {
         await addMemory({
           name: form.name.trim(),
@@ -113,13 +113,13 @@ export function SharedMemoryManager() {
           fileName: form.fileName || `${form.name.trim().toLowerCase().replace(/\s+/g, '-')}.md`,
           isBuiltIn: false,
         });
-        toast.success('Memory created successfully.');
+        toast.success('Memory created');
       }
 
       mgr.closeDialog();
     } catch (error) {
       console.error('Failed to save memory:', error);
-      toast.error('Failed to save memory.');
+      toast.error('Unable to save memory');
     } finally {
       mgr.setIsSaving(false);
     }
@@ -130,11 +130,11 @@ export function SharedMemoryManager() {
     mgr.setIsDeleting(true);
     try {
       await deleteMemory(mgr.deletingId);
-      toast.success('Memory deleted successfully.');
+      toast.success('Memory deleted');
       mgr.closeDelete();
     } catch (error) {
       console.error('Failed to delete memory:', error);
-      toast.error('Failed to delete memory.');
+      toast.error('Unable to delete memory');
     } finally {
       mgr.setIsDeleting(false);
     }

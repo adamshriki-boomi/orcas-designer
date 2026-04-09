@@ -17,7 +17,7 @@ export default function ProjectsPage() {
     <FadeIn>
       <Header
         title="Projects"
-        description="All your design & development prompt projects"
+        description="Your prompt projects"
         action={
           <Link href="/projects/new" className={buttonVariants()}>
             <PlusCircle />

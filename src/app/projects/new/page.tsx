@@ -79,15 +79,15 @@ function WizardContent() {
     switch (currentStep) {
       case 1: {
         const ok = isFieldFilled(formData.productInfo) || (formData.selectedSharedMemoryIds ?? []).some((id) => PRODUCT_CONTEXT_MEMORY_IDS.includes(id));
-        return { canProceed: ok, validationMessage: ok ? null : 'Product info or a product context memory is required' };
+        return { canProceed: ok, validationMessage: ok ? null : 'Add product info or select a product context memory to continue' };
       }
       case 2: {
         const ok = isFieldFilled(formData.featureInfo);
-        return { canProceed: ok, validationMessage: ok ? null : 'Feature info is required' };
+        return { canProceed: ok, validationMessage: ok ? null : 'Add feature details to continue' };
       }
       case 11: {
         const ok = !!formData.interactionLevel;
-        return { canProceed: ok, validationMessage: ok ? null : 'Please select an interaction level' };
+        return { canProceed: ok, validationMessage: ok ? null : 'Select an interaction level to continue' };
       }
       default: return { canProceed: true, validationMessage: null };
     }
@@ -144,10 +144,10 @@ function WizardContent() {
       const supabase = createClient();
       const { error } = await supabase.from('projects').insert(row as never);
       if (error) throw error;
-      toast.success('Project saved!');
+      toast.success('Project saved');
       router.push(`/projects/placeholder?_id=${encodeURIComponent(id)}`);
     } catch {
-      toast.error('Failed to save project');
+      toast.error('Unable to save project');
     }
   };
 
@@ -155,9 +155,9 @@ function WizardContent() {
     try {
       const prompt = generatePrompt(formData, sharedSkills, sharedMemories);
       await copy(prompt);
-      toast.success('Prompt copied to clipboard!');
+      toast.success('Prompt copied');
     } catch {
-      toast.error('Failed to copy prompt');
+      toast.error('Unable to copy prompt');
     }
   };
 
@@ -270,7 +270,7 @@ function WizardContent() {
 
   return (
     <>
-      <Header title="New Project" description="Configure your design & development prompt" />
+      <Header title="New Project" description="Set up your design prompt" />
       <Breadcrumbs items={[
         { label: 'Dashboard', href: '/' },
         { label: 'Projects', href: '/projects' },

@@ -23,7 +23,7 @@ export function StepDesignSystemNpm({ data, onChange }: StepDesignSystemNpmProps
   return (
     <WizardStep
       title="Design System — NPM Package"
-      description="Package install command or NPM URL (optional)"
+      description="Package install command or NPM URL"
     >
       <div className="space-y-4">
         <Tabs value={activeTab} onValueChange={setTab}>

@@ -13,7 +13,7 @@ export function StepDesignSystemFigma({ data, onChange }: StepDesignSystemFigmaP
   return (
     <WizardStep
       title="Design System — Figma"
-      description="Figma file for the design system (optional)"
+      description="Figma file for the design system"
     >
       <UrlOrFileField
         data={data}

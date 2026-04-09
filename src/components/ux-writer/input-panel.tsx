@@ -81,7 +81,7 @@ export function InputPanel({
       <form onSubmit={handleSubmit} className="space-y-4 flex-1">
         {/* Screenshot upload */}
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Screenshot (optional)</label>
+          <label className="text-xs font-medium text-muted-foreground">Screenshot</label>
           {screenshotUrl ? (
             <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-muted/30">
               <Upload className="size-4 text-muted-foreground" />
@@ -126,7 +126,7 @@ export function InputPanel({
         {/* Description */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground" htmlFor="ux-description">
-            Description *
+            Description
           </label>
           <Textarea
             id="ux-description"
@@ -140,7 +140,7 @@ export function InputPanel({
         {/* Focus notes */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground" htmlFor="ux-focus">
-            Focus on (optional)
+            Focus Area
           </label>
           <Input
             id="ux-focus"

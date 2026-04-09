@@ -13,7 +13,7 @@ export function StepFeatureInfo({ data, onChange }: StepFeatureInfoProps) {
   return (
     <WizardStep
       title="Feature Details"
-      description="Describe the feature to be designed and developed (required)"
+      description="Describe the feature to design and develop"
     >
       <div className="space-y-2">
         <UrlOrFileField

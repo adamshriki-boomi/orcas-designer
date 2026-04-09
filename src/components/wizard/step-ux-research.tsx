@@ -15,7 +15,7 @@ export function StepUxResearch({ data, onChange }: StepUxResearchProps) {
   return (
     <WizardStep
       title="UX Research"
-      description="Attach UX research documents to inform design decisions (optional)"
+      description="Attach UX research documents to inform design decisions"
     >
       <UrlOrFileField
         data={data}

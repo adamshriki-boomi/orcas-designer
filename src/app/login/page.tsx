@@ -19,8 +19,8 @@ export default function LoginPage() {
 
   function validateEmail(): string | null {
     const trimmed = email.trim().toLowerCase();
-    if (!trimmed) return 'Please enter your email address.';
-    if (!trimmed.endsWith('@boomi.com')) return 'Only @boomi.com email addresses are allowed.';
+    if (!trimmed) return 'Enter your email address to sign in.';
+    if (!trimmed.endsWith('@boomi.com')) return 'Only @boomi.com email addresses can sign in.';
     return null;
   }
 
@@ -46,7 +46,7 @@ export default function LoginPage() {
     setError('');
     const emailError = validateEmail();
     if (emailError) { setError(emailError); return; }
-    if (!password) { setError('Please enter your password.'); return; }
+    if (!password) { setError('Enter your password to sign in.'); return; }
 
     setLoading(true);
     const { error: authError } = await signInWithPassword(email.trim().toLowerCase(), password);

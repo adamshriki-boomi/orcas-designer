@@ -23,7 +23,7 @@ export function StepCompanyInfo({ data, onChange, builtInContent }: StepCompanyI
   return (
     <WizardStep
       title="Company Information"
-      description="Company context is provided by the built-in memory. You can add additional context below."
+      description="Company context is provided by the built-in memory. Add extra context below."
     >
       <div className="space-y-4">
         <div className="space-y-2">

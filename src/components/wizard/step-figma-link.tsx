@@ -19,7 +19,7 @@ export function StepFigmaLink({ data, onChange }: StepFigmaLinkProps) {
   return (
     <WizardStep
       title="Figma Destination File"
-      description="Claude will CREATE/WRITE designs to this file. It will NOT read from it. (optional)"
+      description="Claude will CREATE/WRITE designs to this file. It will NOT read from it."
     >
       <div className="space-y-3">
         <Label>Figma Destination URL</Label>

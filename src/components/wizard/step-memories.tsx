@@ -65,7 +65,7 @@ export function StepMemories({
         isBuiltIn: false,
       });
       onSharedMemoriesChange([...selectedSharedMemoryIds, id]);
-      toast.success('Memory saved to shared library and selected.');
+      toast.success('Memory saved to shared library');
     } else {
       const customMemory: CustomMemory = {
         id: generateId(),
@@ -73,7 +73,7 @@ export function StepMemories({
         content: uploadContent,
       };
       onCustomMemoriesChange([...customMemories, customMemory]);
-      toast.success('Custom memory added to this project.');
+      toast.success('Custom memory added');
     }
 
     setUploadName('');
@@ -91,7 +91,7 @@ export function StepMemories({
   return (
     <WizardStep
       title="Memories"
-      description="Select shared memories or upload context files to include in the prompt"
+      description="Select shared memories or upload context files"
     >
       <div className="space-y-8">
         <section className="space-y-3">

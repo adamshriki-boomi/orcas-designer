@@ -41,7 +41,7 @@ export default function UxWriterPage() {
       .from('ux-writer-screenshots')
       .upload(path, file);
     if (uploadError) {
-      toast.error('Failed to upload screenshot');
+      toast.error('Unable to upload screenshot');
       throw uploadError;
     }
     // Use signed URL (bucket is private) — valid for 1 hour
@@ -49,7 +49,7 @@ export default function UxWriterPage() {
       .from('ux-writer-screenshots')
       .createSignedUrl(path, 3600);
     if (signError || !data?.signedUrl) {
-      toast.error('Failed to generate screenshot URL');
+      toast.error('Unable to generate screenshot URL');
       throw signError || new Error('No signed URL');
     }
     return data.signedUrl;
@@ -60,7 +60,7 @@ export default function UxWriterPage() {
       await deleteEntry(id);
       toast.success('Analysis deleted');
     } catch {
-      toast.error('Failed to delete analysis');
+      toast.error('Unable to delete analysis');
     }
   }, [deleteEntry]);
 

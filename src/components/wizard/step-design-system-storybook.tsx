@@ -41,7 +41,7 @@ export function StepDesignSystemStorybook({
   return (
     <WizardStep
       title="Design System — Storybook"
-      description="Select a built-in design system reference and/or link to your component Storybook (optional)"
+      description="Select a built-in design system reference or link to your Storybook"
     >
       <div className="space-y-6">
         {storybookMemories.length > 0 && (

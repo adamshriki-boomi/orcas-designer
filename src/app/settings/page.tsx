@@ -43,7 +43,7 @@ export default function SettingsPage() {
       toast.success('API key saved');
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      toast.error('Failed to save API key');
+      toast.error('Unable to save API key');
     } finally {
       setSaving(false);
     }

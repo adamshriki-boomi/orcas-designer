@@ -41,7 +41,7 @@ export function StepProductInfo({
   return (
     <WizardStep
       title="Product Information"
-      description="Select a product context memory and/or provide additional product info (required)"
+      description="Select a product context memory or provide product info"
     >
       <div className="space-y-6">
         {productMemories.length > 0 && (

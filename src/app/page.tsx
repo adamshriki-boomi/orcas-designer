@@ -174,7 +174,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <>
-        <Header title="Dashboard" description="Manage your design & development prompt projects" />
+        <Header title="Dashboard" description="Create and manage your prompt projects" />
         <PageContainer>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -196,7 +196,7 @@ export default function DashboardPage() {
       <FadeIn>
         <Header
           title="Dashboard"
-          description="Manage your design & development prompt projects"
+          description="Create and manage your prompt projects"
         />
         <PageContainer>
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -233,7 +233,7 @@ export default function DashboardPage() {
               {hasSkillsData ? (
                 <ExChartLazy options={skillsUsageOptions} />
               ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No skills in use yet</p>
+                <p className="text-sm text-muted-foreground py-8 text-center">No skills in use</p>
               )}
             </div>
             <div className="rounded-2xl shadow-card bg-card p-4">
@@ -241,7 +241,7 @@ export default function DashboardPage() {
               {hasMemoriesData ? (
                 <ExChartLazy options={memoriesUsageOptions} />
               ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No memories in use yet</p>
+                <p className="text-sm text-muted-foreground py-8 text-center">No memories in use</p>
               )}
             </div>
           </div>

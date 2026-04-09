@@ -41,7 +41,7 @@ export function StepUxWriting({
   return (
     <WizardStep
       title="UX Writing"
-      description="Select UX writing guidelines and/or provide additional content"
+      description="Select UX writing guidelines or provide content"
     >
       <div className="space-y-6">
         {uxWritingMemories.length > 0 && (

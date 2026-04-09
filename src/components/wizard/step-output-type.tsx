@@ -75,7 +75,7 @@ export function StepOutputType({
   return (
     <WizardStep
       title="Output Type"
-      description="Choose the prompt mode and interaction level for the output (required)"
+      description="Choose the prompt mode and interaction level"
     >
       <div className="space-y-8">
         {/* Prompt Mode */}

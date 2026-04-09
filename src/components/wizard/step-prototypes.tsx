@@ -13,7 +13,7 @@ export function StepPrototypes({ data, onChange }: StepPrototypesProps) {
   return (
     <WizardStep
       title="Prototypes & Sketches"
-      description="Existing prototypes or hand-drawn sketches (optional)"
+      description="Existing prototypes or hand-drawn sketches"
     >
       <UrlOrFileField
         data={data}

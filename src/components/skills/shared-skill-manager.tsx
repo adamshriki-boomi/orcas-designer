@@ -105,7 +105,7 @@ export function SharedSkillManager() {
           urlValue: form.type === 'url' ? form.urlValue.trim() : '',
           fileContent,
         });
-        toast.success('Skill updated successfully.');
+        toast.success('Skill updated');
       } else {
         await addSkill({
           name: form.name.trim(),
@@ -114,13 +114,13 @@ export function SharedSkillManager() {
           urlValue: form.type === 'url' ? form.urlValue.trim() : '',
           fileContent,
         });
-        toast.success('Skill created successfully.');
+        toast.success('Skill created');
       }
 
       mgr.closeDialog();
     } catch (error) {
       console.error('Failed to save skill:', error);
-      toast.error('Failed to save skill.');
+      toast.error('Unable to save skill');
     } finally {
       mgr.setIsSaving(false);
     }
@@ -131,11 +131,11 @@ export function SharedSkillManager() {
     mgr.setIsDeleting(true);
     try {
       await deleteSkill(mgr.deletingId);
-      toast.success('Skill deleted successfully.');
+      toast.success('Skill deleted');
       mgr.closeDelete();
     } catch (error) {
       console.error('Failed to delete skill:', error);
-      toast.error('Failed to delete skill.');
+      toast.error('Unable to delete skill');
     } finally {
       mgr.setIsDeleting(false);
     }

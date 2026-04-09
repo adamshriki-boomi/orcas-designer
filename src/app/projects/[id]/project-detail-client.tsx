@@ -164,7 +164,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       await updateProject({ name });
       toast.success('Project renamed');
     } catch {
-      toast.error('Failed to rename project');
+      toast.error('Unable to rename project');
     }
   };
 
@@ -176,7 +176,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       });
       toast.success('Prompt regenerated');
     } catch {
-      toast.error('Failed to regenerate prompt');
+      toast.error('Unable to regenerate prompt');
     }
   };
 
@@ -185,7 +185,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       await updateProject({ [fieldKey]: data });
       toast.success('Field updated');
     } catch {
-      toast.error('Failed to update field');
+      toast.error('Unable to update field');
     }
   };
 
@@ -194,7 +194,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       const promptToUse = project.generatedPrompt || prompt;
       await copy(promptToUse);
     } catch {
-      toast.error('Failed to copy prompt');
+      toast.error('Unable to copy prompt');
     }
   };
 
@@ -206,7 +206,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       router.push('/projects');
       toast.success('Project deleted');
     } catch {
-      toast.error('Failed to delete project');
+      toast.error('Unable to delete project');
     }
   };
 
@@ -216,7 +216,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       setEditInteractionOpen(false);
       toast.success('Interaction level updated');
     } catch {
-      toast.error('Failed to update interaction level');
+      toast.error('Unable to update interaction level');
     }
   };
 
@@ -228,7 +228,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       setEditImplModeOpen(false);
       toast.success('Implementation mode updated');
     } catch {
-      toast.error('Failed to update implementation mode');
+      toast.error('Unable to update implementation mode');
     }
   };
 

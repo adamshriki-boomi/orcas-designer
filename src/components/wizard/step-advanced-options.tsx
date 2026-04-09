@@ -115,7 +115,7 @@ export function StepAdvancedOptions({
   return (
     <WizardStep
       title="Advanced Options"
-      description="Optional configuration for accessibility, browser targets, and design direction"
+      description="Set accessibility, browser targets, and design direction"
     >
       <div className="space-y-4">
         {/* Accessibility */}

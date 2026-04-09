@@ -21,7 +21,7 @@ export function StepCurrentImpl({ data, onChange }: StepCurrentImplProps) {
   return (
     <WizardStep
       title="Current Implementation"
-      description="Screenshots and references of the existing UI (optional)"
+      description="Screenshots and references of the existing UI"
     >
       <div className="space-y-6">
         <UrlOrFileField

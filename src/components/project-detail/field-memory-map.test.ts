@@ -7,6 +7,8 @@ import {
   COMPANY_CONTEXT_MEMORY_ID,
   BUILT_IN_PRODUCT_MEMORY_ID,
   BUILT_IN_STORYBOOK_MEMORY_ID,
+  BUILT_IN_UX_WRITING_MEMORY_ID,
+  UX_WRITING_MEMORY_IDS,
 } from '@/lib/constants';
 import type { SharedMemory } from '@/lib/types';
 
@@ -28,6 +30,10 @@ describe('field-memory-map', () => {
 
     it('maps designSystemStorybook to the storybook memory (selectable)', () => {
       expect(SELECTABLE_MEMORY_MAP.designSystemStorybook).toEqual([BUILT_IN_STORYBOOK_MEMORY_ID]);
+    });
+
+    it('maps uxWriting to UX writing memory IDs (selectable)', () => {
+      expect(SELECTABLE_MEMORY_MAP.uxWriting).toEqual(UX_WRITING_MEMORY_IDS);
     });
   });
 
@@ -65,6 +71,16 @@ describe('field-memory-map', () => {
     it('returns empty when shared memories list is empty', () => {
       const result = getMemoryNames('companyInfo', [], []);
       expect(result).toEqual([]);
+    });
+
+    it('getMemoryNames returns UX writing memory name when selected', () => {
+      const uxWritingMemory = {
+        id: BUILT_IN_UX_WRITING_MEMORY_ID,
+        name: 'UX Writing Guidelines',
+        content: '',
+      } as SharedMemory;
+      const result = getMemoryNames('uxWriting', [BUILT_IN_UX_WRITING_MEMORY_ID], [uxWritingMemory]);
+      expect(result).toEqual(['UX Writing Guidelines']);
     });
   });
 });

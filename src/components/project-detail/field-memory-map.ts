@@ -2,6 +2,7 @@ import {
   COMPANY_CONTEXT_MEMORY_ID,
   PRODUCT_CONTEXT_MEMORY_IDS,
   DESIGN_SYSTEM_MEMORY_IDS,
+  UX_WRITING_MEMORY_IDS,
 } from '@/lib/constants';
 import type { SharedMemory } from '@/lib/types';
 
@@ -14,6 +15,7 @@ export const LOCKED_MEMORY_MAP: Record<string, string[]> = {
 export const SELECTABLE_MEMORY_MAP: Record<string, string[]> = {
   productInfo: PRODUCT_CONTEXT_MEMORY_IDS,
   designSystemStorybook: DESIGN_SYSTEM_MEMORY_IDS,
+  uxWriting: UX_WRITING_MEMORY_IDS,
 };
 
 export function getMemoryNames(

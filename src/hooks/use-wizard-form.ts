@@ -23,6 +23,7 @@ type FormFieldKey =
   | 'productInfo'
   | 'featureInfo'
   | 'uxResearch'
+  | 'uxWriting'
   | 'figmaFileLink'
   | 'designSystemStorybook'
   | 'designSystemNpm'

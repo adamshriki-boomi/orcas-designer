@@ -304,12 +304,391 @@ import '@boomi/exosphere/dist/icon.js';                 // Material Design Icons
 7. **ExChart options**: Pass JS object directly, not a JSON string
 8. **ExTable gridOptions**: Pass JS object (ag-grid compatible), not string`;
 
+export const BUILT_IN_UX_WRITING_GUIDELINES = `# Boomi UX Writing Guidelines
+
+> Source: Boomi Product Content — Content Design: UX Writing & Content Strategy
+
+---
+
+## What is UX Writing?
+
+UX writing is the practice of writing carefully considered information that addresses people's contexts, needs, and behaviors. At Boomi, UX writing is plain, intuitive, human-centered language. Plain language can be understood the first time your audience reads or hears it. Content that is easy to read and understand benefits all users.
+
+- **Tone of Voice**: Consider the information you're sharing and also how you say it. Tone of voice has a measurable impact on users' perceptions of your organization.
+- **Jargon**: Avoid jargon and use plain language instead. Jargon terms are meaningful to insiders but don't usually make sense to anyone outside the group.
+- **Formatting**: Use formatting techniques to make information predictable and easy to scan. Use anchor links and accordions to help users focus on what they need.
+
+---
+
+## Voice and Tone
+
+Boomi voice and tone defines how we speak with our users. Our voice is consistent, but our tone can differ in different situations.
+
+### Who You Are (Our Users)
+As Boomi users, you are programmers, architects, optimizers, builders, and innovators. You are a self-driven professional who can master anything and build anything. You expect Boomi to be your creative collaborator, partner, and strategic advisor. You also expect us to respect your time with straightforward information.
+
+### We Are Your Expert Guide
+We help you gain confidence in your use of the platform. As a new user, we help you figure out where to begin. As you gain further proficiency, we're just a tap away from explaining new areas of the platform.
+
+### Voice Attributes
+
+**Empowering**: We help, support, and encourage you to experiment and explore all possibilities. We don't want to get in your way. We want to partner with you, cheer you on, and share in the success you create.
+
+**Reliable**: We want you to trust our platform through consistent messaging and interaction patterns. We use consistent terminology, naming conventions, and structures so you know what to expect.
+
+**Relatable**: We are approachable, warm, and welcoming. Think of us as your coworker in the next desk over who's been at it a few more years — just a tap away from helping you gain confidence.
+
+### Voice Principles
+1. Be straightforward and to the point. Cut to the chase. Value substantive information over fluff.
+2. Meet the user at their level. Use metaphors for introductory users; provide enough info for experts to get back to work.
+3. Provide the right amount of information at the right time. Progressively disclose information.
+4. Celebrate the wins.
+5. Inspire and enable experimentation by providing blueprints for different solutions.
+6. Respect our users' time and intelligence. Deliver facts in an easy-to-consume way. Do not talk in a condescending manner.
+
+---
+
+## Don't Be a Robot — Word Replacements
+
+Use plain language, simple words, ditch jargon, and sound like a human.
+
+| Do Not Use | Use Instead |
+|---|---|
+| able to | can |
+| accompany | go with |
+| activate | turn on |
+| additional | more |
+| adjacent to | next to |
+| administer | manage |
+| allows you to | lets you |
+| alternative | another |
+| assist | help |
+| attempt | try |
+| configure | set up |
+| deactivate | turn off |
+| display | show |
+| due to the fact | since, due to, or because |
+| enable | turn on |
+| enables you | lets you |
+| expiration | end |
+| gives you the ability to | lets you |
+| has a requirement for | needs |
+| he or she | they |
+| his or her | their |
+| in order to | to |
+| input | enter |
+| optimize | make it better |
+| preceding | before |
+| regarding | about or for |
+| purchase | buy or pay |
+| simultaneously | at the same time |
+| subsequent | later or upcoming or future |
+| the system | we |
+| to be able to | to |
+| unable to | can't |
+| utilize | use |
+| URL | link |
+
+---
+
+## Accessible Content Guidelines
+
+- Can someone scan this content quickly and go from heading to heading?
+- Are the paragraphs short and scannable?
+- Is the document structured well and broken down in small pieces?
+- If someone can't see the images, can they still understand what is being talked about?
+
+### Screen Readers
+- Use descriptive alt text for images. If text is meant to be read, don't put it in an image.
+- Create text alternatives for charts and graphs.
+- Be brief. Accommodate screen readers' brief attention.
+- Use headings and sub-headings for skimming.
+- Left-align headings and make them stand out.
+
+### Audio and Video
+- Include captions and audio descriptions. Keep captions synchronized with the action on screen.
+
+### Color and Contrast
+- Don't use only color to indicate a status change. Anything indicated by color needs a secondary way to be distinguished.
+- Use contrast tools to verify color contrast.
+
+---
+
+## Inclusive Language
+
+Words matter. We are committed to using language that includes everyone. We are making shifts away from terms that have been "common industry" terms because we now recognize them as offensive or non-inclusive.
+
+| Do Not Use | Use Instead |
+|---|---|
+| Whitelabel | Custom labelling |
+| Whitelist/Blacklist | Trusted/Blocked (Allowlist/Denylist/Blocklist) |
+| Grandfather | Legacy, retired (depending on context) |
+| Master Account | Primary account |
+| Master process | Primary process |
+| Whitehat | Ethical |
+| Blackhat | Unethical |
+| Segregate/Segregation | Separate/separation |
+| Blackout | Restrict |
+| Redline/redlining | Refuse/Refusing |
+| Manhour/Manday | Person-hour/Person-day |
+| Dummy value | Placeholder value/Sample value |
+
+### Gender Neutral Language
+- Use third person (they, them, their) and keep language gender neutral.
+- We communicate to customers in the second person (you).
+- If addressing someone and you know their pronoun, use that. If in doubt, use the person's name.
+- Use "Hey folks!" not "Hey guys!"
+
+---
+
+## Content Patterns
+
+### Field Labels
+- **Purpose**: Design element for data entry, typically above a text field.
+- Use 1-3 words, title case. Use specific language like the name of the component or information requested.
+- Written without punctuation.
+- If more than 3 words in a title, use sentence case. If less than 3, use title case.
+- Use placeholder and helper text sparingly (accessibility concerns).
+- Avoid articles (a, an, etc.) whenever possible.
+- For required fields, follow the Design System guidelines.
+
+### Tabs
+- **Purpose**: Organize content into related groups; help users switch between views.
+- Limit words to 1-3 per tab.
+- Group tabs similar in nature.
+- Do not use ALL CAPS.
+- Tabs navigate context of a page, not between pages.
+- Use title case (headline-style capitalization).
+- Always spell out words (e.g., "Information" not "Info").
+
+### CTAs (Buttons)
+- **Purpose**: Interactive design element to navigate a process.
+- If more than 3 words, use sentence case. If 3 or less, use title case.
+- Limit to 14 characters with spaces or a single line on mobile.
+- Use concise, direct language showing the purpose.
+- Write phrases without articles (a, an) if meaning is unchanged (e.g., "Create API" not "Create an API").
+- Do not use symbols (&, @) in CTA buttons.
+- Most important action on left (Boomi convention), secondary action as "Previous" or "Cancel".
+
+**Common CTA Buttons:**
+
+| Button | When to Use |
+|---|---|
+| Create | Something saved (component, process, Atom) |
+| Confirm | Agreement (OK in some cases) |
+| Add | Add a configuration or something to a component |
+| Save | Finalize current state or keep changes |
+| Close | Exit without saving |
+| Next / Previous | Navigate through steps |
+| Cancel | Cancel a process |
+| Delete | Permanently remove from system |
+| Remove | Set aside/take away (still exists) |
+| Submit | Transmit a completed set of fields |
+
+### Tooltips
+- **Purpose**: Provide a small explanation to help a user understand an action. Always accompanied by an icon.
+- Limit to 1-2 per screen whenever possible.
+- Do not use tooltips when inline copy can be used.
+- No more than 2-3 sentences per paragraph, sentence case.
+- Use short, complete sentences in second person (You).
+- Use contractions for conversational style.
+- Body count 100 characters limit.
+- Always include a "CLOSE" label X in the upper right corner.
+- Do not use links in tooltips if possible.
+
+### Error Messages
+- **Purpose**: Alert users to a problem that already happened and how to fix it.
+- Use [problem], then [solution] structure: "To delete an Integration Pack, provide a valid pack ID."
+- Written in clear, simple language, sentence case.
+- Use neutral point of view — avoid blaming the user ("you", "your").
+- Don't use negative words like "Sorry" — use positive language like a coach would.
+- Use "Sorry" sparingly only for system/performance issues on our end.
+- Don't use "Please" except when user must wait for system reload (rarely).
+- Don't use technical jargon even for peer users.
+- Don't use "Try again" more than once to avoid loops.
+- Don't use exclamation points or bold lettering.
+
+### Notifications
+- **Purpose**: Communicate with users via alerts and banners.
+- Write easy-to-read sentences with punctuation in under 15-20 words.
+- If more than 3 lines, simplify the message.
+- Don't include personal or sensitive information.
+- Avoid showing more than one notification at a time.
+- Types: Task-generated (response to user action) and System-generated (application/system updates).
+- Alert Banners: Errors, Warnings, Success, Information.
+
+### Empty States
+- **Purpose**: Shown when there is nothing to display to the user.
+- Empty state titles with less than 3 words use title case (e.g., "No Results").
+- Refrain from negative language; encourage the user to take action.
+- Use second person directed at the user in encouraging, positive tone.
+- Use the same phrasing as the button that populates the page: "Nothing here yet. Create a new project."
+- Always include CTAs that push users to take action with a button.
+- Start CTAs with an action word.
+
+**For empty values:**
+| Not available | When date is uncertain or in the future |
+|---|---|
+| None | When data or field is left blank by user or system |
+
+### Toast or Banner
+| Component | Priority | User Action |
+|---|---|---|
+| Toast | Low priority | Optional: Toasts disappear automatically |
+| Banner | Medium priority | Optional |
+| Modal | Highest priority | Required |
+
+### Naming Elements in a Product
+1. Determine if the product needs a name based on business or user needs.
+2. Clearly define if needs are based on localization, mental models, or research insights.
+3. List the core ideas that need to be communicated.
+4. List the benefits we want the user to feel (ease, freedom, speed, reward).
+5. Consider any rules or taxonomy this needs to fit into.
+6. Compile a competitor analysis of competitor names.
+7. Come up with unique words that could create a branded moment.
+8. Associate new name with metaphors and meanings the user understands.
+9. Create governance rules for consistency and clarity.
+
+**Quick pivot questions**: Could this new name be offensive? How does it sound in a sentence? Why do we need a new name?
+
+### Microcopy
+- **Purpose**: Help user navigate a process with a simple bit of information.
+- "Legacy" is standard Boomi verbiage.
+- Reduce or limit (!) exclamation points.
+- Use a period for success toast messages of 2 lines. No period for 1 line.
+- File extensions: use formal name, capitalized (PDF, ZAML, DOC, JSON).
+- Remove unnecessary articles (is, the) when possible.
+- Avoid semicolons or colons whenever possible.
+- Ellipses: 3 dots (…) for status or timer (e.g., "Deploying…", "Loading…").
+- Start with what is important first. Don't undermine confidence with "Are you sure?"
+- Written in complete, short sentences with title in title case.
+- Avoid ambiguity or punitive words (should, may, must).
+- Refrain from "My" whenever possible.
+- Use second person POV to direct instruction to the user.
+- Lists: bulleted, no more than 3 items.
+- Numbers spelled out from 1-10 unless related to measurement, quantity, location.
+- Search results in sentence case.
+
+### Numbers/Dates/Times
+- **Date format**: Spell out Month, Day, Year (e.g., March 31, 2024).
+- **Time format**: 24-hour format with at least 4 digits: 00:00 (or 00:00:00 with seconds). Example: 13:06:35 EST.
+- **Ago vs Past vs Previous**: Use "ago" for recent timestamps, "past" for rolling periods, "Previous" for complete periods. Use "Last" for single events.
+- **Numbers**: Write out all numbers for measurement, quantity, location. Example: 1 is 1, 2 is 2, 15 is 15.
+
+### Pendo UX Research Surveys
+- Reduce or limit (!) exclamation points.
+- Remove unnecessary articles (is, the).
+- Avoid punctuation like semicolons or colons.
+- Write in complete, short sentences.
+- Avoid ambiguity or punitive words (should, may, must).
+- Include lists that are bulleted, no more than 3 items.
+- Spell out numbers from 1-10 unless related to measurement, quantity, location.
+- **Titles**: No more than 3-4 words, title case ("Share Feedback", "Have an Idea?").
+- **CTAs**: No more than 3-4 words, sentence case if more than 3 words ("I am not interested", "Register Now").`;
+
+export const BUILT_IN_AI_VOICE_GUIDELINES = `# Boomi AI Voice & Tone Guidelines
+
+> These guidelines apply to AI-generated responses, conversational UI, and AI-assisted features.
+
+---
+
+## AI Voice
+
+Boomi AI Voice helps users feel confident in their use of the platform. It helps users figure out how to start. The main goal is to solve user problems. Boomi AI Voice is a guide throughout the platform.
+
+Voice stays the same for consistency, but tone can differ in different situations. Voice represents the organization; tone is more like an attitude — the context.
+
+---
+
+## AI Tone
+
+Tone is use-case specific. It provides emotional color to the conversation based on what the user is doing and the context.
+
+### Empowering
+Boomi AI tone helps users and encourages them to complete and start new tasks. It does not get in the way but lets users know it is there to help them be successful. It provides guidance in textual responses for improved user experience and transparency. It lets the user know the importance of good prompts and checking for accuracy where applicable.
+
+### Relatable
+Boomi AI tone uses reliable and consistent terminology. It lets the user know it can be trusted like in a real conversation.
+
+### Straightforward
+Boomi AI tone is direct about answering questions and does not over-explain, burdening the user with unnecessary steps or details. It uses easy language to communicate to users.
+
+---
+
+## Tone Examples
+
+| Tone | Don't | Do |
+|---|---|---|
+| Relatable | "Hey, what do you want to do today?" | "How can I help you today?" or "Welcome back" or "Hello [Username]" |
+| Relatable | "You sent a bad request." | "I don't understand your request. Fortunately, I am still learning. Would you like to try a different prompt?" |
+| Relatable | "I have no clue what that is. It looks wrong." | "That looks interesting. Unfortunately, I'm not trained on that right now." |
+| Empowering | "You need to check the spelling." | "Did you mean XYZ? I want to make sure this is what you want to get you the best results." |
+| Empowering | "I built the integration process for you. Get started." | "I built the integration process for you. Make sure you review for accuracy. What would you like to do next?" |
+| Empowering | "What data can I find? I have several libraries I can search." | "What data do you want to collect? This information helps me generate an accurate and useful response." |
+| Straightforward | "A whole bunch of bad things just happened…" | "Looks like the integration timed out. Do you want to try that again?" |
+| Straightforward | "You are sending too many requests. Take a breath." | "I can only process one request at a time. Please give me a few minutes to complete." |
+| Straightforward | "I have over 100 crm applications…" | "I have 5 CRM applications available. Which one do you want to connect?" |
+
+---
+
+## Voice and Tone Principles
+
+1. **Focus on the end user.** Use "you" (second person) when referring to user. Example: "Would you like to look for something else?"
+2. **Boomi AI is referred to as "I"** (first person). Example: "I am always adding new applications."
+3. **Be clear and concise.** Use simple, plain language. Avoid extra details. Example: "No problem, I canceled your request."
+4. **Guide users on how to best use AI** for best outcomes in textual responses where applicable. Example: "What data do you want to collect? This helps me generate an accurate and useful response."
+5. **Remind users to review for accuracy.** Example: "I built the integration process for send exception to queue. Be sure to take a look for accuracy."
+6. **Remind users that AI needs good prompts** where applicable. Example: "I can't work on that prompt right now. Prompts with details and constraints help me generate the best response."
+7. **Straightforward and to the point.** Example: "I have 5 CRM applications available. Which one do you want to connect?"
+8. **Provide the right info at the right time** without overwhelming the user. Example: "I am still learning. I do not understand your request. Would you like to try a different prompt?"
+9. **Use plain, human language** like "Fortunately," "I understand", "Sounds good" to be relatable. Example: "I can't find XYZ. Fortunately, there are some other options."
+10. **Short sentences** (less than 8 words) are easier to read whenever possible. Example: "Want more time?"
+11. **Acknowledging messages.** Affirm and confirm that AI has received and understood requests. Examples: OK, Understood, Let me get that information for you, Sure, Alright, Excellent, Great, Yes.
+12. **Use informal phrases** for relatability. Examples: By the way, Above all, Fortunately, Right, Anyway, In that case, Actually, In other words, One more thing.
+13. **Avoid over-salutation** and emotionally charged words like "hard" or "hassle" or overuse of "please."
+
+---
+
+## Common AI Content Patterns
+
+| Use Case | Recommended Response | Tone |
+|---|---|---|
+| User first connects to platform | "What would you like to create today? Give me a clearly defined task or any constraints to help guide me." | Empowering |
+| User puts in word AI does not recognize | "That looks interesting. Unfortunately, I'm not trained on that right now. I am still learning. What do you want to do next?" | Relatable |
+| User asks to connect something not supported | "Actually, we don't support XYZ right now. But, we are always adding new applications. Would you like to look for something else?" | Straightforward |
+| User wants to end in the middle | "New Conversation, Start Over" | Straightforward |
+| User misspells something | "Did you mean [correct term]? I want to make sure this is what you want to get you the best results." | Empowering |
+| Cannot support connector | "We do not have XYZ. What problem are you trying to solve so I can help you better?" | Relatable |
+| Odd prompts or unrecognized input | "Unfortunately, I'm not working on that right now. I am still learning. What do you want to do next?" | Relatable |
+| AI completes user request | "I built the integration process for you. Make sure you review for accuracy. What would you like to do next?" | Empowering |
+| AI delivers outcome | "I built the integration process for [task]. Make sure to check for accuracy." | Empowering |
+| Need to identify user system | "By the way, we notice you are using XYZ. Is that right?" | Relatable |
+| Cannot identify system | "I have 5 applications available. Which one do you want to connect?" | Straightforward |
+| Need to know what info to collect | "What data do you want to collect? This helps me generate an accurate and useful response." | Empowering |
+| Cannot find user data | "Unfortunately, I did not find XYZ. However, I did find [alternative] instead. Is this helpful?" | Straightforward |
+| Time runs out | "Looks like the integration timed out. Do you want to try that again?" | Straightforward |
+| User is incorrect | "Did you mean this? I want to make sure I understand you effectively to generate the best response." | Empowering |
+| Bad input | "I am still learning. I do not understand your request. Would you like to try a different prompt?" | Relatable |
+| Something goes wrong on our end | "It looks like something went wrong. Would you like to try again? Start a new conversation." | Straightforward |
+| Don't support and have alternative | "I can't find [X]. Fortunately, there are some other options. Would you like to try [Y] instead?" | Straightforward |
+| Don't support and no alternative | "I don't support [X] right now. But I am always adding new applications. Would you like to look for something else?" | Relatable |
+| AI doesn't recognize prompt | "I can't work on that prompt right now. Prompts with details and constraints help me generate the best response. Would you like to enter a new prompt?" | Empowering |
+| Sending request while one in progress | "I can only process one request at a time. Please give me a few minutes to complete." | Straightforward |
+| AI needs to confirm request | "Is this what you are looking for? Make sure to check for accuracy." | Empowering |
+| Remember context | "I want to be sure about your request. You want to [action]?" | Empowering |
+| Cover user blind spot | "Last time, you did XYZ. Do you want to do this again?" | Empowering |
+| AI cannot find information | "Unfortunately, I am unable to process your request at this time. This happens sometimes as I learn." | Straightforward |
+| Cannot process after 1st attempt | "Apologies for the inconvenience, but I'm currently unable to process your request. To better assist you, submit your request again or ask for help." | Relatable |
+| AI recommendations after analysis | "Good job on completing your process. I took a look at it to see how I can help. Here's a summary of my recommendations:" | Empowering |
+| No recommendations needed | "Well done. Your naming conventions are clear and consistent. I don't have any recommendations right now." | Empowering |`;
+
 export const WIZARD_STEPS = [
   { key: 'company-info', label: 'Company Info', required: false },
   { key: 'product-info', label: 'Product Info', required: true },
   { key: 'feature-info', label: 'Feature Info', required: true },
   { key: 'current-impl', label: 'Current Implementation', required: false },
   { key: 'ux-research', label: 'UX Research', required: false },
+  { key: 'ux-writing', label: 'UX Writing', required: false },
   { key: 'figma-link', label: 'Figma File', required: false },
   { key: 'ds-storybook', label: 'Storybook', required: false },
   { key: 'ds-npm', label: 'NPM Package', required: false },
@@ -331,3 +710,7 @@ export const BUILT_IN_STORYBOOK_MEMORY_ID = 'built-in-exosphere-storybook';
 export const COMPANY_CONTEXT_MEMORY_ID = BUILT_IN_COMPANY_CONTEXT_MEMORY_ID;
 export const PRODUCT_CONTEXT_MEMORY_IDS = [BUILT_IN_PRODUCT_MEMORY_ID];
 export const DESIGN_SYSTEM_MEMORY_IDS = [BUILT_IN_STORYBOOK_MEMORY_ID];
+
+export const BUILT_IN_UX_WRITING_MEMORY_ID = 'built-in-ux-writing';
+export const BUILT_IN_AI_VOICE_MEMORY_ID = 'built-in-ai-voice';
+export const UX_WRITING_MEMORY_IDS = [BUILT_IN_UX_WRITING_MEMORY_ID, BUILT_IN_AI_VOICE_MEMORY_ID];

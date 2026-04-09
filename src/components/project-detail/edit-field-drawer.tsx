@@ -38,6 +38,7 @@ const URL_PLACEHOLDERS: Record<string, string> = {
   designSystemNpm: 'https://www.npmjs.com/package/...',
   designSystemFigma: 'https://figma.com/design/...',
   prototypeSketches: 'https://prototype.example.com',
+  uxWriting: 'https://ux-writing-guidelines.example.com',
 };
 
 interface EditFieldDrawerProps {
@@ -238,6 +239,19 @@ export function EditFieldDrawer({
             onChange={(additionalContext) => update({ additionalContext })}
           />
         </div>
+      );
+    }
+
+    // uxWriting: URL/File/Text with showTextOption (matches wizard)
+    if (fieldKey === 'uxWriting') {
+      return (
+        <UrlOrFileField
+          data={draft}
+          onChange={setDraft}
+          label={hasContextMemories ? `Additional ${label}` : label}
+          urlPlaceholder={URL_PLACEHOLDERS[fieldKey]}
+          showTextOption
+        />
       );
     }
 

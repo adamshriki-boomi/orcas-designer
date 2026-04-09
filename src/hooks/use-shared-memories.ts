@@ -9,16 +9,21 @@ import {
   BUILT_IN_COMPANY_CONTEXT,
   BUILT_IN_PRODUCT_CONTEXT,
   BUILT_IN_EXOSPHERE_STORYBOOK,
+  BUILT_IN_UX_WRITING_GUIDELINES,
+  BUILT_IN_AI_VOICE_GUIDELINES,
   BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
   BUILT_IN_PRODUCT_MEMORY_ID,
   BUILT_IN_STORYBOOK_MEMORY_ID,
+  BUILT_IN_UX_WRITING_MEMORY_ID,
+  BUILT_IN_AI_VOICE_MEMORY_ID,
   COMPANY_CONTEXT_MEMORY_ID,
   PRODUCT_CONTEXT_MEMORY_IDS,
   DESIGN_SYSTEM_MEMORY_IDS,
+  UX_WRITING_MEMORY_IDS,
 } from '@/lib/constants';
 
 // Re-export for backward compatibility
-export { COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS };
+export { COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS };
 
 export function useSharedMemories() {
   const sharedMemories = useLiveQuery(
@@ -76,6 +81,36 @@ export function useSharedMemories() {
             description: 'Built-in design system reference for @boomi/exosphere components, tokens, and patterns',
             content: BUILT_IN_EXOSPHERE_STORYBOOK,
             fileName: 'exosphere-storybook.md',
+            isBuiltIn: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+        if (cancelled) return;
+        const existingUxWriting = await db.sharedMemories.get(BUILT_IN_UX_WRITING_MEMORY_ID);
+        if (cancelled) return;
+        if (!existingUxWriting) {
+          await db.sharedMemories.add({
+            id: BUILT_IN_UX_WRITING_MEMORY_ID,
+            name: 'UX Writing Guidelines',
+            description: 'Built-in UX writing guidelines covering voice/tone, content patterns, error messages, CTAs, tooltips, and empty states',
+            content: BUILT_IN_UX_WRITING_GUIDELINES,
+            fileName: 'ux-writing-guidelines.md',
+            isBuiltIn: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
+        if (cancelled) return;
+        const existingAiVoice = await db.sharedMemories.get(BUILT_IN_AI_VOICE_MEMORY_ID);
+        if (cancelled) return;
+        if (!existingAiVoice) {
+          await db.sharedMemories.add({
+            id: BUILT_IN_AI_VOICE_MEMORY_ID,
+            name: 'Boomi AI Voice',
+            description: 'AI-specific voice and tone guidelines for Boomi AI responses and conversational content patterns',
+            content: BUILT_IN_AI_VOICE_GUIDELINES,
+            fileName: 'boomi-ai-voice.md',
             isBuiltIn: true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

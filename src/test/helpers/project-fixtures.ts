@@ -61,6 +61,7 @@ export function createFullProject(overrides: Partial<Project> = {}): Project {
       figmaLinks: ['https://www.figma.com/design/impl/Current'],
     },
     uxResearch: { ...emptyFormField(), urlValue: 'https://docs.google.com/document/d/abc123/edit' },
+    uxWriting: { ...emptyFormField(), inputType: 'text', textValue: 'Use active voice for all CTAs' },
     figmaFileLink: { ...emptyFormField(), urlValue: 'https://www.figma.com/design/target/Target' },
     designSystemStorybook: { ...emptyFormField(), urlValue: 'https://storybook.example.com' },
     designSystemNpm: { ...emptyFormField(), inputType: 'text', textValue: '@example/ds' },
@@ -139,6 +140,28 @@ export function createStorybookMemory(): SharedMemory {
     fileName: 'exosphere-storybook.md',
     isBuiltIn: true,
   })
+}
+
+export function createUxWritingMemory(): SharedMemory {
+  return createTestSharedMemory({
+    id: 'built-in-ux-writing',
+    name: 'UX Writing Guidelines',
+    description: 'Built-in UX writing guidelines',
+    content: '# UX Writing\\n\\n## Voice and Tone\\n- Be empowering\\n- Be relatable',
+    fileName: 'ux-writing-guidelines.md',
+    isBuiltIn: true,
+  });
+}
+
+export function createAiVoiceMemory(): SharedMemory {
+  return createTestSharedMemory({
+    id: 'built-in-ai-voice',
+    name: 'Boomi AI Voice',
+    description: 'AI-specific voice and tone guidelines',
+    content: '# AI Voice\\n\\n## Tone\\n- Empowering\\n- Relatable\\n- Straightforward',
+    fileName: 'boomi-ai-voice.md',
+    isBuiltIn: true,
+  });
 }
 
 export function createProjectWithStorybookMemory(overrides: Partial<Project> = {}): Project {

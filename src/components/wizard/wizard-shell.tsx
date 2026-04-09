@@ -8,9 +8,9 @@ import { ChevronLeft, ChevronRight, Save, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEP_GROUPS = [
-  { label: "Context", range: [0, 4] as const },
-  { label: "Design Assets", range: [5, 9] as const },
-  { label: "Configuration", range: [10, 14] as const },
+  { label: "Context", range: [0, 5] as const },
+  { label: "Design Assets", range: [6, 10] as const },
+  { label: "Configuration", range: [11, 15] as const },
 ];
 
 interface WizardShellProps {

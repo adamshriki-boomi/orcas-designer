@@ -7,7 +7,7 @@ import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Settings, Brain, Exte
 import { toast } from '@/components/ui/sonner';
 import { useProject } from '@/hooks/use-project';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
-import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, COMPANY_CONTEXT_MEMORY_ID, DESIGN_SYSTEM_MEMORY_IDS } from '@/hooks/use-shared-memories';
+import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, COMPANY_CONTEXT_MEMORY_ID, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { Header } from '@/components/layout/header';
@@ -59,6 +59,7 @@ const FIELD_LABELS: Record<string, string> = {
   productInfo: 'Product Info',
   featureInfo: 'Feature Info',
   uxResearch: 'UX Research',
+  uxWriting: 'UX Writing',
   figmaFileLink: 'Figma File',
   designSystemStorybook: 'Storybook',
   designSystemNpm: 'NPM Package',
@@ -288,6 +289,11 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
     if (fieldKey === 'designSystemStorybook') {
       return sharedMemories
         .filter((m) => DESIGN_SYSTEM_MEMORY_IDS.includes(m.id))
+        .map((memory) => ({ memory, locked: false }));
+    }
+    if (fieldKey === 'uxWriting') {
+      return sharedMemories
+        .filter((m) => UX_WRITING_MEMORY_IDS.includes(m.id))
         .map((memory) => ({ memory, locked: false }));
     }
     return [];

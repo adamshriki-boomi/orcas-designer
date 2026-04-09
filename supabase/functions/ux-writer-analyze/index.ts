@@ -366,12 +366,27 @@ Deno.serve(async (req: Request) => {
     // Build user message content
     const userContent: Anthropic.MessageCreateParams["messages"][0]["content"] = [];
 
-    // Add screenshot if provided
+    // Add screenshot if provided — download from Storage and pass as base64
+    // (Storage bucket is private, so Claude can't fetch the URL directly)
     if (screenshotUrl) {
-      userContent.push({
-        type: "image",
-        source: { type: "url", url: screenshotUrl },
-      });
+      try {
+        const imgResponse = await fetch(screenshotUrl, {
+          headers: { Authorization: authHeader },
+        });
+        if (imgResponse.ok) {
+          const arrayBuffer = await imgResponse.arrayBuffer();
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+          const contentType = imgResponse.headers.get("content-type") || "image/png";
+          const mediaType = contentType.split(";")[0].trim() as "image/png" | "image/jpeg" | "image/webp" | "image/gif";
+          userContent.push({
+            type: "image",
+            source: { type: "base64", media_type: mediaType, data: base64 },
+          });
+        }
+      } catch (e) {
+        console.error("Failed to download screenshot:", e);
+        // Continue without screenshot — still analyze text description
+      }
     }
 
     // Build text description

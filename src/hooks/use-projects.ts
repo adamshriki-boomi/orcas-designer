@@ -7,7 +7,7 @@ import type { Project } from '@/lib/types';
 import { emptyProject } from '@/lib/types';
 import { generateId } from '@/lib/id';
 
-function toProject(row: Record<string, unknown>): Project {
+export function toProject(row: Record<string, unknown>): Project {
   const data = (row.data ?? {}) as Record<string, unknown>;
   return {
     id: row.id as string,
@@ -108,20 +108,6 @@ export function useProjects() {
     const supabase = createClient();
     const row = projectToRow(project, user!.id);
     row.id = id;
-    // Pack ALL form data for new projects
-    row.data = {
-      companyInfo: project.companyInfo,
-      productInfo: project.productInfo,
-      featureInfo: project.featureInfo,
-      currentImplementation: project.currentImplementation,
-      uxResearch: project.uxResearch,
-      uxWriting: project.uxWriting,
-      figmaFileLink: project.figmaFileLink,
-      designSystemStorybook: project.designSystemStorybook,
-      designSystemNpm: project.designSystemNpm,
-      designSystemFigma: project.designSystemFigma,
-      prototypeSketches: project.prototypeSketches,
-    };
     const { error } = await supabase.from('projects').insert(row as never);
     if (error) throw error;
     await fetchProjects();
@@ -130,7 +116,8 @@ export function useProjects() {
 
   const deleteProject = useCallback(async (id: string): Promise<void> => {
     const supabase = createClient();
-    await supabase.from('projects').delete().eq('id', id);
+    const { error } = await supabase.from('projects').delete().eq('id', id);
+    if (error) throw error;
     await fetchProjects();
   }, [fetchProjects]);
 

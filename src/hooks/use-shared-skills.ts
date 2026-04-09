@@ -67,14 +67,16 @@ export function useSharedSkills() {
     if (updates.urlValue !== undefined) mapped.url_value = updates.urlValue;
     if (updates.fileContent !== undefined) mapped.file_content = updates.fileContent;
 
-    await supabase.from('shared_skills').update(mapped as never).eq('id', id);
+    const { error } = await supabase.from('shared_skills').update(mapped as never).eq('id', id);
+    if (error) throw error;
     await fetchSkills();
   }, [fetchSkills]);
 
   const deleteSkill = useCallback(async (id: string): Promise<void> => {
     const supabase = createClient();
     // Cascade handled by DB trigger (removes ID from projects' arrays)
-    await supabase.from('shared_skills').delete().eq('id', id);
+    const { error } = await supabase.from('shared_skills').delete().eq('id', id);
+    if (error) throw error;
     await fetchSkills();
   }, [fetchSkills]);
 

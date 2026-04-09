@@ -4,42 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
 import type { Project } from '@/lib/types';
-import { projectToRow } from './use-projects';
-
-function toProject(row: Record<string, unknown>): Project {
-  const data = (row.data ?? {}) as Record<string, unknown>;
-  return {
-    id: row.id as string,
-    name: row.name as string,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
-    companyInfo: data.companyInfo as Project['companyInfo'],
-    productInfo: data.productInfo as Project['productInfo'],
-    featureInfo: data.featureInfo as Project['featureInfo'],
-    currentImplementation: data.currentImplementation as Project['currentImplementation'],
-    uxResearch: data.uxResearch as Project['uxResearch'],
-    uxWriting: data.uxWriting as Project['uxWriting'],
-    figmaFileLink: data.figmaFileLink as Project['figmaFileLink'],
-    designSystemStorybook: data.designSystemStorybook as Project['designSystemStorybook'],
-    designSystemNpm: data.designSystemNpm as Project['designSystemNpm'],
-    designSystemFigma: data.designSystemFigma as Project['designSystemFigma'],
-    prototypeSketches: data.prototypeSketches as Project['prototypeSketches'],
-    outputType: row.output_type as Project['outputType'],
-    interactionLevel: row.interaction_level as Project['interactionLevel'],
-    outputDirectory: row.output_directory as string,
-    accessibilityLevel: row.accessibility_level as Project['accessibilityLevel'],
-    externalResourcesAccessible: row.external_resources_accessible as boolean,
-    browserCompatibility: row.browser_compatibility as Project['browserCompatibility'],
-    promptMode: row.prompt_mode as Project['promptMode'],
-    designDirection: row.design_direction as Project['designDirection'],
-    selectedSharedSkillIds: row.selected_shared_skill_ids as string[],
-    customSkills: (row.custom_skills ?? []) as Project['customSkills'],
-    selectedSharedMemoryIds: row.selected_shared_memory_ids as string[],
-    customMemories: (row.custom_memories ?? []) as Project['customMemories'],
-    regenerationCount: row.regeneration_count as number,
-    generatedPrompt: row.generated_prompt as string,
-  };
-}
+import { projectToRow, toProject } from './use-projects';
 
 export function useProject(id: string) {
   const { user } = useAuth();

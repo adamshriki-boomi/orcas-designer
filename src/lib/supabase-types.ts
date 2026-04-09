@@ -284,7 +284,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      upsert_built_in_memory: {
+        Args: {
+          p_content: string
+          p_description: string
+          p_file_name: string
+          p_id: string
+          p_name: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -150,10 +150,12 @@ function createQueryBuilder(tableName: string) {
 export function createMockSupabaseClient() {
   return {
     from: (tableName: string) => createQueryBuilder(tableName),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       signInWithOtp: vi.fn().mockResolvedValue({ error: null }),
+      signInWithPassword: vi.fn().mockResolvedValue({ data: { user: { id: 'mock-user' }, session: {} }, error: null }),
       signOut: vi.fn().mockResolvedValue({ error: null }),
     },
   };

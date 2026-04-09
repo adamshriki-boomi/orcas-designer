@@ -24,15 +24,15 @@ import {
 // Re-export for backward compatibility
 export { COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS };
 
-const BUILT_IN_MEMORIES: Omit<SharedMemory, 'createdAt' | 'updatedAt'>[] = [
-  { id: BUILT_IN_COMPANY_CONTEXT_MEMORY_ID, name: 'Boomi Context', description: 'Built-in company context for Boomi', content: BUILT_IN_COMPANY_CONTEXT, fileName: 'boomi-context.md', isBuiltIn: true },
-  { id: BUILT_IN_PRODUCT_MEMORY_ID, name: 'Rivery Context', description: 'Built-in product context for Boomi Data Integration (formerly Rivery)', content: BUILT_IN_PRODUCT_CONTEXT, fileName: 'rivery-context.md', isBuiltIn: true },
-  { id: BUILT_IN_STORYBOOK_MEMORY_ID, name: 'Exosphere Storybook', description: 'Built-in design system reference for @boomi/exosphere components, tokens, and patterns', content: BUILT_IN_EXOSPHERE_STORYBOOK, fileName: 'exosphere-storybook.md', isBuiltIn: true },
-  { id: BUILT_IN_UX_WRITING_MEMORY_ID, name: 'UX Writing Guidelines', description: 'Built-in UX writing guidelines covering voice/tone, content patterns, error messages, CTAs, tooltips, and empty states', content: BUILT_IN_UX_WRITING_GUIDELINES, fileName: 'ux-writing-guidelines.md', isBuiltIn: true },
-  { id: BUILT_IN_AI_VOICE_MEMORY_ID, name: 'Boomi AI Voice', description: 'AI-specific voice and tone guidelines for Boomi AI responses and conversational content patterns', content: BUILT_IN_AI_VOICE_GUIDELINES, fileName: 'boomi-ai-voice.md', isBuiltIn: true },
+const BUILT_IN_MEMORIES = [
+  { id: BUILT_IN_COMPANY_CONTEXT_MEMORY_ID, name: 'Boomi Context', description: 'Built-in company context for Boomi', content: BUILT_IN_COMPANY_CONTEXT, fileName: 'boomi-context.md' },
+  { id: BUILT_IN_PRODUCT_MEMORY_ID, name: 'Rivery Context', description: 'Built-in product context for Boomi Data Integration (formerly Rivery)', content: BUILT_IN_PRODUCT_CONTEXT, fileName: 'rivery-context.md' },
+  { id: BUILT_IN_STORYBOOK_MEMORY_ID, name: 'Exosphere Storybook', description: 'Built-in design system reference for @boomi/exosphere components, tokens, and patterns', content: BUILT_IN_EXOSPHERE_STORYBOOK, fileName: 'exosphere-storybook.md' },
+  { id: BUILT_IN_UX_WRITING_MEMORY_ID, name: 'UX Writing Guidelines', description: 'Built-in UX writing guidelines covering voice/tone, content patterns, error messages, CTAs, tooltips, and empty states', content: BUILT_IN_UX_WRITING_GUIDELINES, fileName: 'ux-writing-guidelines.md' },
+  { id: BUILT_IN_AI_VOICE_MEMORY_ID, name: 'Boomi AI Voice', description: 'AI-specific voice and tone guidelines for Boomi AI responses and conversational content patterns', content: BUILT_IN_AI_VOICE_GUIDELINES, fileName: 'boomi-ai-voice.md' },
 ];
 
-function toSharedMemory(row: Record<string, unknown>): SharedMemory {
+export function toSharedMemory(row: Record<string, unknown>): SharedMemory {
   return {
     id: row.id as string,
     name: row.name as string,
@@ -61,7 +61,7 @@ export function useSharedMemories() {
     }
   }, []);
 
-  // Seed built-in memories on first load
+  // Seed built-in memories on first load, then fetch
   useEffect(() => {
     if (!user || seededRef.current) return;
     seededRef.current = true;
@@ -69,39 +69,18 @@ export function useSharedMemories() {
     async function ensureBuiltInMemories() {
       const supabase = createClient();
       for (const mem of BUILT_IN_MEMORIES) {
-        const { data: existing } = await supabase
-          .from('shared_memories')
-          .select('id, name, content')
-          .eq('id', mem.id)
-          .maybeSingle();
-
-        if (!existing) {
-          await supabase.from('shared_memories').insert({
-            id: mem.id,
-            name: mem.name,
-            description: mem.description,
-            content: mem.content,
-            file_name: mem.fileName,
-            is_built_in: true,
-            created_by: null,
-          });
-        } else if (existing.name !== mem.name || existing.content !== mem.content) {
-          await supabase.from('shared_memories').update({
-            name: mem.name,
-            description: mem.description,
-            content: mem.content,
-            file_name: mem.fileName,
-          }).eq('id', mem.id);
-        }
+        // Use SECURITY DEFINER function to upsert built-in memories
+        await supabase.rpc('upsert_built_in_memory', {
+          p_id: mem.id,
+          p_name: mem.name,
+          p_description: mem.description,
+          p_content: mem.content,
+          p_file_name: mem.fileName,
+        });
       }
       await fetchMemories();
     }
     ensureBuiltInMemories().catch(console.error);
-  }, [user, fetchMemories]);
-
-  // Initial fetch
-  useEffect(() => {
-    if (user) fetchMemories();
   }, [user, fetchMemories]);
 
   const addMemory = useCallback(async (
@@ -133,7 +112,8 @@ export function useSharedMemories() {
     if (updates.content !== undefined) mapped.content = updates.content;
     if (updates.fileName !== undefined) mapped.file_name = updates.fileName;
 
-    await supabase.from('shared_memories').update(mapped as never).eq('id', id);
+    const { error } = await supabase.from('shared_memories').update(mapped as never).eq('id', id);
+    if (error) throw error;
     await fetchMemories();
   }, [fetchMemories]);
 
@@ -142,8 +122,8 @@ export function useSharedMemories() {
     if (mem?.isBuiltIn) return;
 
     const supabase = createClient();
-    // Cascade handled by DB trigger (removes ID from projects' arrays)
-    await supabase.from('shared_memories').delete().eq('id', id);
+    const { error } = await supabase.from('shared_memories').delete().eq('id', id);
+    if (error) throw error;
     await fetchMemories();
   }, [sharedMemories, fetchMemories]);
 

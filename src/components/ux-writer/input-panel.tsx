@@ -151,8 +151,15 @@ export function InputPanel({
           />
         </div>
 
-        {/* AI Voice toggle — uses ExToggle via Switch wrapper */}
-        <label className="flex items-center justify-between py-1 cursor-pointer">
+        {/* AI Voice toggle */}
+        <div
+          className="flex items-center justify-between py-1 cursor-pointer"
+          onClick={() => setIncludeAiVoice(!includeAiVoice)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIncludeAiVoice(!includeAiVoice); } }}
+          role="switch"
+          aria-checked={includeAiVoice}
+          tabIndex={0}
+        >
           <div>
             <p className="text-xs font-medium">Include AI Voice guidelines</p>
             <p className="text-[10px] text-muted-foreground">For AI features (chatbot, assistant text)</p>
@@ -162,7 +169,7 @@ export function InputPanel({
             onCheckedChange={setIncludeAiVoice}
             size="sm"
           />
-        </label>
+        </div>
 
         {/* Analyze button */}
         <Button type="submit" className="w-full" disabled={!description.trim() || analyzing || disabled}>

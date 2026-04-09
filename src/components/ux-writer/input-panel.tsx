@@ -34,9 +34,7 @@ export function InputPanel({
   const [uploading, setUploading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function uploadFile(file: File) {
     setUploading(true);
     try {
       const url = await onScreenshotUpload(file);
@@ -47,6 +45,15 @@ export function InputPanel({
     } finally {
       setUploading(false);
     }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
+  }
+
+  function handleFileDrop(file: File) {
+    uploadFile(file);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -87,7 +94,19 @@ export function InputPanel({
               </button>
             </div>
           ) : (
-            <label className="flex items-center justify-center gap-2 px-3 py-6 rounded-md border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors">
+            <label
+              className="flex items-center justify-center gap-2 px-3 py-6 rounded-md border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors"
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files?.[0];
+                if (file && file.type.startsWith('image/')) {
+                  handleFileDrop(file);
+                }
+              }}
+            >
               <Upload className="size-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">
                 {uploading ? 'Uploading...' : 'Drop an image or click to upload'}

@@ -34,19 +34,25 @@ export default function UxWriterPage() {
   }, [analyze]);
 
   const handleScreenshotUpload = useCallback(async (file: File): Promise<string> => {
+    if (!user) throw new Error('Not authenticated');
     const supabase = createClient();
-    const path = `${user!.id}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage
+    const path = `${user.id}/${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage
       .from('ux-writer-screenshots')
       .upload(path, file);
-    if (error) {
+    if (uploadError) {
       toast.error('Failed to upload screenshot');
-      throw error;
+      throw uploadError;
     }
-    const { data: { publicUrl } } = supabase.storage
+    // Use signed URL (bucket is private) — valid for 1 hour
+    const { data, error: signError } = await supabase.storage
       .from('ux-writer-screenshots')
-      .getPublicUrl(path);
-    return publicUrl;
+      .createSignedUrl(path, 3600);
+    if (signError || !data?.signedUrl) {
+      toast.error('Failed to generate screenshot URL');
+      throw signError || new Error('No signed URL');
+    }
+    return data.signedUrl;
   }, [user]);
 
   const handleDelete = useCallback(async (id: string) => {

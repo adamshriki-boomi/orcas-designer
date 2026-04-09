@@ -330,10 +330,22 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const { screenshotUrl, description, focusNotes, includeAiVoice } = body;
 
-    // Validate description is non-empty
+    // Validate description is non-empty and within length limits
     if (!description || typeof description !== "string" || description.trim().length === 0) {
       return new Response(
         JSON.stringify({ error: "Description is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (description.length > 4000) {
+      return new Response(
+        JSON.stringify({ error: "Description is too long (max 4000 characters)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    if (focusNotes && typeof focusNotes === "string" && focusNotes.length > 1000) {
+      return new Response(
+        JSON.stringify({ error: "Focus notes are too long (max 1000 characters)" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -368,24 +380,56 @@ Deno.serve(async (req: Request) => {
 
     // Add screenshot if provided — download from Storage and pass as base64
     // (Storage bucket is private, so Claude can't fetch the URL directly)
-    if (screenshotUrl) {
+    const ALLOWED_MEDIA_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (screenshotUrl && typeof screenshotUrl === "string") {
+      // SSRF protection: only allow URLs from our own Supabase Storage
+      const supabaseOrigin = new URL(Deno.env.get("SUPABASE_URL")!).origin;
+      let isAllowedUrl = false;
       try {
-        const imgResponse = await fetch(screenshotUrl, {
-          headers: { Authorization: authHeader },
-        });
-        if (imgResponse.ok) {
-          const arrayBuffer = await imgResponse.arrayBuffer();
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-          const contentType = imgResponse.headers.get("content-type") || "image/png";
-          const mediaType = contentType.split(";")[0].trim() as "image/png" | "image/jpeg" | "image/webp" | "image/gif";
-          userContent.push({
-            type: "image",
-            source: { type: "base64", media_type: mediaType, data: base64 },
+        const parsed = new URL(screenshotUrl);
+        isAllowedUrl = parsed.origin === supabaseOrigin;
+      } catch {
+        // Invalid URL — skip screenshot
+      }
+
+      if (isAllowedUrl) {
+        try {
+          const imgResponse = await fetch(screenshotUrl, {
+            headers: { Authorization: authHeader },
           });
+          if (imgResponse.ok) {
+            const contentType = (imgResponse.headers.get("content-type") || "").split(";")[0].trim();
+            if (!ALLOWED_MEDIA_TYPES.includes(contentType)) {
+              console.warn("Rejected screenshot: unsupported content-type", contentType);
+            } else {
+              const arrayBuffer = await imgResponse.arrayBuffer();
+              if (arrayBuffer.byteLength > MAX_IMAGE_SIZE) {
+                console.warn("Rejected screenshot: too large", arrayBuffer.byteLength);
+              } else {
+                // Chunked base64 encoding to avoid stack overflow on large images
+                const bytes = new Uint8Array(arrayBuffer);
+                let binary = "";
+                const chunkSize = 8192;
+                for (let i = 0; i < bytes.length; i += chunkSize) {
+                  binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+                }
+                const base64 = btoa(binary);
+                userContent.push({
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: contentType as "image/png" | "image/jpeg" | "image/webp" | "image/gif",
+                    data: base64,
+                  },
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Failed to download screenshot:", e);
         }
-      } catch (e) {
-        console.error("Failed to download screenshot:", e);
-        // Continue without screenshot — still analyze text description
       }
     }
 
@@ -448,9 +492,10 @@ Deno.serve(async (req: Request) => {
     }
 
     if (error instanceof Anthropic.APIError) {
+      console.error("Claude API error:", error.status, error.message);
       return new Response(
         JSON.stringify({
-          error: `Claude API error: ${error.message}`,
+          error: "The AI service encountered an error. Please try again.",
         }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -459,16 +504,15 @@ Deno.serve(async (req: Request) => {
     if (error instanceof SyntaxError) {
       return new Response(
         JSON.stringify({
-          error: "Failed to parse Claude response as JSON. Please try again.",
+          error: "Failed to parse AI response. Please try again.",
         }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     console.error("Unexpected error:", error);
-    const message = error instanceof Error ? error.message : "An unexpected error occurred";
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

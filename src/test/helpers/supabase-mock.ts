@@ -151,6 +151,16 @@ export function createMockSupabaseClient() {
   return {
     from: (tableName: string) => createQueryBuilder(tableName),
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
+    },
+    storage: {
+      from: vi.fn().mockReturnValue({
+        upload: vi.fn().mockResolvedValue({ error: null }),
+        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'https://mock.storage/image.png' } }),
+        createSignedUrl: vi.fn().mockResolvedValue({ data: { signedUrl: 'https://mock.storage/signed/image.png' }, error: null }),
+      }),
+    },
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),

@@ -44,10 +44,12 @@ export function useUxWriter() {
   const fetchHistory = useCallback(async () => {
     if (!user) return;
     const supabase = createClient();
-    const { data } = await supabase
+    const { data, error: fetchError } = await supabase
       .from('ux_writer_analyses')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+    if (fetchError) { console.error('Failed to fetch history:', fetchError); return; }
 
     if (data) {
       setHistory(data.map((row) => ({
@@ -66,6 +68,7 @@ export function useUxWriter() {
   }, [user, fetchHistory]);
 
   const analyze = useCallback(async (params: AnalyzeParams): Promise<AnalysisResult> => {
+    if (!user) throw new Error('Not authenticated');
     setAnalyzing(true);
     setError(null);
     setResults(null);
@@ -103,13 +106,14 @@ export function useUxWriter() {
       setResults(result);
 
       // Save to history
-      await supabase.from('ux_writer_analyses').insert({
-        user_id: user!.id,
+      const { error: insertError } = await supabase.from('ux_writer_analyses').insert({
+        user_id: user.id,
         description: params.description,
         focus_notes: params.focusNotes,
         screenshot_url: params.screenshotUrl,
         results: result as unknown as Json,
       });
+      if (insertError) console.error('Failed to save analysis:', insertError);
       await fetchHistory();
 
       return result;
@@ -128,8 +132,9 @@ export function useUxWriter() {
   }, []);
 
   const deleteEntry = useCallback(async (id: string) => {
+    if (!user) return;
     const supabase = createClient();
-    const { error } = await supabase.from('ux_writer_analyses').delete().eq('id', id);
+    const { error } = await supabase.from('ux_writer_analyses').delete().eq('id', id).eq('user_id', user.id);
     if (error) throw error;
     await fetchHistory();
   }, [fetchHistory]);

@@ -16,12 +16,13 @@ export function useUserSettings() {
   const fetchSettings = useCallback(async () => {
     if (!user) return;
     const supabase = createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_settings')
-      .select('*')
+      .select('claude_api_key')
       .eq('user_id', user.id)
       .maybeSingle();
 
+    if (error) { console.error('Failed to fetch settings:', error); }
     setSettings(data ? { claudeApiKey: data.claude_api_key } : { claudeApiKey: '' });
     setLoading(false);
   }, [user]);

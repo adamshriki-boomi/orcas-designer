@@ -55,4 +55,55 @@ describe('ux_writer_analyses Supabase operations', () => {
     const { data } = await mockClient.from('ux_writer_analyses').select('*');
     expect(data).toHaveLength(0);
   });
+
+  it('user_id filter isolates analyses per user', async () => {
+    await mockClient.from('ux_writer_analyses').insert({
+      id: 'a-user1', user_id: 'user-1', description: 'User 1 analysis',
+    });
+    await mockClient.from('ux_writer_analyses').insert({
+      id: 'a-user2', user_id: 'user-2', description: 'User 2 analysis',
+    });
+
+    const { data: user1Data } = await mockClient
+      .from('ux_writer_analyses')
+      .select('*')
+      .eq('user_id', 'user-1');
+
+    expect(user1Data).toHaveLength(1);
+    expect(user1Data![0].description).toBe('User 1 analysis');
+  });
+
+  it('delete with user_id filter only deletes own entries', async () => {
+    await mockClient.from('ux_writer_analyses').insert({
+      id: 'owned', user_id: 'user-1', description: 'My analysis',
+    });
+    await mockClient.from('ux_writer_analyses').insert({
+      id: 'other', user_id: 'user-2', description: 'Their analysis',
+    });
+
+    // Delete with user_id filter — should only delete user-1's entry
+    await mockClient.from('ux_writer_analyses').delete()
+      .eq('id', 'owned')
+      .eq('user_id', 'user-1');
+
+    const { data } = await mockClient.from('ux_writer_analyses').select('*');
+    expect(data).toHaveLength(1);
+    expect(data![0].id).toBe('other');
+  });
+
+  it('mock supports functions.invoke()', async () => {
+    const { data, error } = await mockClient.functions.invoke('ux-writer-analyze', {
+      body: { description: 'test' },
+    });
+    expect(error).toBeNull();
+  });
+
+  it('mock supports storage operations', async () => {
+    const bucket = mockClient.storage.from('ux-writer-screenshots');
+    const { error: uploadError } = await bucket.upload('test/image.png', new Blob());
+    expect(uploadError).toBeNull();
+
+    const { data } = await bucket.createSignedUrl('test/image.png', 3600);
+    expect(data?.signedUrl).toBeDefined();
+  });
 });

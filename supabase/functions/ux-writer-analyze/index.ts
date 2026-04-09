@@ -343,7 +343,7 @@ Deno.serve(async (req: Request) => {
       .from("user_settings")
       .select("claude_api_key")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (settingsError || !settings?.claude_api_key) {
       return new Response(

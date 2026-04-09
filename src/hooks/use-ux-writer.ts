@@ -77,7 +77,19 @@ export function useUxWriter() {
       });
 
       if (fnError) {
-        const msg = fnError.message || 'Analysis failed';
+        // Extract actual error from Edge Function response body
+        let msg = 'Analysis failed';
+        try {
+          const ctx = fnError.context;
+          if (ctx instanceof Response) {
+            const body = await ctx.json();
+            msg = body?.error || fnError.message || msg;
+          } else {
+            msg = fnError.message || msg;
+          }
+        } catch {
+          msg = fnError.message || msg;
+        }
         setError(msg);
         throw new Error(msg);
       }

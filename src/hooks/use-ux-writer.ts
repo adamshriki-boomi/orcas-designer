@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
+import type { Json } from '@/lib/supabase-types';
 
 export interface Suggestion {
   elementType: string;
@@ -95,7 +96,7 @@ export function useUxWriter() {
         description: params.description,
         focus_notes: params.focusNotes,
         screenshot_url: params.screenshotUrl,
-        results: result as unknown as Record<string, unknown>,
+        results: result as unknown as Json,
       });
       await fetchHistory();
 

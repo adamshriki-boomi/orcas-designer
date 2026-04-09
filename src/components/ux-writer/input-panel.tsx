@@ -21,10 +21,11 @@ interface InputPanelProps {
   onHistorySelect: (entry: AnalysisEntry) => void;
   onHistoryDelete: (id: string) => void;
   onScreenshotUpload: (file: File) => Promise<string>;
+  disabled?: boolean;
 }
 
 export function InputPanel({
-  onAnalyze, analyzing, history, onHistorySelect, onHistoryDelete, onScreenshotUpload,
+  onAnalyze, analyzing, disabled, history, onHistorySelect, onHistoryDelete, onScreenshotUpload,
 }: InputPanelProps) {
   const [description, setDescription] = useState('');
   const [focusNotes, setFocusNotes] = useState('');
@@ -164,7 +165,7 @@ export function InputPanel({
         </label>
 
         {/* Analyze button */}
-        <Button type="submit" className="w-full" disabled={!description.trim() || analyzing}>
+        <Button type="submit" className="w-full" disabled={!description.trim() || analyzing || disabled}>
           {analyzing ? 'Analyzing...' : 'Analyze'}
         </Button>
       </form>

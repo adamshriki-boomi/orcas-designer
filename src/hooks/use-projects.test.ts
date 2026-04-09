@@ -1,70 +1,84 @@
-import '@/test/helpers/db-setup'
-import { db } from '@/lib/db'
-import { emptyProject } from '@/lib/types'
-import { generateId } from '@/lib/id'
+import { clearAllTables, createMockSupabaseClient } from '@/test/helpers/supabase-mock';
 
-beforeEach(async () => {
-  await db.projects.clear()
-  await db.sharedSkills.clear()
-  await db.sharedMemories.clear()
-})
+const mockClient = createMockSupabaseClient();
 
-describe('useProjects DB operations', () => {
-  it('can add a project to db.projects', async () => {
-    const id = generateId()
-    const project = emptyProject(id, 'New Project')
-    await db.projects.add(project)
+beforeEach(() => {
+  clearAllTables();
+});
 
-    const count = await db.projects.count()
-    expect(count).toBe(1)
-  })
+describe('projects Supabase operations', () => {
+  it('can insert a project', async () => {
+    await mockClient.from('projects').insert({
+      id: 'proj-1',
+      user_id: 'user-1',
+      name: 'New Project',
+      data: {},
+      output_type: 'static-only',
+      interaction_level: 'static',
+    });
 
-  it('can retrieve projects ordered by updatedAt', async () => {
-    const project1 = emptyProject('p1', 'First')
-    project1.updatedAt = '2025-01-01T00:00:00.000Z'
-    const project2 = emptyProject('p2', 'Second')
-    project2.updatedAt = '2025-06-01T00:00:00.000Z'
-    const project3 = emptyProject('p3', 'Third')
-    project3.updatedAt = '2025-03-01T00:00:00.000Z'
+    const { data } = await mockClient.from('projects').select('*');
+    expect(data).toHaveLength(1);
+    expect(data![0].name).toBe('New Project');
+  });
 
-    await db.projects.bulkAdd([project1, project2, project3])
+  it('can retrieve projects ordered by updated_at descending', async () => {
+    await mockClient.from('projects').insert({
+      id: 'p1', user_id: 'u1', name: 'First',
+      updated_at: '2025-01-01T00:00:00.000Z',
+    });
+    await mockClient.from('projects').insert({
+      id: 'p2', user_id: 'u1', name: 'Second',
+      updated_at: '2025-06-01T00:00:00.000Z',
+    });
+    await mockClient.from('projects').insert({
+      id: 'p3', user_id: 'u1', name: 'Third',
+      updated_at: '2025-03-01T00:00:00.000Z',
+    });
 
-    const ordered = await db.projects.orderBy('updatedAt').reverse().toArray()
-    expect(ordered).toHaveLength(3)
-    expect(ordered[0].name).toBe('Second')
-    expect(ordered[1].name).toBe('Third')
-    expect(ordered[2].name).toBe('First')
-  })
+    const { data } = await mockClient
+      .from('projects')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    expect(data).toHaveLength(3);
+    expect(data![0].name).toBe('Second');
+    expect(data![1].name).toBe('Third');
+    expect(data![2].name).toBe('First');
+  });
 
   it('can delete a project', async () => {
-    const project = emptyProject('del-1', 'To Delete')
-    await db.projects.add(project)
-    expect(await db.projects.count()).toBe(1)
+    await mockClient.from('projects').insert({
+      id: 'del-1', user_id: 'u1', name: 'To Delete',
+    });
 
-    await db.projects.delete('del-1')
-    expect(await db.projects.count()).toBe(0)
-  })
+    const { data: before } = await mockClient.from('projects').select('*');
+    expect(before).toHaveLength(1);
 
-  it('deleting a non-existent project does not throw', async () => {
-    await expect(db.projects.delete('nonexistent-id')).resolves.not.toThrow()
-  })
+    await mockClient.from('projects').delete().eq('id', 'del-1');
 
-  it('project has correct default fields from emptyProject', async () => {
-    const project = emptyProject('defaults-1', 'Defaults Check')
-    await db.projects.add(project)
+    const { data: after } = await mockClient.from('projects').select('*');
+    expect(after).toHaveLength(0);
+  });
 
-    const retrieved = await db.projects.get('defaults-1')
-    expect(retrieved).toBeDefined()
-    expect(retrieved!.interactionLevel).toBe('static')
-    expect(retrieved!.outputDirectory).toBe('./output/')
-    expect(retrieved!.accessibilityLevel).toBe('none')
-    expect(retrieved!.externalResourcesAccessible).toBe(true)
-    expect(retrieved!.browserCompatibility).toEqual(['chrome'])
-    expect(retrieved!.promptMode).toBe('comprehensive')
-    expect(retrieved!.designDirection).toBeNull()
-    expect(retrieved!.customSkills).toEqual([])
-    expect(retrieved!.customMemories).toEqual([])
-    expect(retrieved!.regenerationCount).toBe(0)
-    expect(retrieved!.generatedPrompt).toBe('')
-  })
-})
+  it('can use nanoid-style string ids', async () => {
+    const nanoidLike = 'V1StGXR8_Z5jdHi6B-myT';
+
+    await mockClient.from('projects').insert({
+      id: nanoidLike,
+      user_id: 'u1',
+      name: 'Nanoid Project',
+    });
+
+    const { data, error } = await mockClient
+      .from('projects')
+      .select('*')
+      .eq('id', nanoidLike)
+      .single();
+
+    expect(error).toBeNull();
+    expect(data).toBeDefined();
+    expect(data!.id).toBe(nanoidLike);
+    expect(data!.name).toBe('Nanoid Project');
+  });
+});

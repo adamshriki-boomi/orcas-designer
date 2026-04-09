@@ -6,7 +6,9 @@ import { useWizardForm } from '@/hooks/use-wizard-form';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
 import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import { db } from '@/lib/db';
+import { createClient } from '@/lib/supabase';
+import { useAuth } from '@/contexts/auth-context';
+import { projectToRow } from '@/hooks/use-projects';
 import { generateId } from '@/lib/id';
 import { generatePrompt } from '@/lib/prompt-generator';
 import { isFieldFilled } from '@/lib/validators';
@@ -39,6 +41,7 @@ import { Suspense } from 'react';
 function WizardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const currentStep = Number(searchParams.get('step') ?? '0');
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
@@ -120,16 +123,27 @@ function WizardContent() {
   const handleSave = async () => {
     try {
       const id = generateId();
-      const prompt = generatePrompt({ ...formData, id, name: formData.name || 'Untitled Project' }, sharedSkills, sharedMemories);
-      const project = {
-        ...formData,
-        id,
-        name: formData.name || 'Untitled Project',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        generatedPrompt: prompt,
+      const projectData = { ...formData, id, name: formData.name || 'Untitled Project' };
+      const prompt = generatePrompt(projectData, sharedSkills, sharedMemories);
+      const fullProject = { ...projectData, generatedPrompt: prompt };
+      const row = projectToRow(fullProject, user!.id);
+      row.id = id;
+      row.data = {
+        companyInfo: fullProject.companyInfo,
+        productInfo: fullProject.productInfo,
+        featureInfo: fullProject.featureInfo,
+        currentImplementation: fullProject.currentImplementation,
+        uxResearch: fullProject.uxResearch,
+        uxWriting: fullProject.uxWriting,
+        figmaFileLink: fullProject.figmaFileLink,
+        designSystemStorybook: fullProject.designSystemStorybook,
+        designSystemNpm: fullProject.designSystemNpm,
+        designSystemFigma: fullProject.designSystemFigma,
+        prototypeSketches: fullProject.prototypeSketches,
       };
-      await db.projects.add(project);
+      const supabase = createClient();
+      const { error } = await supabase.from('projects').insert(row as never);
+      if (error) throw error;
       toast.success('Project saved!');
       router.push(`/projects/placeholder?_id=${encodeURIComponent(id)}`);
     } catch {

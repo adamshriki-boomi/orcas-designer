@@ -1,163 +1,162 @@
-import '@/test/helpers/db-setup'
-import { db } from '@/lib/db'
-import { emptyProject } from '@/lib/types'
-import type { SharedMemory } from '@/lib/types'
+import { clearAllTables, createMockSupabaseClient } from '@/test/helpers/supabase-mock';
 
-beforeEach(async () => {
-  await db.projects.clear()
-  await db.sharedSkills.clear()
-  await db.sharedMemories.clear()
-})
+const mockClient = createMockSupabaseClient();
 
-function makeMemory(overrides: Partial<SharedMemory> = {}): SharedMemory {
-  const now = new Date().toISOString()
-  return {
-    id: 'mem-1',
-    name: 'Test Memory',
-    description: 'A test memory',
-    content: 'Some context content',
-    fileName: 'test-memory.md',
-    isBuiltIn: false,
-    createdAt: now,
-    updatedAt: now,
-    ...overrides,
-  }
-}
+beforeEach(() => {
+  clearAllTables();
+});
 
-describe('useSharedMemories DB operations', () => {
-  it('can add a memory record', async () => {
-    const memory = makeMemory({ id: 'add-mem-1' })
-    await db.sharedMemories.add(memory)
+describe('shared_memories Supabase operations', () => {
+  it('can insert a memory with a non-UUID string id', async () => {
+    const { data, error } = await mockClient.from('shared_memories').insert({
+      id: 'built-in-company-context',
+      name: 'Boomi Context',
+      description: 'Built-in company context',
+      content: 'Some content',
+      file_name: 'boomi-context.md',
+      is_built_in: true,
+      created_by: null,
+    });
 
-    const retrieved = await db.sharedMemories.get('add-mem-1')
-    expect(retrieved).toBeDefined()
-    expect(retrieved!.name).toBe('Test Memory')
-    expect(retrieved!.content).toBe('Some context content')
-    expect(retrieved!.isBuiltIn).toBe(false)
-  })
+    expect(error).toBeNull();
 
-  it('can update a memory record', async () => {
-    const memory = makeMemory({ id: 'update-mem-1' })
-    await db.sharedMemories.add(memory)
+    const { data: retrieved } = await mockClient
+      .from('shared_memories')
+      .select('*')
+      .eq('id', 'built-in-company-context')
+      .single();
 
-    await db.sharedMemories.update('update-mem-1', {
+    expect(retrieved).toBeDefined();
+    expect(retrieved!.name).toBe('Boomi Context');
+    expect(retrieved!.is_built_in).toBe(true);
+  });
+
+  it('can query by non-UUID id without 400 error (regression)', async () => {
+    // This test verifies the root cause fix: id columns are text, not uuid.
+    // Previously, querying with 'built-in-ux-writing' on a uuid column
+    // caused PostgREST to return 400 Bad Request.
+    await mockClient.from('shared_memories').insert({
+      id: 'built-in-ux-writing',
+      name: 'UX Writing Guidelines',
+      content: 'Guidelines content',
+      is_built_in: true,
+    });
+
+    const { data, error } = await mockClient
+      .from('shared_memories')
+      .select('id, name, content')
+      .eq('id', 'built-in-ux-writing')
+      .single();
+
+    expect(error).toBeNull();
+    expect(data).toBeDefined();
+    expect(data!.id).toBe('built-in-ux-writing');
+  });
+
+  it('can update a memory', async () => {
+    await mockClient.from('shared_memories').insert({
+      id: 'update-mem-1',
+      name: 'Test Memory',
+      content: 'Original content',
+      is_built_in: false,
+    });
+
+    await mockClient.from('shared_memories').update({
       name: 'Updated Memory',
       content: 'Updated content',
-      updatedAt: new Date().toISOString(),
-    })
+    }).eq('id', 'update-mem-1');
 
-    const updated = await db.sharedMemories.get('update-mem-1')
-    expect(updated!.name).toBe('Updated Memory')
-    expect(updated!.content).toBe('Updated content')
-  })
+    const { data } = await mockClient
+      .from('shared_memories')
+      .select('*')
+      .eq('id', 'update-mem-1')
+      .single();
+
+    expect(data!.name).toBe('Updated Memory');
+    expect(data!.content).toBe('Updated content');
+  });
 
   it('can delete a non-built-in memory', async () => {
-    const memory = makeMemory({ id: 'del-mem-1', isBuiltIn: false })
-    await db.sharedMemories.add(memory)
-    expect(await db.sharedMemories.count()).toBe(1)
+    await mockClient.from('shared_memories').insert({
+      id: 'del-mem-1',
+      name: 'To Delete',
+      is_built_in: false,
+    });
 
-    // Simulate deleteMemory logic: check isBuiltIn, then delete
-    const existing = await db.sharedMemories.get('del-mem-1')
-    expect(existing!.isBuiltIn).toBe(false)
+    const { data: before } = await mockClient.from('shared_memories').select('*');
+    expect(before).toHaveLength(1);
 
-    await db.sharedMemories.delete('del-mem-1')
-    expect(await db.sharedMemories.count()).toBe(0)
-  })
+    await mockClient.from('shared_memories').delete().eq('id', 'del-mem-1');
 
-  it('built-in memory cannot be deleted via deleteMemory logic', async () => {
-    const memory = makeMemory({
+    const { data: after } = await mockClient.from('shared_memories').select('*');
+    expect(after).toHaveLength(0);
+  });
+
+  it('built-in memory deletion is prevented by app logic', async () => {
+    await mockClient.from('shared_memories').insert({
       id: 'built-in-test',
       name: 'Built-In Memory',
-      isBuiltIn: true,
-    })
-    await db.sharedMemories.add(memory)
+      is_built_in: true,
+    });
 
-    // Simulate deleteMemory: check isBuiltIn first, return early if true
-    const existing = await db.sharedMemories.get('built-in-test')
-    if (existing?.isBuiltIn) {
-      // deleteMemory returns early here
+    // Simulate deleteMemory logic: check isBuiltIn first
+    const { data: existing } = await mockClient
+      .from('shared_memories')
+      .select('*')
+      .eq('id', 'built-in-test')
+      .single();
+
+    if (existing?.is_built_in) {
+      // deleteMemory returns early — should NOT delete
     } else {
-      await db.sharedMemories.delete('built-in-test')
+      await mockClient.from('shared_memories').delete().eq('id', 'built-in-test');
     }
 
-    // Memory should still exist since it was built-in
-    const stillExists = await db.sharedMemories.get('built-in-test')
-    expect(stillExists).toBeDefined()
-    expect(stillExists!.name).toBe('Built-In Memory')
-  })
+    const { data: stillExists } = await mockClient
+      .from('shared_memories')
+      .select('*')
+      .eq('id', 'built-in-test')
+      .single();
 
-  it('delete cascades: removes memory id from project selectedSharedMemoryIds', async () => {
-    const memoryId = 'cascade-mem-1'
-    const memory = makeMemory({ id: memoryId })
-    await db.sharedMemories.add(memory)
+    expect(stillExists).toBeDefined();
+    expect(stillExists!.name).toBe('Built-In Memory');
+  });
 
-    const project = emptyProject('cascade-mem-proj', 'Cascade Mem Test')
-    project.selectedSharedMemoryIds = [memoryId, 'other-memory']
-    await db.projects.add(project)
+  it('select orders by name', async () => {
+    await mockClient.from('shared_memories').insert({ id: 'z-mem', name: 'Zebra' });
+    await mockClient.from('shared_memories').insert({ id: 'a-mem', name: 'Alpha' });
+    await mockClient.from('shared_memories').insert({ id: 'm-mem', name: 'Middle' });
 
-    // Simulate cascade delete from useSharedMemories.deleteMemory
-    const existing = await db.sharedMemories.get(memoryId)
-    expect(existing!.isBuiltIn).toBe(false)
+    const { data } = await mockClient
+      .from('shared_memories')
+      .select('*')
+      .order('name');
 
-    await db.transaction('rw', db.sharedMemories, db.projects, async () => {
-      await db.sharedMemories.delete(memoryId)
-      await db.projects.toCollection().modify((p) => {
-        const ids = p.selectedSharedMemoryIds ?? []
-        if (ids.includes(memoryId)) {
-          p.selectedSharedMemoryIds = ids.filter((mid) => mid !== memoryId)
-        }
-      })
-    })
+    expect(data!.map((r: Record<string, unknown>) => r.name)).toEqual(['Alpha', 'Middle', 'Zebra']);
+  });
 
-    const updatedProject = await db.projects.get('cascade-mem-proj')
-    expect(updatedProject!.selectedSharedMemoryIds).toEqual(['other-memory'])
-    expect(await db.sharedMemories.get(memoryId)).toBeUndefined()
-  })
+  it('maybeSingle returns null without error when no rows match (regression for 406)', async () => {
+    // .single() returns a 406 error when no rows match.
+    // The seeding logic uses .maybeSingle() so first-run queries
+    // for non-existent built-in memories return null, not an error.
+    const { data, error } = await mockClient
+      .from('shared_memories')
+      .select('id, name')
+      .eq('id', 'nonexistent-memory')
+      .maybeSingle();
 
-  it('isMemoryUsed returns project names that use the memory', async () => {
-    const memoryId = 'used-mem-1'
-    const project1 = emptyProject('used-mem-proj-1', 'Alpha Project')
-    project1.selectedSharedMemoryIds = [memoryId]
-    const project2 = emptyProject('used-mem-proj-2', 'Beta Project')
-    project2.selectedSharedMemoryIds = [memoryId, 'another']
-    const project3 = emptyProject('used-mem-proj-3', 'Gamma Project')
-    project3.selectedSharedMemoryIds = ['different-memory']
+    expect(error).toBeNull();
+    expect(data).toBeNull();
+  });
 
-    await db.projects.bulkAdd([project1, project2, project3])
+  it('single returns error when no rows match', async () => {
+    const { data, error } = await mockClient
+      .from('shared_memories')
+      .select('id, name')
+      .eq('id', 'nonexistent-memory')
+      .single();
 
-    const used = await db.projects
-      .filter((p) => (p.selectedSharedMemoryIds ?? []).includes(memoryId))
-      .toArray()
-    const names = used.map((p) => p.name)
-
-    expect(names).toHaveLength(2)
-    expect(names).toContain('Alpha Project')
-    expect(names).toContain('Beta Project')
-    expect(names).not.toContain('Gamma Project')
-  })
-
-  it('isMemoryUsed returns empty array when memory is unused', async () => {
-    const project = emptyProject('unused-mem-proj', 'Unused Mem Project')
-    project.selectedSharedMemoryIds = ['some-other-memory']
-    await db.projects.add(project)
-
-    const used = await db.projects
-      .filter((p) => (p.selectedSharedMemoryIds ?? []).includes('nonexistent-mem'))
-      .toArray()
-    const names = used.map((p) => p.name)
-
-    expect(names).toEqual([])
-  })
-
-  it('can check if a memory is built-in', async () => {
-    const builtIn = makeMemory({ id: 'bi-check', isBuiltIn: true })
-    const custom = makeMemory({ id: 'custom-check', isBuiltIn: false })
-    await db.sharedMemories.bulkAdd([builtIn, custom])
-
-    const retrievedBuiltIn = await db.sharedMemories.get('bi-check')
-    const retrievedCustom = await db.sharedMemories.get('custom-check')
-
-    expect(retrievedBuiltIn!.isBuiltIn).toBe(true)
-    expect(retrievedCustom!.isBuiltIn).toBe(false)
-  })
-})
+    expect(error).not.toBeNull();
+    expect(data).toBeNull();
+  });
+});

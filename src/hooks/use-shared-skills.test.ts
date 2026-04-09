@@ -1,121 +1,100 @@
-import '@/test/helpers/db-setup'
-import { db } from '@/lib/db'
-import { emptyProject } from '@/lib/types'
-import type { SharedSkill } from '@/lib/types'
+import { clearAllTables, createMockSupabaseClient } from '@/test/helpers/supabase-mock';
 
-beforeEach(async () => {
-  await db.projects.clear()
-  await db.sharedSkills.clear()
-  await db.sharedMemories.clear()
-})
+const mockClient = createMockSupabaseClient();
 
-function makeSkill(overrides: Partial<SharedSkill> = {}): SharedSkill {
-  const now = new Date().toISOString()
-  return {
-    id: 'skill-1',
-    name: 'Test Skill',
-    description: 'A test skill',
-    type: 'url',
-    urlValue: 'https://skill.example.com',
-    fileContent: null,
-    createdAt: now,
-    updatedAt: now,
-    ...overrides,
-  }
-}
+beforeEach(() => {
+  clearAllTables();
+});
 
-describe('useSharedSkills DB operations', () => {
-  it('can add a skill record', async () => {
-    const skill = makeSkill({ id: 'add-skill-1' })
-    await db.sharedSkills.add(skill)
+describe('shared_skills Supabase operations', () => {
+  it('can add a skill', async () => {
+    await mockClient.from('shared_skills').insert({
+      id: 'add-skill-1',
+      name: 'Test Skill',
+      description: 'A test skill',
+      type: 'url',
+      url_value: 'https://skill.example.com',
+      file_content: null,
+      created_by: 'user-1',
+    });
 
-    const retrieved = await db.sharedSkills.get('add-skill-1')
-    expect(retrieved).toBeDefined()
-    expect(retrieved!.name).toBe('Test Skill')
-    expect(retrieved!.type).toBe('url')
-  })
+    const { data } = await mockClient
+      .from('shared_skills')
+      .select('*')
+      .eq('id', 'add-skill-1')
+      .single();
 
-  it('can update a skill record', async () => {
-    const skill = makeSkill({ id: 'update-skill-1' })
-    await db.sharedSkills.add(skill)
+    expect(data).toBeDefined();
+    expect(data!.name).toBe('Test Skill');
+    expect(data!.type).toBe('url');
+  });
 
-    await db.sharedSkills.update('update-skill-1', {
+  it('can update a skill', async () => {
+    await mockClient.from('shared_skills').insert({
+      id: 'update-skill-1',
+      name: 'Original Skill',
+      description: 'Original description',
+    });
+
+    await mockClient.from('shared_skills').update({
       name: 'Updated Skill',
       description: 'Updated description',
-      updatedAt: new Date().toISOString(),
-    })
+    }).eq('id', 'update-skill-1');
 
-    const updated = await db.sharedSkills.get('update-skill-1')
-    expect(updated!.name).toBe('Updated Skill')
-    expect(updated!.description).toBe('Updated description')
-  })
+    const { data } = await mockClient
+      .from('shared_skills')
+      .select('*')
+      .eq('id', 'update-skill-1')
+      .single();
+
+    expect(data!.name).toBe('Updated Skill');
+    expect(data!.description).toBe('Updated description');
+  });
 
   it('can delete a skill', async () => {
-    const skill = makeSkill({ id: 'del-skill-1' })
-    await db.sharedSkills.add(skill)
-    expect(await db.sharedSkills.count()).toBe(1)
+    await mockClient.from('shared_skills').insert({
+      id: 'del-skill-1',
+      name: 'To Delete',
+    });
 
-    await db.sharedSkills.delete('del-skill-1')
-    expect(await db.sharedSkills.count()).toBe(0)
-  })
+    const { data: before } = await mockClient.from('shared_skills').select('*');
+    expect(before).toHaveLength(1);
 
-  it('delete cascades: removes skill id from project selectedSharedSkillIds', async () => {
-    const skillId = 'cascade-skill-1'
-    const skill = makeSkill({ id: skillId })
-    await db.sharedSkills.add(skill)
+    await mockClient.from('shared_skills').delete().eq('id', 'del-skill-1');
 
-    const project = emptyProject('cascade-proj-1', 'Cascade Test')
-    project.selectedSharedSkillIds = [skillId, 'other-skill']
-    await db.projects.add(project)
+    const { data: after } = await mockClient.from('shared_skills').select('*');
+    expect(after).toHaveLength(0);
+  });
 
-    // Simulate the cascade delete from useSharedSkills.deleteSkill
-    await db.transaction('rw', db.sharedSkills, db.projects, async () => {
-      await db.sharedSkills.delete(skillId)
-      await db.projects.toCollection().modify((p) => {
-        const ids = p.selectedSharedSkillIds
-        if (ids.includes(skillId)) {
-          p.selectedSharedSkillIds = ids.filter((sid) => sid !== skillId)
-        }
-      })
-    })
+  it('isSkillUsed: contains query finds projects using the skill', async () => {
+    await mockClient.from('projects').insert({
+      id: 'proj-1',
+      name: 'Project Alpha',
+      user_id: 'user-1',
+      selected_shared_skill_ids: ['skill-a', 'skill-b'],
+    });
+    await mockClient.from('projects').insert({
+      id: 'proj-2',
+      name: 'Project Beta',
+      user_id: 'user-1',
+      selected_shared_skill_ids: ['skill-a'],
+    });
+    await mockClient.from('projects').insert({
+      id: 'proj-3',
+      name: 'Project Gamma',
+      user_id: 'user-1',
+      selected_shared_skill_ids: ['skill-c'],
+    });
 
-    const updatedProject = await db.projects.get('cascade-proj-1')
-    expect(updatedProject!.selectedSharedSkillIds).toEqual(['other-skill'])
-    expect(await db.sharedSkills.get(skillId)).toBeUndefined()
-  })
+    const { data } = await mockClient
+      .from('projects')
+      .select('name')
+      .contains('selected_shared_skill_ids', ['skill-a']);
 
-  it('isSkillUsed returns project names that use the skill', async () => {
-    const skillId = 'used-skill-1'
-    const project1 = emptyProject('used-proj-1', 'Project Alpha')
-    project1.selectedSharedSkillIds = [skillId]
-    const project2 = emptyProject('used-proj-2', 'Project Beta')
-    project2.selectedSharedSkillIds = [skillId, 'another']
-    const project3 = emptyProject('used-proj-3', 'Project Gamma')
-    project3.selectedSharedSkillIds = ['different-skill']
-
-    await db.projects.bulkAdd([project1, project2, project3])
-
-    const used = await db.projects
-      .filter((p) => p.selectedSharedSkillIds.includes(skillId))
-      .toArray()
-    const names = used.map((p) => p.name)
-
-    expect(names).toHaveLength(2)
-    expect(names).toContain('Project Alpha')
-    expect(names).toContain('Project Beta')
-    expect(names).not.toContain('Project Gamma')
-  })
-
-  it('isSkillUsed returns empty array when skill is unused', async () => {
-    const project = emptyProject('unused-proj', 'Unused Project')
-    project.selectedSharedSkillIds = ['some-other-skill']
-    await db.projects.add(project)
-
-    const used = await db.projects
-      .filter((p) => p.selectedSharedSkillIds.includes('nonexistent-skill'))
-      .toArray()
-    const names = used.map((p) => p.name)
-
-    expect(names).toEqual([])
-  })
-})
+    const names = data!.map((p: Record<string, unknown>) => p.name);
+    expect(names).toHaveLength(2);
+    expect(names).toContain('Project Alpha');
+    expect(names).toContain('Project Beta');
+    expect(names).not.toContain('Project Gamma');
+  });
+});

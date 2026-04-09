@@ -47,7 +47,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { db } from '@/lib/db';
+import { createClient } from '@/lib/supabase';
 import { getActiveSkillsForProject } from '@/lib/skill-filter';
 import { generateId } from '@/lib/id';
 import { cn } from '@/lib/utils';
@@ -200,7 +200,8 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
   const handleDelete = async () => {
     try {
-      await db.projects.delete(actualId);
+      const supabase = createClient();
+      await supabase.from('projects').delete().eq('id', actualId);
       setDeleteOpen(false);
       router.push('/projects');
       toast.success('Project deleted');

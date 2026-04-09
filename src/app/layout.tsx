@@ -2,10 +2,11 @@ import type { Metadata } from "next"
 import { Poppins, Noto_Sans, Fira_Mono } from "next/font/google"
 import "./globals.css"
 
-import { LeftSidebar } from "@/components/layout/left-sidebar"
 import { ExosphereProvider } from "@/components/exosphere-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { AuthProvider } from "@/contexts/auth-context"
+import { AppShell } from "@/components/layout/app-shell"
 
 const poppins = Poppins({
   variable: "--font-heading",
@@ -46,13 +47,12 @@ export default function RootLayout({
       </head>
       <body className={`${poppins.variable} ${notoSans.variable} ${firaMono.variable} font-sans antialiased`}>
         <ExosphereProvider>
-          <div className="flex min-h-screen">
-            <LeftSidebar />
-            <main className="flex-1 min-w-0 overflow-x-hidden">
+          <AuthProvider>
+            <AppShell>
               <ErrorBoundary>{children}</ErrorBoundary>
-            </main>
+            </AppShell>
             <Toaster />
-          </div>
+          </AuthProvider>
         </ExosphereProvider>
       </body>
     </html>

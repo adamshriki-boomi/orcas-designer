@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { Waves, Home, FolderOpen, Zap, BookOpen, Sun, Moon } from 'lucide-react';
+import { Waves, Home, FolderOpen, Zap, BookOpen, Sun, Moon, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useAuth } from '@/contexts/auth-context';
 
 const SIDEBAR_WIDTH = 220;
 
@@ -32,6 +33,7 @@ export function LeftSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -95,15 +97,47 @@ export function LeftSidebar() {
 
       </ExLeftmenubarAdjustable>
 
-      {/* Theme Toggle — pinned to bottom of sidebar */}
-      <button
-        onClick={() => setTheme(isDark ? 'light' : 'dark')}
-        title={mounted ? `Switch to ${isDark ? 'light' : 'dark'} mode` : 'Toggle theme'}
-        aria-label={mounted ? `Switch to ${isDark ? 'light' : 'dark'} mode` : 'Toggle theme'}
-        className="absolute bottom-4 left-0 right-0 flex items-center justify-center size-10 rounded-lg cursor-pointer hover:bg-[var(--exo-color-bg-secondary)] transition-colors mx-auto"
-      >
-        {isDark ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
-      </button>
+      {/* Bottom section — user info + theme toggle */}
+      <div className="absolute bottom-0 left-0 right-0 pb-3 px-2 space-y-1">
+        {user && (
+          <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg overflow-hidden">
+            {user.user_metadata?.avatar_url ? (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt=""
+                className="size-6 rounded-full shrink-0"
+              />
+            ) : (
+              <div className="size-6 rounded-full shrink-0 bg-primary/20 flex items-center justify-center text-xs font-medium text-primary">
+                {(user.email ?? '?')[0].toUpperCase()}
+              </div>
+            )}
+            <span className="text-xs truncate text-muted-foreground">
+              {user.email}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center justify-center gap-1">
+          <button
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            title={mounted ? `Switch to ${isDark ? 'light' : 'dark'} mode` : 'Toggle theme'}
+            aria-label={mounted ? `Switch to ${isDark ? 'light' : 'dark'} mode` : 'Toggle theme'}
+            className="flex items-center justify-center size-9 rounded-lg cursor-pointer hover:bg-[var(--exo-color-bg-secondary)] transition-colors"
+          >
+            {isDark ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+          </button>
+          {user && (
+            <button
+              onClick={signOut}
+              title="Sign out"
+              aria-label="Sign out"
+              className="flex items-center justify-center size-9 rounded-lg cursor-pointer hover:bg-[var(--exo-color-bg-secondary)] transition-colors"
+            >
+              <LogOut className="size-[18px]" />
+            </button>
+          )}
+        </div>
+      </div>
     </aside>
   );
 }

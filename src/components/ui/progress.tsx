@@ -1,13 +1,7 @@
 "use client"
 
 import * as React from "react"
-import dynamic from "next/dynamic"
 import { cn } from "@/lib/utils"
-
-const ExLoaderLazy = dynamic(
-  () => import("@boomi/exosphere").then((m) => ({ default: m.ExLoader })),
-  { ssr: false }
-)
 
 interface ProgressProps extends React.ComponentProps<"div"> {
   value?: number

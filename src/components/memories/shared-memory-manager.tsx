@@ -31,6 +31,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion';
+import { SectionLoader } from '@/components/ui/loader';
 import { MemoryCard } from './memory-card';
 import { Plus, Brain } from 'lucide-react';
 
@@ -49,7 +50,7 @@ const emptyFormState: MemoryFormState = {
 };
 
 export function SharedMemoryManager() {
-  const { sharedMemories, addMemory, updateMemory, deleteMemory, isMemoryUsed } =
+  const { sharedMemories, isLoading, addMemory, updateMemory, deleteMemory, isMemoryUsed } =
     useSharedMemories();
 
   const mgr = useManagerState<MemoryFormState>(emptyFormState);
@@ -144,6 +145,10 @@ export function SharedMemoryManager() {
 
   const builtInMemories = sharedMemories.filter((m) => m.isBuiltIn);
   const customMemories = sharedMemories.filter((m) => !m.isBuiltIn);
+
+  if (isLoading) {
+    return <SectionLoader label="Loading memories..." />;
+  }
 
   return (
     <div className="space-y-10">

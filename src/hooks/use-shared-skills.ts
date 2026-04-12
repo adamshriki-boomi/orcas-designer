@@ -21,6 +21,7 @@ function toSharedSkill(row: Record<string, unknown>): SharedSkill {
 export function useSharedSkills() {
   const { user } = useAuth();
   const [sharedSkills, setSharedSkills] = useState<SharedSkill[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchSkills = useCallback(async () => {
     const supabase = createClient();
@@ -31,6 +32,7 @@ export function useSharedSkills() {
     if (!error && data) {
       setSharedSkills(data.map(toSharedSkill));
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -89,5 +91,5 @@ export function useSharedSkills() {
     return data?.map(p => p.name) ?? [];
   }, []);
 
-  return { sharedSkills, addSkill, updateSkill, deleteSkill, isSkillUsed };
+  return { sharedSkills, isLoading, addSkill, updateSkill, deleteSkill, isSkillUsed };
 }

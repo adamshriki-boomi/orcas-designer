@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion';
+import { SectionLoader } from '@/components/ui/loader';
 import { SkillCard } from './skill-card';
 import { Plus, Link, FileText, Wand2, ExternalLink } from 'lucide-react';
 
@@ -54,7 +55,7 @@ const emptyFormState: SkillFormState = {
 };
 
 export function SharedSkillManager() {
-  const { sharedSkills, addSkill, updateSkill, deleteSkill, isSkillUsed } =
+  const { sharedSkills, isLoading, addSkill, updateSkill, deleteSkill, isSkillUsed } =
     useSharedSkills();
 
   const mgr = useManagerState<SkillFormState>(emptyFormState);
@@ -211,7 +212,9 @@ export function SharedSkillManager() {
           </Button>
         </div>
 
-        {sharedSkills.length === 0 ? (
+        {isLoading ? (
+          <SectionLoader label="Loading skills..." />
+        ) : sharedSkills.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-muted-foreground/20 py-12 text-center">
             <div className="mb-3 rounded-full bg-muted p-3">
               <Wand2 className="size-5 text-muted-foreground" />

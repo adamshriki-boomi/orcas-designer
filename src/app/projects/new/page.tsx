@@ -36,6 +36,7 @@ import { StepReview } from '@/components/wizard/step-review';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import type { FormFieldData } from '@/lib/types';
+import { SectionLoader } from '@/components/ui/loader';
 import { Suspense } from 'react';
 
 function WizardContent() {
@@ -43,8 +44,8 @@ function WizardContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const currentStep = Number(searchParams.get('step') ?? '0');
-  const { sharedSkills } = useSharedSkills();
-  const { sharedMemories } = useSharedMemories();
+  const { sharedSkills, isLoading: skillsLoading } = useSharedSkills();
+  const { sharedMemories, isLoading: memoriesLoading } = useSharedMemories();
   const { copied, copy } = useCopyToClipboard();
 
   const {
@@ -268,6 +269,22 @@ function WizardContent() {
     }
   };
 
+  if (skillsLoading || memoriesLoading) {
+    return (
+      <>
+        <Header title="New Project" description="Set up your design prompt" />
+        <Breadcrumbs items={[
+          { label: 'Dashboard', href: '/' },
+          { label: 'Projects', href: '/projects' },
+          { label: 'New Project' },
+        ]} />
+        <PageContainer wide>
+          <SectionLoader label="Loading project data..." />
+        </PageContainer>
+      </>
+    );
+  }
+
   return (
     <>
       <Header title="New Project" description="Set up your design prompt" />
@@ -303,7 +320,7 @@ function WizardContent() {
 
 export default function NewProjectPage() {
   return (
-    <Suspense fallback={<div className="p-6">Loading...</div>}>
+    <Suspense fallback={<SectionLoader />}>
       <WizardContent />
     </Suspense>
   );

@@ -48,6 +48,7 @@ export function toSharedMemory(row: Record<string, unknown>): SharedMemory {
 export function useSharedMemories() {
   const { user } = useAuth();
   const [sharedMemories, setSharedMemories] = useState<SharedMemory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const seededRef = useRef(false);
 
   const fetchMemories = useCallback(async () => {
@@ -63,7 +64,11 @@ export function useSharedMemories() {
 
   // Seed built-in memories on first load, then fetch
   useEffect(() => {
-    if (!user || seededRef.current) return;
+    if (!user) return;
+    if (seededRef.current) {
+      setIsLoading(false);
+      return;
+    }
     seededRef.current = true;
 
     async function ensureBuiltInMemories() {
@@ -80,7 +85,9 @@ export function useSharedMemories() {
       }
       await fetchMemories();
     }
-    ensureBuiltInMemories().catch(console.error);
+    ensureBuiltInMemories()
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
   }, [user, fetchMemories]);
 
   const addMemory = useCallback(async (
@@ -136,5 +143,5 @@ export function useSharedMemories() {
     return data?.map(p => p.name) ?? [];
   }, []);
 
-  return { sharedMemories, addMemory, updateMemory, deleteMemory, isMemoryUsed };
+  return { sharedMemories, isLoading, addMemory, updateMemory, deleteMemory, isMemoryUsed };
 }

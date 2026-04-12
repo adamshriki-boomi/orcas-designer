@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Eye, EyeOff, Sun, Moon, LogOut, Save, Check } from 'lucide-react';
+import { Trash2, Sun, Moon, LogOut, Save } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { FadeIn } from '@/components/ui/motion';
@@ -11,41 +11,55 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import { useUserSettings } from '@/hooks/use-user-settings';
 import { toast } from '@/components/ui/sonner';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
-  const { settings, loading, saveApiKey } = useUserSettings();
+  const { loading, saveApiKey, deleteApiKey, hasApiKey, maskedKey } = useUserSettings();
   const { resolvedTheme, setTheme } = useTheme();
 
   const [mounted, setMounted] = useState(false);
-  const [showKey, setShowKey] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
-  // Sync local state when settings load
-  useEffect(() => {
-    if (settings) {
-      setApiKey(settings.claudeApiKey);
-    }
-  }, [settings]);
-
   const isDark = mounted && resolvedTheme === 'dark';
-  const isDirty = settings ? apiKey !== settings.claudeApiKey : false;
 
   async function handleSaveApiKey() {
     setSaving(true);
     try {
       await saveApiKey(apiKey);
-      setSaved(true);
+      setApiKey('');
       toast.success('API key saved');
-      setTimeout(() => setSaved(false), 2000);
     } catch {
       toast.error('Unable to save API key');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteApiKey() {
+    setDeleting(true);
+    try {
+      await deleteApiKey();
+      toast.success('API key deleted');
+      setDeleteDialogOpen(false);
+    } catch {
+      toast.error('Unable to delete API key');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -78,41 +92,63 @@ export default function SettingsPage() {
             <p className="text-sm text-muted-foreground mb-3">
               Your Claude API key is used by the UX Writer to generate copy suggestions.
             </p>
-            <div className="flex items-end gap-2">
-              <div className="flex-1 relative">
-                <Input
-                  type={showKey ? 'text' : 'password'}
-                  placeholder={loading ? 'Loading...' : 'sk-ant-...'}
-                  value={apiKey}
-                  onChange={(e) => {
-                    setApiKey(e.target.value);
-                    setSaved(false);
-                  }}
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label={showKey ? 'Hide API key' : 'Show API key'}
+            {hasApiKey ? (
+              <div className="flex items-center justify-between">
+                <code className="text-sm font-mono text-foreground">{maskedKey}</code>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="text-destructive hover:text-destructive"
                 >
-                  {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
+                  <Trash2 className="size-4 mr-1.5" />
+                  Delete
+                </Button>
               </div>
-              <Button
-                onClick={handleSaveApiKey}
-                disabled={!isDirty || saving}
-                size="sm"
-              >
-                {saved ? (
-                  <Check className="size-4 mr-1.5" />
-                ) : (
+            ) : (
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Input
+                    type="password"
+                    placeholder={loading ? 'Loading...' : 'sk-ant-...'}
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <Button
+                  onClick={handleSaveApiKey}
+                  disabled={!apiKey.trim() || saving}
+                  size="sm"
+                >
                   <Save className="size-4 mr-1.5" />
-                )}
-                {saving ? 'Saving...' : saved ? 'Saved' : 'Save'}
-              </Button>
-            </div>
+                  {saving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
           </section>
+
+          {/* Delete API Key Confirmation */}
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete API key</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete your Claude API key? The UX Writer will stop working until you add a new key.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={handleDeleteApiKey}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Section 3: Account */}
           <section className="rounded-lg border border-border bg-card p-4">

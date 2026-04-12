@@ -43,6 +43,24 @@ describe('user_settings Supabase operations', () => {
     expect(data!.claude_api_key).toBe('new-key');
   });
 
+  it('can delete an API key', async () => {
+    await mockClient.from('user_settings').insert({
+      id: 'settings-1',
+      user_id: 'user-1',
+      claude_api_key: 'sk-ant-test-key',
+    });
+
+    await mockClient.from('user_settings').delete().eq('user_id', 'user-1');
+
+    const { data } = await mockClient
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', 'user-1')
+      .maybeSingle();
+
+    expect(data).toBeNull();
+  });
+
   it('returns null when no settings exist', async () => {
     const { data } = await mockClient
       .from('user_settings')

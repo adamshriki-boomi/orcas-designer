@@ -8,6 +8,12 @@ interface UserSettings {
   claudeApiKey: string;
 }
 
+function maskApiKey(key: string): string {
+  if (!key) return '';
+  if (key.length < 14) return '****';
+  return key.slice(0, 10) + '...' + key.slice(-4);
+}
+
 export function useUserSettings() {
   const { user } = useAuth();
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -57,5 +63,23 @@ export function useUserSettings() {
     setSettings({ claudeApiKey: apiKey });
   }, [user]);
 
-  return { settings, loading, saveApiKey, hasApiKey: Boolean(settings?.claudeApiKey) };
+  const deleteApiKey = useCallback(async () => {
+    if (!user) return;
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('user_settings')
+      .delete()
+      .eq('user_id', user.id);
+    if (error) throw error;
+    setSettings({ claudeApiKey: '' });
+  }, [user]);
+
+  return {
+    settings,
+    loading,
+    saveApiKey,
+    deleteApiKey,
+    hasApiKey: Boolean(settings?.claudeApiKey),
+    maskedKey: maskApiKey(settings?.claudeApiKey ?? ''),
+  };
 }

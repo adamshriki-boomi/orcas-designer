@@ -65,10 +65,7 @@ export function useSharedMemories() {
   // Seed built-in memories on first load, then fetch
   useEffect(() => {
     if (!user) return;
-    if (seededRef.current) {
-      setIsLoading(false);
-      return;
-    }
+    if (seededRef.current) return;
     seededRef.current = true;
 
     async function ensureBuiltInMemories() {

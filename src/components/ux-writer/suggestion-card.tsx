@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowRight } from 'lucide-react';
-import type { Suggestion } from '@/hooks/use-ux-writer';
+import type { UxSuggestion as Suggestion } from '@/lib/types';
 import dynamic from 'next/dynamic';
 
 const ExBadge = dynamic(

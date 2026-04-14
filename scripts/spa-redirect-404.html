@@ -18,6 +18,14 @@
         window.location.replace(
           basePath + '/prompt-generator/placeholder?_id=' + encodeURIComponent(promptMatch[1])
         );
+      } else if ((function() {
+        var uxMatch = path.match(/^\/ux-writer\/([^\/]+)$/);
+        return uxMatch && uxMatch[1] !== 'new' && uxMatch[1] !== 'placeholder';
+      })()) {
+        var uxId = path.match(/^\/ux-writer\/([^\/]+)$/)[1];
+        window.location.replace(
+          basePath + '/ux-writer/placeholder?_id=' + encodeURIComponent(uxId)
+        );
       } else {
         var redirect = path + window.location.search + window.location.hash;
         window.location.replace(

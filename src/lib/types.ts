@@ -106,6 +106,36 @@ export interface Prompt {
   generatedPrompt: string;
 }
 
+// ── UX Writer Types ──────────────────────────────────────────────
+
+export interface UxSuggestion {
+  elementType: string;
+  before: string;
+  after: string;
+  explanation: string;
+  principle: string;
+}
+
+export interface UxAnalysisResult {
+  name: string;
+  suggestions: UxSuggestion[];
+  summary: string;
+}
+
+export interface UxAnalysisEntry {
+  id: string;
+  name: string;
+  description: string;
+  focusNotes: string | null;
+  screenshotUrl: string | null;
+  includeAiVoice: boolean;
+  results: UxAnalysisResult | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Prompt Types ─────────────────────────────────────────────────
+
 export const emptyFormField = (): FormFieldData => ({
   inputType: 'url',
   urlValue: '',

@@ -277,6 +277,7 @@ Boomi AI tone is direct about answering questions and does not over-explain.
 
 const RESPONSE_SCHEMA_INSTRUCTION = `Return your analysis as JSON matching this exact schema:
 {
+  "name": "short project name (3-6 words describing the UI being analyzed)",
   "suggestions": [
     {
       "elementType": "Button Label" | "Error Message" | "Tooltip" | "Dialog Title" | "Heading" | "Body Text" | "Placeholder" | "Link Text" | "Empty State" | "Notification" | "Other",

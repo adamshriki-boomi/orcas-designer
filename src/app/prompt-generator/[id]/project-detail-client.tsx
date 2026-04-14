@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Settings, Brain, ExternalLink, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import { useProject } from '@/hooks/use-project';
+import { usePrompt } from '@/hooks/use-prompt';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
 import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, COMPANY_CONTEXT_MEMORY_ID, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
@@ -14,10 +14,10 @@ import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { FadeIn } from '@/components/ui/motion';
-import { ProjectHeader } from '@/components/project-detail/project-header';
-import { FieldsGrid } from '@/components/project-detail/fields-grid';
-import { PromptPreview } from '@/components/project-detail/prompt-preview';
-import { EditFieldDrawer, type ContextMemory } from '@/components/project-detail/edit-field-drawer';
+import { PromptHeader } from '@/components/prompt-detail/prompt-header';
+import { FieldsGrid } from '@/components/prompt-detail/fields-grid';
+import { PromptPreview } from '@/components/prompt-detail/prompt-preview';
+import { EditFieldDrawer, type ContextMemory } from '@/components/prompt-detail/edit-field-drawer';
 import { SkillCard } from '@/components/skills/skill-card';
 import { CustomSkillAdder } from '@/components/skills/custom-skill-adder';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -48,7 +48,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { createClient } from '@/lib/supabase';
-import { getActiveSkillsForProject } from '@/lib/skill-filter';
+import { getActiveSkillsForPrompt } from '@/lib/skill-filter';
 import { generateId } from '@/lib/id';
 import { cn } from '@/lib/utils';
 import type { FormFieldData, InteractionLevel, ImplementationMode, CustomMemory, SharedSkill, CustomSkill, SharedMemory } from '@/lib/types';
@@ -78,11 +78,11 @@ const IMPLEMENTATION_MODES: { value: ImplementationMode; label: string; descript
   { value: 'redesign', label: 'Redesign', description: 'Create a fresh design from scratch using current implementation as reference' },
 ];
 
-interface ProjectDetailClientProps {
+interface PromptDetailClientProps {
   id: string;
 }
 
-export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
+export default function PromptDetailClient({ id }: PromptDetailClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -93,12 +93,12 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
   useEffect(() => {
     if (searchParams.get('_id')) {
-      window.history.replaceState(null, '', `${process.env.NEXT_PUBLIC_BASE_PATH}/projects/${actualId}`);
+      window.history.replaceState(null, '', `${process.env.NEXT_PUBLIC_BASE_PATH}/prompt-generator/${actualId}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { project, isLoading, updateProject } = useProject(actualId);
+  const { project, isLoading, updatePrompt } = usePrompt(actualId);
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
   const { prompt } = usePromptGenerator(project, sharedSkills, sharedMemories);
@@ -148,10 +148,10 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
         <Header title="Not Found" />
         <PageContainer>
           <div className="py-12 text-center">
-            <p className="text-muted-foreground mb-4">Project not found.</p>
-            <Link href="/projects" className={buttonVariants({ variant: 'outline' })}>
+            <p className="text-muted-foreground mb-4">Prompt not found.</p>
+            <Link href="/prompt-generator" className={buttonVariants({ variant: 'outline' })}>
               <ArrowLeft className="size-4" />
-              Back to Projects
+              Back to Prompt Generator
             </Link>
           </div>
         </PageContainer>
@@ -161,16 +161,16 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
   const handleRename = async (name: string) => {
     try {
-      await updateProject({ name });
-      toast.success('Project renamed');
+      await updatePrompt({ name });
+      toast.success('Prompt renamed');
     } catch {
-      toast.error('Unable to rename project');
+      toast.error('Unable to rename prompt');
     }
   };
 
   const handleRegeneratePrompt = async () => {
     try {
-      await updateProject({
+      await updatePrompt({
         generatedPrompt: prompt,
         regenerationCount: (project.regenerationCount ?? 0) + 1,
       });
@@ -182,7 +182,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
   const handleSaveField = async (fieldKey: string, data: FormFieldData) => {
     try {
-      await updateProject({ [fieldKey]: data });
+      await updatePrompt({ [fieldKey]: data });
       toast.success('Field updated');
     } catch {
       toast.error('Unable to update field');
@@ -201,18 +201,18 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   const handleDelete = async () => {
     try {
       const supabase = createClient();
-      await supabase.from('projects').delete().eq('id', actualId);
+      await supabase.from('prompts').delete().eq('id', actualId);
       setDeleteOpen(false);
-      router.push('/projects');
-      toast.success('Project deleted');
+      router.push('/prompt-generator');
+      toast.success('Prompt deleted');
     } catch {
-      toast.error('Unable to delete project');
+      toast.error('Unable to delete prompt');
     }
   };
 
   const handleSaveInteractionLevel = async () => {
     try {
-      await updateProject({ interactionLevel: draftInteraction });
+      await updatePrompt({ interactionLevel: draftInteraction });
       setEditInteractionOpen(false);
       toast.success('Interaction level updated');
     } catch {
@@ -222,7 +222,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
 
   const handleSaveImplMode = async () => {
     try {
-      await updateProject({
+      await updatePrompt({
         currentImplementation: { ...project.currentImplementation, implementationMode: draftImplMode },
       });
       setEditImplModeOpen(false);
@@ -239,7 +239,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       name: memoryName.trim(),
       content: memoryContent,
     };
-    updateProject({ customMemories: [...project.customMemories, newMemory] });
+    updatePrompt({ customMemories: [...project.customMemories, newMemory] });
     setMemoryName('');
     setMemoryContent('');
     setShowMemoryForm(false);
@@ -248,7 +248,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
   };
 
   const handleRemoveCustomMemory = (memoryId: string) => {
-    updateProject({ customMemories: project.customMemories.filter((m) => m.id !== memoryId) });
+    updatePrompt({ customMemories: project.customMemories.filter((m) => m.id !== memoryId) });
     toast.success('Custom memory removed');
   };
 
@@ -271,7 +271,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
     (project.selectedSharedMemoryIds ?? []).includes(m.id)
   );
 
-  const activeBuiltInSkills = project ? getActiveSkillsForProject(project) : [];
+  const activeBuiltInSkills = project ? getActiveSkillsForPrompt(project) : [];
 
   const editingFieldData = editingField
     ? (project[editingField as keyof typeof project] as FormFieldData)
@@ -311,8 +311,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       <FadeIn>
         <Header title={project.name} />
         <Breadcrumbs items={[
-          { label: 'Dashboard', href: '/' },
-          { label: 'Projects', href: '/projects' },
+          { label: 'Prompt Generator', href: '/prompt-generator' },
           { label: project.name },
         ]} />
         <PageContainer>
@@ -339,7 +338,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
             {/* ===== Overview Tab ===== */}
             <TabsContent value="overview">
               <div className="space-y-6">
-                <ProjectHeader project={project} onRename={handleRename} />
+                <PromptHeader project={project} onRename={handleRename} />
                 <FieldsGrid
                   project={project}
                   onEditField={(fieldKey) => setEditingField(fieldKey)}
@@ -394,7 +393,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No built-in skills active for this project configuration.</p>
+                    <p className="text-sm text-muted-foreground">No built-in skills active for this prompt configuration.</p>
                   )}
                 </section>
 
@@ -421,7 +420,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
                   <h3 className="text-base font-medium mb-3">Custom Skills</h3>
                   <CustomSkillAdder
                     skills={project.customSkills}
-                    onChange={(skills) => updateProject({ customSkills: skills })}
+                    onChange={(skills) => updatePrompt({ customSkills: skills })}
                   />
                 </section>
 
@@ -553,11 +552,11 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
                 <div className="rounded-lg border border-destructive/20 p-6">
                   <h3 className="text-base font-medium text-destructive mb-2">Danger Zone</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Once you delete a project, there is no going back. All project data will be permanently removed.
+                    Once you delete a prompt, there is no going back. All prompt data will be permanently removed.
                   </p>
                   <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
                     <Trash2 className="size-3.5" />
-                    Delete Project
+                    Delete Prompt
                   </Button>
                 </div>
               </div>
@@ -570,9 +569,9 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+            <AlertDialogTitle>Delete prompt?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. The project and all its data will be permanently deleted.
+              This action cannot be undone. The prompt and all its data will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -598,7 +597,7 @@ export default function ProjectDetailClient({ id }: ProjectDetailClientProps) {
           }}
           contextMemories={getContextMemories(editingField)}
           selectedMemoryIds={project.selectedSharedMemoryIds ?? []}
-          onSelectedMemoryIdsChange={(ids) => updateProject({ selectedSharedMemoryIds: ids })}
+          onSelectedMemoryIdsChange={(ids) => updatePrompt({ selectedSharedMemoryIds: ids })}
         />
       )}
 

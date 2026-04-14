@@ -2,7 +2,7 @@
 
 import { useReducer, useCallback } from 'react';
 import type {
-  Project,
+  Prompt,
   FormFieldData,
   CurrentImplementationData,
   OutputType,
@@ -16,7 +16,7 @@ import type {
   MemoryId,
   CustomMemory,
 } from '@/lib/types';
-import { emptyProject } from '@/lib/types';
+import { emptyPrompt } from '@/lib/types';
 
 type FormFieldKey =
   | 'companyInfo'
@@ -46,9 +46,9 @@ type WizardAction =
   | { type: 'SET_CUSTOM_SKILLS'; payload: CustomSkill[] }
   | { type: 'SET_SHARED_MEMORIES'; payload: MemoryId[] }
   | { type: 'SET_CUSTOM_MEMORIES'; payload: CustomMemory[] }
-  | { type: 'LOAD_PROJECT'; payload: Project };
+  | { type: 'LOAD_PROMPT'; payload: Prompt };
 
-function wizardReducer(state: Project, action: WizardAction): Project {
+function wizardReducer(state: Prompt, action: WizardAction): Prompt {
   switch (action.type) {
     case 'SET_NAME':
       return { ...state, name: action.payload };
@@ -80,17 +80,17 @@ function wizardReducer(state: Project, action: WizardAction): Project {
       return { ...state, selectedSharedMemoryIds: action.payload };
     case 'SET_CUSTOM_MEMORIES':
       return { ...state, customMemories: action.payload };
-    case 'LOAD_PROJECT':
+    case 'LOAD_PROMPT':
       return action.payload;
     default:
       return state;
   }
 }
 
-export function useWizardForm(initialProject?: Project) {
+export function useWizardForm(initialProject?: Prompt) {
   const [formData, dispatch] = useReducer(
     wizardReducer,
-    initialProject ?? emptyProject('', 'New Project')
+    initialProject ?? emptyPrompt('', 'New Prompt')
   );
 
   const setName = useCallback((name: string) => {
@@ -153,8 +153,8 @@ export function useWizardForm(initialProject?: Project) {
     dispatch({ type: 'SET_CUSTOM_MEMORIES', payload: memories });
   }, []);
 
-  const loadProject = useCallback((project: Project) => {
-    dispatch({ type: 'LOAD_PROJECT', payload: project });
+  const loadPrompt = useCallback((project: Prompt) => {
+    dispatch({ type: 'LOAD_PROMPT', payload: project });
   }, []);
 
   return {
@@ -174,6 +174,6 @@ export function useWizardForm(initialProject?: Project) {
     setCustomSkills,
     setSharedMemories,
     setCustomMemories,
-    loadProject,
+    loadPrompt,
   };
 }

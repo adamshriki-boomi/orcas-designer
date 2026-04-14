@@ -134,7 +134,7 @@ export function useSharedMemories() {
   const isMemoryUsed = useCallback(async (id: string): Promise<string[]> => {
     const supabase = createClient();
     const { data } = await supabase
-      .from('projects')
+      .from('prompts')
       .select('name')
       .contains('selected_shared_memory_ids', [id]);
     return data?.map(p => p.name) ?? [];

@@ -190,7 +190,7 @@ export function SharedMemoryManager() {
             <div>
               <h2 className="font-heading text-base font-semibold">Custom Shared Memories</h2>
               <p className="text-xs text-muted-foreground">
-                {customMemories.length === 0 ? 'Add context files to share across projects' : `${customMemories.length} custom memor${customMemories.length !== 1 ? 'ies' : 'y'}`}
+                {customMemories.length === 0 ? 'Add context files to share across prompts' : `${customMemories.length} custom memor${customMemories.length !== 1 ? 'ies' : 'y'}`}
               </p>
             </div>
           </div>
@@ -207,7 +207,7 @@ export function SharedMemoryManager() {
             </div>
             <p className="text-sm font-medium text-muted-foreground mb-1">No custom memories yet</p>
             <p className="text-xs text-muted-foreground/70 max-w-xs">
-              Upload markdown files or paste content to create shared context across all your projects.
+              Upload markdown files or paste content to create shared context across all your prompts.
             </p>
           </div>
         ) : (
@@ -302,11 +302,11 @@ export function SharedMemoryManager() {
             <AlertDialogTitle>Delete Shared Memory</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this memory? This action cannot be undone.
-              {mgr.usedInProjects.length > 0 && (
+              {mgr.usedInPrompts.length > 0 && (
                 <>
-                  {' '}This memory is currently used in {mgr.usedInProjects.length}{' '}
-                  {mgr.usedInProjects.length === 1 ? 'project' : 'projects'}:{' '}
-                  {mgr.usedInProjects.join(', ')}. It will be removed from all of them.
+                  {' '}This memory is currently used in {mgr.usedInPrompts.length}{' '}
+                  {mgr.usedInPrompts.length === 1 ? 'prompt' : 'prompts'}:{' '}
+                  {mgr.usedInPrompts.join(', ')}. It will be removed from all of them.
                 </>
               )}
             </AlertDialogDescription>

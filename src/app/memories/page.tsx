@@ -10,7 +10,7 @@ export default function MemoriesPage() {
     <FadeIn>
       <Header
         title="Shared Memories"
-        description="Manage context files shared across all projects"
+        description="Manage context files shared across all prompts"
       />
       <PageContainer>
         <SharedMemoryManager />

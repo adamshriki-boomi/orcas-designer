@@ -5,11 +5,11 @@ import { MandatorySkillsList } from "@/components/skills/mandatory-skills-list";
 import { SharedSkillsPicker } from "@/components/skills/shared-skills-picker";
 import { CustomSkillAdder } from "@/components/skills/custom-skill-adder";
 import { WizardStep } from "./wizard-step";
-import { getActiveSkillsForProject } from "@/lib/skill-filter";
-import type { Project, SharedSkill, CustomSkill } from "@/lib/types";
+import { getActiveSkillsForPrompt } from "@/lib/skill-filter";
+import type { Prompt, SharedSkill, CustomSkill } from "@/lib/types";
 
 interface StepSkillsProps {
-  formData: Project;
+  formData: Prompt;
   selectedSharedSkillIds: string[];
   onSharedSkillsChange: (ids: string[]) => void;
   customSkills: CustomSkill[];
@@ -26,7 +26,7 @@ export function StepSkills({
   sharedSkills,
 }: StepSkillsProps) {
   const activeSkills = useMemo(
-    () => getActiveSkillsForProject(formData),
+    () => getActiveSkillsForPrompt(formData),
     [formData]
   );
 

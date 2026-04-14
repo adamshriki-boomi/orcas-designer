@@ -1,6 +1,6 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 
-export function buildUserStoriesSection(project: Project): string {
+export function buildUserStoriesSection(project: Prompt): string {
   if (project.promptMode === 'lite') return '';
 
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);

@@ -1,5 +1,5 @@
-import type { Project, SharedSkill } from '../types';
-import { getActiveSkillsForProject } from '../skill-filter';
+import type { Prompt, SharedSkill } from '../types';
+import { getActiveSkillsForPrompt } from '../skill-filter';
 import { MANDATORY_SKILLS, DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
 import { normalizeNpmPackage } from './npm-utils';
 import { isFigmaUrl } from './url-utils';
@@ -9,8 +9,8 @@ function inv(name: string): string {
   return MANDATORY_SKILLS.find(s => s.name === name)?.invocation ?? `/${name}`;
 }
 
-function buildSkillsPreamble(project: Project, sharedSkills: SharedSkill[]): string {
-  const activeSkills = getActiveSkillsForProject(project);
+function buildSkillsPreamble(project: Prompt, sharedSkills: SharedSkill[]): string {
+  const activeSkills = getActiveSkillsForPrompt(project);
   const categories = [...new Set(activeSkills.map(s => s.category))];
 
   const lines: string[] = ['**Available skills for this project:**'];
@@ -56,7 +56,7 @@ function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-export function buildWorkflowSection(project: Project, sharedSkills: SharedSkill[] = []): string {
+export function buildWorkflowSection(project: Prompt, sharedSkills: SharedSkill[] = []): string {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
   const hasDesignFigma = !!(project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
   const protoUrl = project.prototypeSketches.urlValue;

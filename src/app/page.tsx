@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { useProjects } from '@/hooks/use-projects';
+import { usePrompts } from '@/hooks/use-prompts';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
 import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID } from '@/hooks/use-shared-memories';
 import { Header } from '@/components/layout/header';
@@ -10,7 +10,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
 import { cn } from '@/lib/utils';
 import { MANDATORY_SKILLS } from '@/lib/constants';
-import { getActiveSkillsForProject } from '@/lib/skill-filter';
+import { getActiveSkillsForPrompt } from '@/lib/skill-filter';
 import { Layers, RefreshCw, Wand2, Brain } from 'lucide-react';
 
 const ExChartLazy = dynamic(
@@ -33,7 +33,7 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
 }
 
 export default function DashboardPage() {
-  const { projects, isLoading } = useProjects();
+  const { projects, isLoading } = usePrompts();
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
 
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       .filter(s => s.includeCondition !== 'never')
       .map(skill => ({
         name: skill.name,
-        count: projects.filter(p => getActiveSkillsForProject(p).some(as => as.name === skill.name)).length,
+        count: projects.filter(p => getActiveSkillsForPrompt(p).some(as => as.name === skill.name)).length,
       }))
       .filter(d => d.count > 0);
 
@@ -174,7 +174,7 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <>
-        <Header title="Dashboard" description="Create and manage your prompt projects" />
+        <Header title="Dashboard" description="Create and manage your prompt configurations" />
         <PageContainer>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -196,12 +196,12 @@ export default function DashboardPage() {
       <FadeIn>
         <Header
           title="Dashboard"
-          description="Create and manage your prompt projects"
+          description="Create and manage your prompt configurations"
         />
         <PageContainer>
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StaggerItem>
-              <StatCard icon={Layers} label="Total Projects" value={projects.length} color="gradient-primary" />
+              <StatCard icon={Layers} label="Total Prompts" value={projects.length} color="gradient-primary" />
             </StaggerItem>
             <StaggerItem>
               <StatCard icon={RefreshCw} label="Regenerated" value={totalRegenerations} color="bg-accent" />
@@ -217,15 +217,15 @@ export default function DashboardPage() {
           {/* Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-2xl shadow-card bg-card p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Projects by Interaction Level</h3>
+              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Prompts by Interaction Level</h3>
               {projects.length > 0 ? (
                 <ExChartLazy options={interactionChartOptions} />
               ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No projects yet</p>
+                <p className="text-sm text-muted-foreground py-8 text-center">No prompts yet</p>
               )}
             </div>
             <div className="rounded-2xl shadow-card bg-card p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Projects Over Time</h3>
+              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Prompts Over Time</h3>
               <ExChartLazy options={projectsOverTimeOptions} />
             </div>
             <div className="rounded-2xl shadow-card bg-card p-4">

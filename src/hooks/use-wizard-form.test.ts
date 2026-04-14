@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { useWizardForm } from './use-wizard-form'
-import { emptyProject } from '@/lib/types'
-import { createTestProject } from '@/test/helpers/project-fixtures'
+import { emptyPrompt } from '@/lib/types'
+import { createTestPrompt } from '@/test/helpers/prompt-fixtures'
 import type { FormFieldData, CustomSkill, CustomMemory } from '@/lib/types'
 
 describe('useWizardForm', () => {
@@ -9,7 +9,7 @@ describe('useWizardForm', () => {
     const { result } = renderHook(() => useWizardForm())
     const defaults = result.current.formData
 
-    expect(defaults.name).toBe('New Project')
+    expect(defaults.name).toBe('New Prompt')
     expect(defaults.id).toBe('')
     expect(defaults.outputType).toBe('static-only')
     expect(defaults.interactionLevel).toBe('static')
@@ -27,7 +27,7 @@ describe('useWizardForm', () => {
   })
 
   it('accepts a custom initialProject parameter', () => {
-    const custom = createTestProject({ name: 'Custom Project', interactionLevel: 'full-prototype' })
+    const custom = createTestPrompt({ name: 'Custom Project', interactionLevel: 'full-prototype' })
     const { result } = renderHook(() => useWizardForm(custom))
 
     expect(result.current.formData.name).toBe('Custom Project')
@@ -254,7 +254,7 @@ describe('useWizardForm', () => {
 
   it('loadProject replaces entire state', () => {
     const { result } = renderHook(() => useWizardForm())
-    const project = createTestProject({
+    const project = createTestPrompt({
       name: 'Loaded Project',
       interactionLevel: 'full-prototype',
       accessibilityLevel: 'wcag-aaa',
@@ -262,7 +262,7 @@ describe('useWizardForm', () => {
     })
 
     act(() => {
-      result.current.loadProject(project)
+      result.current.loadPrompt(project)
     })
 
     expect(result.current.formData.name).toBe('Loaded Project')

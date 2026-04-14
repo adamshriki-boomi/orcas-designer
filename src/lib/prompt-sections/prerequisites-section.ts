@@ -1,8 +1,8 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 import { DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
 import { isFigmaUrl } from './url-utils';
 
-export function buildPrerequisitesSection(project: Project): string {
+export function buildPrerequisitesSection(project: Prompt): string {
   const tools: string[] = [];
 
   // Figma MCP — needed if any Figma URLs exist (target, current-impl figma links, prototype figma, design system figma)

@@ -1,15 +1,15 @@
 'use client';
 
-import type { Project } from '@/lib/types';
-import { ProjectCard } from './project-card';
+import type { Prompt } from '@/lib/types';
+import { PromptCard } from './prompt-card';
 import { EmptyState } from './empty-state';
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion';
 
-interface ProjectListProps {
-  projects: Project[];
+interface PromptListProps {
+  projects: Prompt[];
 }
 
-export function ProjectList({ projects }: ProjectListProps) {
+export function PromptList({ projects }: PromptListProps) {
   if (projects.length === 0) {
     return <EmptyState />;
   }
@@ -18,7 +18,7 @@ export function ProjectList({ projects }: ProjectListProps) {
     <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {projects.map((project) => (
         <StaggerItem key={project.id}>
-          <ProjectCard project={project} />
+          <PromptCard project={project} />
         </StaggerItem>
       ))}
     </StaggerContainer>

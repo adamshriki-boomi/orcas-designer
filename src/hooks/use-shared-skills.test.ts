@@ -67,19 +67,19 @@ describe('shared_skills Supabase operations', () => {
   });
 
   it('isSkillUsed: contains query finds projects using the skill', async () => {
-    await mockClient.from('projects').insert({
+    await mockClient.from('prompts').insert({
       id: 'proj-1',
       name: 'Project Alpha',
       user_id: 'user-1',
       selected_shared_skill_ids: ['skill-a', 'skill-b'],
     });
-    await mockClient.from('projects').insert({
+    await mockClient.from('prompts').insert({
       id: 'proj-2',
       name: 'Project Beta',
       user_id: 'user-1',
       selected_shared_skill_ids: ['skill-a'],
     });
-    await mockClient.from('projects').insert({
+    await mockClient.from('prompts').insert({
       id: 'proj-3',
       name: 'Project Gamma',
       user_id: 'user-1',
@@ -87,7 +87,7 @@ describe('shared_skills Supabase operations', () => {
     });
 
     const { data } = await mockClient
-      .from('projects')
+      .from('prompts')
       .select('name')
       .contains('selected_shared_skill_ids', ['skill-a']);
 

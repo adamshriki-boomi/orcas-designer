@@ -14,16 +14,16 @@ export function EmptyState() {
           <Palette className="size-8 text-white" />
         </div>
       </div>
-      <h3 className="font-heading text-xl font-bold mb-2">No projects yet</h3>
+      <h3 className="font-heading text-xl font-bold mb-2">No prompts yet</h3>
       <p className="text-sm text-muted-foreground mb-8 max-w-sm">
-        Create your first project to start generating design & development prompts for Claude Code.
+        Create your first prompt to start generating design & development prompts for Claude Code.
       </p>
       <Link
-        href="/projects/new"
+        href="/prompt-generator/new"
         className={buttonVariants({ size: 'lg' })}
       >
         <PlusCircle />
-        Create New Project
+        Create New Prompt
       </Link>
     </FadeIn>
   );

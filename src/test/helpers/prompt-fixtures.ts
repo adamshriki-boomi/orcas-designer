@@ -1,17 +1,17 @@
-import { emptyProject, emptyFormField, emptyCurrentImplementation } from '@/lib/types'
-import type { Project, SharedSkill, SharedMemory, FileAttachment } from '@/lib/types'
+import { emptyPrompt, emptyFormField, emptyCurrentImplementation } from '@/lib/types'
+import type { Prompt, SharedSkill, SharedMemory, FileAttachment } from '@/lib/types'
 
-export function createTestProject(overrides: Partial<Project> = {}): Project {
+export function createTestPrompt(overrides: Partial<Prompt> = {}): Prompt {
   return {
-    ...emptyProject('test-id', 'Test Project'),
+    ...emptyPrompt('test-id', 'Test Project'),
     createdAt: '2025-01-01T00:00:00.000Z',
     updatedAt: '2025-01-01T00:00:00.000Z',
     ...overrides,
   }
 }
 
-export function createProjectWithFigma(overrides: Partial<Project> = {}): Project {
-  return createTestProject({
+export function createPromptWithFigma(overrides: Partial<Prompt> = {}): Prompt {
+  return createTestPrompt({
     figmaFileLink: {
       ...emptyFormField(),
       urlValue: 'https://www.figma.com/design/abc123/My-Design',
@@ -20,8 +20,8 @@ export function createProjectWithFigma(overrides: Partial<Project> = {}): Projec
   })
 }
 
-export function createProjectWithDesignSystem(overrides: Partial<Project> = {}): Project {
-  return createTestProject({
+export function createPromptWithDesignSystem(overrides: Partial<Prompt> = {}): Prompt {
+  return createTestPrompt({
     designSystemStorybook: {
       ...emptyFormField(),
       urlValue: 'https://storybook.example.com',
@@ -39,8 +39,8 @@ export function createProjectWithDesignSystem(overrides: Partial<Project> = {}):
   })
 }
 
-export function createProjectWithCurrentImpl(overrides: Partial<Project> = {}): Project {
-  return createTestProject({
+export function createPromptWithCurrentImpl(overrides: Partial<Prompt> = {}): Prompt {
+  return createTestPrompt({
     currentImplementation: {
       ...emptyCurrentImplementation(),
       urlValue: 'https://app.example.com',
@@ -50,8 +50,8 @@ export function createProjectWithCurrentImpl(overrides: Partial<Project> = {}): 
   })
 }
 
-export function createFullProject(overrides: Partial<Project> = {}): Project {
-  return createTestProject({
+export function createFullPrompt(overrides: Partial<Prompt> = {}): Prompt {
+  return createTestPrompt({
     companyInfo: { ...emptyFormField(), urlValue: 'https://company.example.com' },
     productInfo: { ...emptyFormField(), urlValue: 'https://product.example.com' },
     featureInfo: { ...emptyFormField(), inputType: 'text', textValue: 'Build a dashboard' },
@@ -81,8 +81,8 @@ export function createFullProject(overrides: Partial<Project> = {}): Project {
   })
 }
 
-export function createProjectWithPrototypeFigma(overrides: Partial<Project> = {}): Project {
-  return createTestProject({
+export function createPromptWithPrototypeFigma(overrides: Partial<Prompt> = {}): Prompt {
+  return createTestPrompt({
     prototypeSketches: {
       ...emptyFormField(),
       urlValue: 'https://www.figma.com/proto/proto123/My-Prototype',
@@ -164,8 +164,8 @@ export function createAiVoiceMemory(): SharedMemory {
   });
 }
 
-export function createProjectWithStorybookMemory(overrides: Partial<Project> = {}): Project {
-  return createTestProject({
+export function createPromptWithStorybookMemory(overrides: Partial<Prompt> = {}): Prompt {
+  return createTestPrompt({
     selectedSharedMemoryIds: ['built-in-exosphere-storybook'],
     ...overrides,
   })

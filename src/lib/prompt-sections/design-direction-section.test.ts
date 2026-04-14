@@ -1,15 +1,15 @@
 import { buildDesignDirectionSection } from './design-direction-section'
-import { createTestProject } from '@/test/helpers/project-fixtures'
+import { createTestPrompt } from '@/test/helpers/prompt-fixtures'
 
 describe('buildDesignDirectionSection', () => {
   it('returns empty string when designDirection is null', () => {
-    const project = createTestProject({ designDirection: null })
+    const project = createTestPrompt({ designDirection: null })
     const result = buildDesignDirectionSection(project)
     expect(result).toBe('')
   })
 
   it('returns empty string when design direction has only default values', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designDirection: {
         primaryColor: '',
         fontFamily: '',
@@ -22,7 +22,7 @@ describe('buildDesignDirectionSection', () => {
   })
 
   it('includes primary color and font family when provided', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designDirection: {
         primaryColor: '#3B82F6',
         fontFamily: 'Inter',
@@ -36,7 +36,7 @@ describe('buildDesignDirectionSection', () => {
   })
 
   it('includes motion and border radius descriptions for non-default values', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designDirection: {
         primaryColor: '',
         fontFamily: '',

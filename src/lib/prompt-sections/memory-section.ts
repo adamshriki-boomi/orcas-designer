@@ -1,7 +1,7 @@
-import type { Project, SharedMemory } from '../types';
+import type { Prompt, SharedMemory } from '../types';
 import { DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
 
-export function buildMemorySection(project: Project, sharedMemories: SharedMemory[]): string {
+export function buildMemorySection(project: Prompt, sharedMemories: SharedMemory[]): string {
   const selectedIds = project.selectedSharedMemoryIds ?? [];
   const customMemories = project.customMemories ?? [];
   const selectedMemories = sharedMemories.filter((m) => selectedIds.includes(m.id));

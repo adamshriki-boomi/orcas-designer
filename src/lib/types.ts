@@ -1,4 +1,4 @@
-export type ProjectId = string;
+export type PromptId = string;
 export type SkillId = string;
 export type MemoryId = string;
 export type FieldType = 'url' | 'file' | 'text';
@@ -74,8 +74,8 @@ export interface CustomMemory {
   content: string;
 }
 
-export interface Project {
-  id: ProjectId;
+export interface Prompt {
+  id: PromptId;
   name: string;
   createdAt: string;
   updatedAt: string;
@@ -120,7 +120,7 @@ export const emptyCurrentImplementation = (): CurrentImplementationData => ({
   implementationMode: 'add-on-top',
 });
 
-export const emptyProject = (id: string, name: string): Project => ({
+export const emptyPrompt = (id: string, name: string): Prompt => ({
   id,
   name,
   createdAt: new Date().toISOString(),

@@ -1,6 +1,6 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 
-export function buildFigmaSection(project: Project): string {
+export function buildFigmaSection(project: Prompt): string {
   const field = project.figmaFileLink;
   if (!field.urlValue && field.files.length === 0) return '';
 

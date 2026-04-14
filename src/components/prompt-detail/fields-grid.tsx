@@ -6,10 +6,10 @@ import { getMemoryNames } from './field-memory-map';
 import { Card, CardHeader, CardTitle, CardAction, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { Project, SharedMemory } from '@/lib/types';
+import type { Prompt, SharedMemory } from '@/lib/types';
 
 interface FieldsGridProps {
-  project: Project;
+  project: Prompt;
   onEditField: (fieldKey: string) => void;
   onEditInteractionLevel?: () => void;
   onEditImplementationMode?: () => void;

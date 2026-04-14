@@ -522,7 +522,7 @@ Words matter. We are committed to using language that includes everyone. We are 
 - Empty state titles with less than 3 words use title case (e.g., "No Results").
 - Refrain from negative language; encourage the user to take action.
 - Use second person directed at the user in encouraging, positive tone.
-- Use the same phrasing as the button that populates the page: "Nothing here yet. Create a new project."
+- Use the same phrasing as the button that populates the page: "Nothing here yet. Create a new prompt."
 - Always include CTAs that push users to take action with a button.
 - Start CTAs with an action word.
 

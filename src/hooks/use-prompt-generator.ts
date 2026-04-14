@@ -1,11 +1,11 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Project, SharedSkill, SharedMemory } from '@/lib/types';
+import type { Prompt, SharedSkill, SharedMemory } from '@/lib/types';
 import { generatePrompt } from '@/lib/prompt-generator';
 
 export function usePromptGenerator(
-  project: Project | null | undefined,
+  project: Prompt | null | undefined,
   sharedSkills: SharedSkill[],
   sharedMemories: SharedMemory[] = []
 ) {

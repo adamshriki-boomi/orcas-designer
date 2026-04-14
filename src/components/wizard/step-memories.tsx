@@ -166,7 +166,7 @@ export function StepMemories({
 
         {customMemories.length > 0 && (
           <section className="space-y-3">
-            <h3 className="text-sm font-medium">Custom Memories (this project only)</h3>
+            <h3 className="text-sm font-medium">Custom Memories (this prompt only)</h3>
             <div className="grid gap-2">
               {customMemories.map((memory) => (
                 <Card key={memory.id} size="sm">

@@ -3,46 +3,46 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
-import type { Project } from '@/lib/types';
-import { emptyProject } from '@/lib/types';
+import type { Prompt } from '@/lib/types';
+import { emptyPrompt } from '@/lib/types';
 import { generateId } from '@/lib/id';
 
-export function toProject(row: Record<string, unknown>): Project {
+export function toPrompt(row: Record<string, unknown>): Prompt {
   const data = (row.data ?? {}) as Record<string, unknown>;
   return {
     id: row.id as string,
     name: row.name as string,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
-    companyInfo: data.companyInfo as Project['companyInfo'],
-    productInfo: data.productInfo as Project['productInfo'],
-    featureInfo: data.featureInfo as Project['featureInfo'],
-    currentImplementation: data.currentImplementation as Project['currentImplementation'],
-    uxResearch: data.uxResearch as Project['uxResearch'],
-    uxWriting: data.uxWriting as Project['uxWriting'],
-    figmaFileLink: data.figmaFileLink as Project['figmaFileLink'],
-    designSystemStorybook: data.designSystemStorybook as Project['designSystemStorybook'],
-    designSystemNpm: data.designSystemNpm as Project['designSystemNpm'],
-    designSystemFigma: data.designSystemFigma as Project['designSystemFigma'],
-    prototypeSketches: data.prototypeSketches as Project['prototypeSketches'],
-    outputType: row.output_type as Project['outputType'],
-    interactionLevel: row.interaction_level as Project['interactionLevel'],
+    companyInfo: data.companyInfo as Prompt['companyInfo'],
+    productInfo: data.productInfo as Prompt['productInfo'],
+    featureInfo: data.featureInfo as Prompt['featureInfo'],
+    currentImplementation: data.currentImplementation as Prompt['currentImplementation'],
+    uxResearch: data.uxResearch as Prompt['uxResearch'],
+    uxWriting: data.uxWriting as Prompt['uxWriting'],
+    figmaFileLink: data.figmaFileLink as Prompt['figmaFileLink'],
+    designSystemStorybook: data.designSystemStorybook as Prompt['designSystemStorybook'],
+    designSystemNpm: data.designSystemNpm as Prompt['designSystemNpm'],
+    designSystemFigma: data.designSystemFigma as Prompt['designSystemFigma'],
+    prototypeSketches: data.prototypeSketches as Prompt['prototypeSketches'],
+    outputType: row.output_type as Prompt['outputType'],
+    interactionLevel: row.interaction_level as Prompt['interactionLevel'],
     outputDirectory: row.output_directory as string,
-    accessibilityLevel: row.accessibility_level as Project['accessibilityLevel'],
+    accessibilityLevel: row.accessibility_level as Prompt['accessibilityLevel'],
     externalResourcesAccessible: row.external_resources_accessible as boolean,
-    browserCompatibility: row.browser_compatibility as Project['browserCompatibility'],
-    promptMode: row.prompt_mode as Project['promptMode'],
-    designDirection: row.design_direction as Project['designDirection'],
+    browserCompatibility: row.browser_compatibility as Prompt['browserCompatibility'],
+    promptMode: row.prompt_mode as Prompt['promptMode'],
+    designDirection: row.design_direction as Prompt['designDirection'],
     selectedSharedSkillIds: row.selected_shared_skill_ids as string[],
-    customSkills: (row.custom_skills ?? []) as Project['customSkills'],
+    customSkills: (row.custom_skills ?? []) as Prompt['customSkills'],
     selectedSharedMemoryIds: row.selected_shared_memory_ids as string[],
-    customMemories: (row.custom_memories ?? []) as Project['customMemories'],
+    customMemories: (row.custom_memories ?? []) as Prompt['customMemories'],
     regenerationCount: row.regeneration_count as number,
     generatedPrompt: row.generated_prompt as string,
   };
 }
 
-export function projectToRow(project: Partial<Project>, userId?: string) {
+export function promptToRow(project: Partial<Prompt>, userId?: string) {
   const row: Record<string, unknown> = {};
   if (userId !== undefined) row.user_id = userId;
   if (project.id !== undefined) row.id = project.id;
@@ -81,19 +81,19 @@ export function projectToRow(project: Partial<Project>, userId?: string) {
   return row;
 }
 
-export function useProjects() {
+export function usePrompts() {
   const { user } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Prompt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProjects = useCallback(async () => {
     const supabase = createClient();
     const { data, error } = await supabase
-      .from('projects')
+      .from('prompts')
       .select('*')
       .order('updated_at', { ascending: false });
     if (!error && data) {
-      setProjects(data.map(toProject));
+      setProjects(data.map(toPrompt));
     }
     setIsLoading(false);
   }, []);
@@ -102,24 +102,24 @@ export function useProjects() {
     if (user) fetchProjects();
   }, [user, fetchProjects]);
 
-  const createProject = useCallback(async (name: string): Promise<string> => {
+  const createPrompt = useCallback(async (name: string): Promise<string> => {
     const id = generateId();
-    const project = emptyProject(id, name);
+    const project = emptyPrompt(id, name);
     const supabase = createClient();
-    const row = projectToRow(project, user!.id);
+    const row = promptToRow(project, user!.id);
     row.id = id;
-    const { error } = await supabase.from('projects').insert(row as never);
+    const { error } = await supabase.from('prompts').insert(row as never);
     if (error) throw error;
     await fetchProjects();
     return id;
   }, [user, fetchProjects]);
 
-  const deleteProject = useCallback(async (id: string): Promise<void> => {
+  const deletePrompt = useCallback(async (id: string): Promise<void> => {
     const supabase = createClient();
-    const { error } = await supabase.from('projects').delete().eq('id', id);
+    const { error } = await supabase.from('prompts').delete().eq('id', id);
     if (error) throw error;
     await fetchProjects();
   }, [fetchProjects]);
 
-  return { projects, isLoading, createProject, deleteProject };
+  return { projects, isLoading, createPrompt, deletePrompt };
 }

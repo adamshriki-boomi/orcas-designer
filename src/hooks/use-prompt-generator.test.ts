@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { usePromptGenerator } from './use-prompt-generator'
-import { createTestProject, createTestSharedSkill, createTestSharedMemory } from '@/test/helpers/project-fixtures'
+import { createTestPrompt, createTestSharedSkill, createTestSharedMemory } from '@/test/helpers/prompt-fixtures'
 
 describe('usePromptGenerator', () => {
   it('returns empty string when project is null', () => {
@@ -10,7 +10,7 @@ describe('usePromptGenerator', () => {
   })
 
   it('returns non-empty prompt containing project name for a valid project', () => {
-    const project = createTestProject({ name: 'Dashboard Redesign' })
+    const project = createTestPrompt({ name: 'Dashboard Redesign' })
     const { result } = renderHook(() => usePromptGenerator(project, []))
 
     expect(result.current.prompt).not.toBe('')
@@ -18,7 +18,7 @@ describe('usePromptGenerator', () => {
   })
 
   it('includes memory content in prompt when shared memories are provided', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       name: 'Memory Test',
       selectedSharedMemoryIds: ['memory-1'],
     })

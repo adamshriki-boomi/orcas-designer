@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import ProjectDetailClient from './project-detail-client';
+import PromptDetailClient from './project-detail-client';
 
 export function generateStaticParams() {
   // Must return a non-empty array for static export to work.
@@ -31,7 +31,7 @@ export default async function ProjectDetailPage({
   const { id } = await params;
   return (
     <Suspense fallback={<ProjectDetailSkeleton />}>
-      <ProjectDetailClient id={id} />
+      <PromptDetailClient id={id} />
     </Suspense>
   );
 }

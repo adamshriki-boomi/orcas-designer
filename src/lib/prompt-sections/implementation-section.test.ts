@@ -1,16 +1,16 @@
 import { buildImplementationSection } from './implementation-section'
-import { createTestProject, createProjectWithCurrentImpl, createTestFileAttachment } from '@/test/helpers/project-fixtures'
+import { createTestPrompt, createPromptWithCurrentImpl, createTestFileAttachment } from '@/test/helpers/prompt-fixtures'
 import { emptyCurrentImplementation } from '@/lib/types'
 
 describe('buildImplementationSection', () => {
   it('returns empty string when there is no content', () => {
-    const project = createTestProject()
+    const project = createTestPrompt()
     const result = buildImplementationSection(project)
     expect(result).toBe('')
   })
 
   it('includes "Add on top" mode and screenshot-overlay-positioning reference for add-on-top with URL', () => {
-    const project = createProjectWithCurrentImpl({
+    const project = createPromptWithCurrentImpl({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         urlValue: 'https://app.example.com',
@@ -24,7 +24,7 @@ describe('buildImplementationSection', () => {
   })
 
   it('includes "Redesign from scratch" for redesign mode', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         urlValue: 'https://app.example.com',
@@ -37,7 +37,7 @@ describe('buildImplementationSection', () => {
   })
 
   it('includes figma links when provided', () => {
-    const project = createProjectWithCurrentImpl()
+    const project = createPromptWithCurrentImpl()
     const result = buildImplementationSection(project)
     expect(result).toContain('https://www.figma.com/design/impl123/Current')
     expect(result).toContain('Current Figma references')
@@ -45,7 +45,7 @@ describe('buildImplementationSection', () => {
 
   it('includes file names for file attachments', () => {
     const file = createTestFileAttachment({ name: 'current-ui.png' })
-    const project = createTestProject({
+    const project = createTestPrompt({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         inputType: 'file',
@@ -58,7 +58,7 @@ describe('buildImplementationSection', () => {
   })
 
   it('includes additional context when provided', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         urlValue: 'https://app.example.com',
@@ -70,7 +70,7 @@ describe('buildImplementationSection', () => {
   })
 
   it('includes CRITICAL BUILD ON TOP mandate for add-on-top mode', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         urlValue: 'https://app.example.com',
@@ -88,7 +88,7 @@ describe('buildImplementationSection', () => {
   })
 
   it('includes REQUIRED screenshot-overlay-positioning instruction for add-on-top with URL', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         urlValue: 'https://app.example.com',
@@ -102,7 +102,7 @@ describe('buildImplementationSection', () => {
   })
 
   it('includes two-step process (reconstruct then add) for add-on-top', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         urlValue: 'https://app.example.com',

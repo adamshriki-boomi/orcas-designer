@@ -1,7 +1,7 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 import { DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
 
-export function buildOutputTypeSection(project: Project): string {
+export function buildOutputTypeSection(project: Prompt): string {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
   const interactionLevel = project.interactionLevel ?? 'static';
   const outputDir = project.outputDirectory || './output/';

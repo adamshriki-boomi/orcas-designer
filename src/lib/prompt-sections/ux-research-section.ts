@@ -1,7 +1,7 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 import { parseGoogleDocUrl, buildGoogleDocsInstructions } from './url-utils';
 
-export function buildUxResearchSection(project: Project): string {
+export function buildUxResearchSection(project: Prompt): string {
   const field = project.uxResearch;
   const hasContent = field.urlValue || field.files.length > 0 || field.textValue;
 

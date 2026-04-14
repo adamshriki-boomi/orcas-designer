@@ -1,4 +1,4 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 
 const MOTION_DESCRIPTIONS: Record<string, string> = {
   'none': 'No animations or transitions',
@@ -12,7 +12,7 @@ const RADIUS_DESCRIPTIONS: Record<string, string> = {
   'pill': '999px fully rounded borders',
 };
 
-export function buildDesignDirectionSection(project: Project): string {
+export function buildDesignDirectionSection(project: Prompt): string {
   const dd = project.designDirection;
   if (!dd) return '';
 

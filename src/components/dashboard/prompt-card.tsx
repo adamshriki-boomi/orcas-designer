@@ -4,16 +4,16 @@ import { useId, useMemo, memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Link as LinkIcon, Image, Play, Wand2, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Project } from '@/lib/types';
+import type { Prompt } from '@/lib/types';
 import { isFieldFilled } from '@/lib/validators';
 import { PRODUCT_CONTEXT_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { MANDATORY_SKILLS } from '@/lib/constants';
 
-interface ProjectCardProps {
-  project: Project;
+interface PromptCardProps {
+  project: Prompt;
 }
 
-function getFilledCount(project: Project): number {
+function getFilledCount(project: Prompt): number {
   // Company info always filled (locked Boomi Context memory)
   let count = 1;
 
@@ -40,7 +40,7 @@ function getFilledCount(project: Project): number {
 
 const TOTAL_FIELDS = 8;
 
-function getCompletionPercent(project: Project): number {
+function getCompletionPercent(project: Prompt): number {
   return Math.round((getFilledCount(project) / TOTAL_FIELDS) * 100);
 }
 
@@ -112,7 +112,7 @@ function StatusChip({ icon: Icon, label, active = false }: { icon: React.Element
   );
 }
 
-export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardProps) {
+export const PromptCard = memo(function PromptCard({ project }: PromptCardProps) {
   const { completion, filledCount, relativeTime, hasFigma, skillCount, memoryCount, interactionLevel, outputLabel, OutputIcon } = useMemo(() => {
     const comp = getCompletionPercent(project);
     const filled = getFilledCount(project);
@@ -128,7 +128,7 @@ export const ProjectCard = memo(function ProjectCard({ project }: ProjectCardPro
 
   return (
     <a
-      href={`${process.env.NEXT_PUBLIC_BASE_PATH}/projects/${project.id}`}
+      href={`${process.env.NEXT_PUBLIC_BASE_PATH}/prompt-generator/${project.id}`}
       className="block"
     >
       <Card className="group cursor-pointer hover:shadow-card-hover hover:scale-[1.01] transition-all duration-200">

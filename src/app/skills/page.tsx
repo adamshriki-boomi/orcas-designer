@@ -10,7 +10,7 @@ export default function SkillsPage() {
     <FadeIn>
       <Header
         title="Shared Skills"
-        description="Manage skills shared across all projects"
+        description="Manage skills shared across all prompts"
       />
       <PageContainer>
         <SharedSkillManager />

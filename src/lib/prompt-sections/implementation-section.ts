@@ -1,11 +1,11 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 import { MANDATORY_SKILLS } from '../constants';
 
 function inv(name: string): string {
   return MANDATORY_SKILLS.find(s => s.name === name)?.invocation ?? `/${name}`;
 }
 
-export function buildImplementationSection(project: Project): string {
+export function buildImplementationSection(project: Prompt): string {
   const impl = project.currentImplementation;
   const hasContent =
     (impl.inputType === 'url' && impl.urlValue) ||

@@ -18,7 +18,7 @@ describe('useManagerState', () => {
     expect(result.current.isSaving).toBe(false)
     expect(result.current.deleteDialogOpen).toBe(false)
     expect(result.current.deletingId).toBeNull()
-    expect(result.current.usedInProjects).toEqual([])
+    expect(result.current.usedInPrompts).toEqual([])
     expect(result.current.isDeleting).toBe(false)
     expect(result.current.viewDialogOpen).toBe(false)
   })
@@ -48,7 +48,7 @@ describe('useManagerState', () => {
     expect(result.current.form).toEqual(editForm)
   })
 
-  it('openDelete sets deleteDialogOpen true, deletingId, and usedInProjects', () => {
+  it('openDelete sets deleteDialogOpen true, deletingId, and usedInPrompts', () => {
     const { result } = renderHook(() => useManagerState(emptyForm))
     const projectNames = ['Project A', 'Project B']
 
@@ -58,7 +58,7 @@ describe('useManagerState', () => {
 
     expect(result.current.deleteDialogOpen).toBe(true)
     expect(result.current.deletingId).toBe('del-456')
-    expect(result.current.usedInProjects).toEqual(projectNames)
+    expect(result.current.usedInPrompts).toEqual(projectNames)
   })
 
   it('closeDialog resets dialogOpen, editingId, and form', () => {
@@ -78,7 +78,7 @@ describe('useManagerState', () => {
     expect(result.current.form).toEqual(emptyForm)
   })
 
-  it('closeDelete resets deleteDialogOpen, deletingId, and usedInProjects', () => {
+  it('closeDelete resets deleteDialogOpen, deletingId, and usedInPrompts', () => {
     const { result } = renderHook(() => useManagerState(emptyForm))
 
     act(() => {
@@ -92,7 +92,7 @@ describe('useManagerState', () => {
 
     expect(result.current.deleteDialogOpen).toBe(false)
     expect(result.current.deletingId).toBeNull()
-    expect(result.current.usedInProjects).toEqual([])
+    expect(result.current.usedInPrompts).toEqual([])
   })
 
   it('openView sets viewDialogOpen to true', () => {

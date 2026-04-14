@@ -1,9 +1,9 @@
-import type { Project } from './types';
+import type { Prompt } from './types';
 import type { MandatorySkill } from './constants';
 import { MANDATORY_SKILLS } from './constants';
 import { isFigmaUrl } from './prompt-sections/url-utils';
 
-export function getActiveSkillsForProject(project: Project): MandatorySkill[] {
+export function getActiveSkillsForPrompt(project: Prompt): MandatorySkill[] {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
   const hasDesignFigma = !!(project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
   const hasSourceFigma = !!(

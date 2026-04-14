@@ -41,7 +41,7 @@ export type Database = {
         }
         Relationships: []
       }
-      projects: {
+      prompts: {
         Row: {
           accessibility_level: string
           browser_compatibility: string[]
@@ -110,7 +110,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "projects_user_id_fkey"
+            foreignKeyName: "prompts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

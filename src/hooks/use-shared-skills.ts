@@ -85,7 +85,7 @@ export function useSharedSkills() {
   const isSkillUsed = useCallback(async (id: string): Promise<string[]> => {
     const supabase = createClient();
     const { data } = await supabase
-      .from('projects')
+      .from('prompts')
       .select('name')
       .contains('selected_shared_skill_ids', [id]);
     return data?.map(p => p.name) ?? [];

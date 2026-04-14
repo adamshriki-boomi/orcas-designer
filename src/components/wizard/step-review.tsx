@@ -8,19 +8,19 @@ import { PromptRenderer } from "@/components/prompt/prompt-renderer";
 import { WizardStep } from "./wizard-step";
 import { generatePrompt } from "@/lib/prompt-generator";
 import { isFieldFilled } from "@/lib/validators";
-import { getActiveSkillsForProject } from "@/lib/skill-filter";
+import { getActiveSkillsForPrompt } from "@/lib/skill-filter";
 import { PRODUCT_CONTEXT_MEMORY_IDS } from "@/hooks/use-shared-memories";
-import type { Project, SharedSkill, SharedMemory } from "@/lib/types";
+import type { Prompt, SharedSkill, SharedMemory } from "@/lib/types";
 
 interface StepReviewProps {
-  formData: Project;
+  formData: Prompt;
   sharedSkills: SharedSkill[];
   sharedMemories?: SharedMemory[];
   onCopy: () => void;
   copied: boolean;
 }
 
-function countFilledFields(project: Project): number {
+function countFilledFields(project: Prompt): number {
   let count = 0;
 
   // Company info is always filled (locked Boomi Context memory)
@@ -73,7 +73,7 @@ export function StepReview({
   const prompt = generatePrompt(formData, sharedSkills, sharedMemories);
   const filledFields = countFilledFields(formData);
   const totalSkills =
-    getActiveSkillsForProject(formData).length +
+    getActiveSkillsForPrompt(formData).length +
     formData.selectedSharedSkillIds.length +
     formData.customSkills.length;
   const totalMemories =
@@ -89,7 +89,7 @@ export function StepReview({
         <Card>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Project Name</span>
+              <span className="text-sm text-muted-foreground">Prompt Name</span>
               <span className="text-sm font-medium">{formData.name || "Untitled"}</span>
             </div>
             <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 
-export function buildRequirementsSection(project: Project): string {
+export function buildRequirementsSection(project: Prompt): string {
   const accessibility = project.accessibilityLevel ?? 'none';
   const browsers = project.browserCompatibility ?? ['chrome'];
 

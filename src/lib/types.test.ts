@@ -1,4 +1,4 @@
-import { emptyFormField, emptyCurrentImplementation, emptyProject } from './types'
+import { emptyFormField, emptyCurrentImplementation, emptyPrompt } from './types'
 
 describe('emptyFormField', () => {
   it('returns an object with inputType url', () => {
@@ -42,42 +42,42 @@ describe('emptyCurrentImplementation', () => {
   })
 })
 
-describe('emptyProject', () => {
+describe('emptyPrompt', () => {
   it('sets id and name from arguments', () => {
-    const project = emptyProject('p-1', 'My Project')
+    const project = emptyPrompt('p-1', 'My Project')
     expect(project.id).toBe('p-1')
     expect(project.name).toBe('My Project')
   })
 
   it('defaults outputType to static-only', () => {
-    expect(emptyProject('p-1', 'Test').outputType).toBe('static-only')
+    expect(emptyPrompt('p-1', 'Test').outputType).toBe('static-only')
   })
 
   it('defaults interactionLevel to static', () => {
-    expect(emptyProject('p-1', 'Test').interactionLevel).toBe('static')
+    expect(emptyPrompt('p-1', 'Test').interactionLevel).toBe('static')
   })
 
   it('includes built-in-company-context in selectedSharedMemoryIds', () => {
-    expect(emptyProject('p-1', 'Test').selectedSharedMemoryIds).toContain('built-in-company-context')
+    expect(emptyPrompt('p-1', 'Test').selectedSharedMemoryIds).toContain('built-in-company-context')
   })
 
   it('sets designSystemNpm inputType to text', () => {
-    expect(emptyProject('p-1', 'Test').designSystemNpm.inputType).toBe('text')
+    expect(emptyPrompt('p-1', 'Test').designSystemNpm.inputType).toBe('text')
   })
 
   it('sets createdAt and updatedAt as ISO strings', () => {
-    const project = emptyProject('p-1', 'Test')
+    const project = emptyPrompt('p-1', 'Test')
     expect(() => new Date(project.createdAt)).not.toThrow()
     expect(() => new Date(project.updatedAt)).not.toThrow()
     expect(new Date(project.createdAt).toISOString()).toBe(project.createdAt)
   })
 
   it('defaults designDirection to null', () => {
-    expect(emptyProject('p-1', 'Test').designDirection).toBeNull()
+    expect(emptyPrompt('p-1', 'Test').designDirection).toBeNull()
   })
 
   it('defaults regenerationCount to 0 and generatedPrompt to empty', () => {
-    const project = emptyProject('p-1', 'Test')
+    const project = emptyPrompt('p-1', 'Test')
     expect(project.regenerationCount).toBe(0)
     expect(project.generatedPrompt).toBe('')
   })

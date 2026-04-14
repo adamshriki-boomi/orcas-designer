@@ -1,4 +1,4 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 import { MANDATORY_SKILLS, DESIGN_SYSTEM_MEMORY_IDS } from '../constants';
 import { normalizeNpmPackage } from './npm-utils';
 
@@ -6,7 +6,7 @@ function inv(name: string): string {
   return MANDATORY_SKILLS.find(s => s.name === name)?.invocation ?? `/${name}`;
 }
 
-export function buildDesignSystemSection(project: Project): string {
+export function buildDesignSystemSection(project: Prompt): string {
   const sb = project.designSystemStorybook;
   const npm = project.designSystemNpm;
   const figma = project.designSystemFigma;

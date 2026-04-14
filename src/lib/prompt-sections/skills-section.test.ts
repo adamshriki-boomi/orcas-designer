@@ -1,9 +1,9 @@
 import { buildSkillsSection } from './skills-section'
-import { createTestProject, createTestSharedSkill } from '@/test/helpers/project-fixtures'
+import { createTestPrompt, createTestSharedSkill } from '@/test/helpers/prompt-fixtures'
 
 describe('buildSkillsSection', () => {
   it('includes "Recommended Skills" header and always-included skills for an empty project', () => {
-    const project = createTestProject()
+    const project = createTestPrompt()
     const result = buildSkillsSection(project, [])
     expect(result).toContain('Recommended Skills')
     expect(result).toContain('/brainstorming')
@@ -25,7 +25,7 @@ describe('buildSkillsSection', () => {
       description: 'Profiles rendering performance',
       urlValue: 'https://perf.example.com',
     })
-    const project = createTestProject({
+    const project = createTestPrompt({
       selectedSharedSkillIds: ['shared-1', 'shared-2'],
     })
     const result = buildSkillsSection(project, [skill1, skill2])
@@ -35,7 +35,7 @@ describe('buildSkillsSection', () => {
   })
 
   it('includes custom skill names when added', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       customSkills: [
         {
           id: 'custom-1',

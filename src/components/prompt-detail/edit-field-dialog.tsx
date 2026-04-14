@@ -52,7 +52,7 @@ export function EditFieldDialog({
         <DialogHeader>
           <DialogTitle>Edit {label}</DialogTitle>
           <DialogDescription>
-            Update the {label.toLowerCase()} for this project.
+            Update the {label.toLowerCase()} for this prompt.
           </DialogDescription>
         </DialogHeader>
 

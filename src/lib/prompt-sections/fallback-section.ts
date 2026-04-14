@@ -1,6 +1,6 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 
-export function buildFallbackSection(project: Project): string {
+export function buildFallbackSection(project: Prompt): string {
   const externalAccessible = project.externalResourcesAccessible ?? true;
 
   const lines: string[] = [

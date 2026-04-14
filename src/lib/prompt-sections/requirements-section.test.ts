@@ -1,9 +1,9 @@
 import { buildRequirementsSection } from './requirements-section'
-import { createTestProject } from '@/test/helpers/project-fixtures'
+import { createTestPrompt } from '@/test/helpers/prompt-fixtures'
 
 describe('buildRequirementsSection', () => {
   it('includes "None" for accessibility and single browser target for defaults', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       accessibilityLevel: 'none',
       browserCompatibility: ['chrome'],
     })
@@ -13,7 +13,7 @@ describe('buildRequirementsSection', () => {
   })
 
   it('includes WCAG 2.1 AA for wcag-aa accessibility level', () => {
-    const project = createTestProject({ accessibilityLevel: 'wcag-aa' })
+    const project = createTestPrompt({ accessibilityLevel: 'wcag-aa' })
     const result = buildRequirementsSection(project)
     expect(result).toContain('WCAG 2.1 AA')
     expect(result).toContain('ARIA labels')
@@ -21,13 +21,13 @@ describe('buildRequirementsSection', () => {
   })
 
   it('includes WCAG 2.1 AAA for wcag-aaa accessibility level', () => {
-    const project = createTestProject({ accessibilityLevel: 'wcag-aaa' })
+    const project = createTestPrompt({ accessibilityLevel: 'wcag-aaa' })
     const result = buildRequirementsSection(project)
     expect(result).toContain('WCAG 2.1 AAA')
   })
 
   it('includes all browser names and cross-browser note for multiple browsers', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       browserCompatibility: ['chrome', 'firefox', 'safari', 'edge'],
     })
     const result = buildRequirementsSection(project)

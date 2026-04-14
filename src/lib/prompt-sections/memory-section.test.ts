@@ -1,9 +1,9 @@
 import { buildMemorySection } from './memory-section'
-import { createTestProject, createTestSharedMemory, createStorybookMemory, createProjectWithStorybookMemory } from '@/test/helpers/project-fixtures'
+import { createTestPrompt, createTestSharedMemory, createStorybookMemory, createPromptWithStorybookMemory } from '@/test/helpers/prompt-fixtures'
 
 describe('buildMemorySection', () => {
   it('returns empty string when no memories are selected', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       selectedSharedMemoryIds: [],
       customMemories: [],
     })
@@ -24,7 +24,7 @@ describe('buildMemorySection', () => {
       fileName: 'brand-guidelines.md',
       content: 'Use Inter font for all headings.',
     })
-    const project = createTestProject({
+    const project = createTestPrompt({
       selectedSharedMemoryIds: ['mem-1', 'mem-2'],
       customMemories: [],
     })
@@ -36,7 +36,7 @@ describe('buildMemorySection', () => {
   })
 
   it('includes custom memory names and content', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       selectedSharedMemoryIds: [],
       customMemories: [
         { id: 'cust-1', name: 'Project Notes', content: 'Focus on mobile-first design' },
@@ -49,7 +49,7 @@ describe('buildMemorySection', () => {
 
   it('includes built-in storybook memory when selected', () => {
     const storybookMem = createStorybookMemory()
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildMemorySection(project, [storybookMem])
     expect(result).toContain('### Exosphere Storybook (exosphere-storybook.md)')
     expect(result).toContain('Component Inventory')
@@ -57,7 +57,7 @@ describe('buildMemorySection', () => {
 
   it('marks design system memories as AUTHORITATIVE', () => {
     const storybookMem = createStorybookMemory()
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildMemorySection(project, [storybookMem])
     expect(result).toContain('EXCEPTION')
     expect(result).toContain('Design system memories are AUTHORITATIVE')
@@ -66,7 +66,7 @@ describe('buildMemorySection', () => {
 
   it('omits non-design-system context line when storybook memory is the only memory', () => {
     const storybookMem = createStorybookMemory()
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildMemorySection(project, [storybookMem])
     expect(result).not.toContain('non-design-system memories provide supporting context only')
   })
@@ -79,7 +79,7 @@ describe('buildMemorySection', () => {
       fileName: 'other.md',
       content: 'Some extra context',
     })
-    const project = createProjectWithStorybookMemory({
+    const project = createPromptWithStorybookMemory({
       selectedSharedMemoryIds: ['built-in-exosphere-storybook', 'mem-other'],
     })
     const result = buildMemorySection(project, [storybookMem, otherMem])
@@ -88,7 +88,7 @@ describe('buildMemorySection', () => {
 
   it('uses MANDATORY web component language when DS memory is present', () => {
     const storybookMem = createStorybookMemory()
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildMemorySection(project, [storybookMem])
     expect(result).toContain('MANDATORY')
     expect(result).toContain('web components')
@@ -97,7 +97,7 @@ describe('buildMemorySection', () => {
 
   it('does not contain generic "implement equivalent behavior" line when DS memory is present', () => {
     const storybookMem = createStorybookMemory()
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildMemorySection(project, [storybookMem])
     expect(result).not.toContain('implement equivalent behavior using the tech approach')
   })
@@ -109,7 +109,7 @@ describe('buildMemorySection', () => {
       fileName: 'company-standards.md',
       content: 'Use blue for primary color.',
     })
-    const project = createTestProject({
+    const project = createTestPrompt({
       selectedSharedMemoryIds: ['mem-1'],
       customMemories: [],
     })
@@ -125,7 +125,7 @@ describe('buildMemorySection', () => {
       fileName: 'tech-stack.md',
       content: 'Uses React and Redux.',
     })
-    const project = createTestProject({
+    const project = createTestPrompt({
       selectedSharedMemoryIds: ['mem-1'],
       customMemories: [],
     })
@@ -141,7 +141,7 @@ describe('buildMemorySection', () => {
       fileName: 'shared.md',
       content: 'Shared content here.',
     })
-    const project = createTestProject({
+    const project = createTestPrompt({
       selectedSharedMemoryIds: ['mem-1'],
       customMemories: [
         { id: 'cust-1', name: 'Custom Notes', content: 'Custom content here.' },

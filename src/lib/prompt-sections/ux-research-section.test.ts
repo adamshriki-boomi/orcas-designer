@@ -1,16 +1,16 @@
 import { buildUxResearchSection } from './ux-research-section'
-import { createTestProject, createTestFileAttachment } from '@/test/helpers/project-fixtures'
+import { createTestPrompt, createTestFileAttachment } from '@/test/helpers/prompt-fixtures'
 import { emptyFormField } from '@/lib/types'
 
 describe('buildUxResearchSection', () => {
   it('returns empty string when there is no content', () => {
-    const project = createTestProject()
+    const project = createTestPrompt()
     const result = buildUxResearchSection(project)
     expect(result).toBe('')
   })
 
   it('includes URL and WebFetch instruction for a regular URL', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       uxResearch: {
         ...emptyFormField(),
         urlValue: 'https://research.example.com/findings',
@@ -22,7 +22,7 @@ describe('buildUxResearchSection', () => {
   })
 
   it('detects Google Docs document URL and includes export URL with format=txt', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       uxResearch: {
         ...emptyFormField(),
         urlValue: 'https://docs.google.com/document/d/abc123/edit',
@@ -34,7 +34,7 @@ describe('buildUxResearchSection', () => {
   })
 
   it('detects Google Slides URL and includes export/pdf', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       uxResearch: {
         ...emptyFormField(),
         urlValue: 'https://docs.google.com/presentation/d/slide456/edit',
@@ -46,7 +46,7 @@ describe('buildUxResearchSection', () => {
   })
 
   it('detects Google Sheets URL and includes export?format=csv', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       uxResearch: {
         ...emptyFormField(),
         urlValue: 'https://docs.google.com/spreadsheets/d/sheet789/edit',
@@ -58,7 +58,7 @@ describe('buildUxResearchSection', () => {
   })
 
   it('includes research findings for text content', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       uxResearch: {
         ...emptyFormField(),
         inputType: 'text',
@@ -72,7 +72,7 @@ describe('buildUxResearchSection', () => {
 
   it('includes file names for file attachments', () => {
     const file = createTestFileAttachment({ name: 'research-report.pdf' })
-    const project = createTestProject({
+    const project = createTestPrompt({
       uxResearch: {
         ...emptyFormField(),
         inputType: 'file',
@@ -84,7 +84,7 @@ describe('buildUxResearchSection', () => {
   })
 
   it('includes additional context when provided', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       uxResearch: {
         ...emptyFormField(),
         urlValue: 'https://research.example.com',

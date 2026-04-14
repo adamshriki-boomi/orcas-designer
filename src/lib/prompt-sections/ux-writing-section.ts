@@ -1,8 +1,8 @@
-import type { Project, SharedMemory } from '../types';
+import type { Prompt, SharedMemory } from '../types';
 import { UX_WRITING_MEMORY_IDS } from '../constants';
 import { parseGoogleDocUrl, buildGoogleDocsInstructions } from './url-utils';
 
-export function buildUxWritingSection(project: Project, sharedMemories: SharedMemory[] = []): string {
+export function buildUxWritingSection(project: Prompt, sharedMemories: SharedMemory[] = []): string {
   const field = project.uxWriting;
   const hasContent = field.urlValue || field.files.length > 0 || field.textValue;
 

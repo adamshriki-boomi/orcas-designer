@@ -2,14 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Pencil, Check, X } from 'lucide-react';
-import type { Project } from '@/lib/types';
+import type { Prompt } from '@/lib/types';
 
-interface ProjectHeaderProps {
-  project: Project;
+interface PromptHeaderProps {
+  project: Prompt;
   onRename?: (name: string) => void;
 }
 
-export function ProjectHeader({ project, onRename }: ProjectHeaderProps) {
+export function PromptHeader({ project, onRename }: PromptHeaderProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(project.name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +83,7 @@ export function ProjectHeader({ project, onRename }: ProjectHeaderProps) {
             <button
               onClick={startEditing}
               className="cursor-pointer text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-foreground"
-              aria-label="Rename project"
+              aria-label="Rename prompt"
             >
               <Pencil className="size-4" />
             </button>

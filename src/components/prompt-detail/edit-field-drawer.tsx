@@ -289,7 +289,7 @@ export function EditFieldDrawer({
         <DrawerHeader>
           <DrawerTitle>{label}</DrawerTitle>
           <DrawerDescription>
-            Update the {label.toLowerCase()} for this project.
+            Update the {label.toLowerCase()} for this prompt.
           </DrawerDescription>
         </DrawerHeader>
 

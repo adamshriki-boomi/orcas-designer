@@ -1,31 +1,29 @@
 'use client';
 
-import { useProjects } from '@/hooks/use-projects';
-import { ProjectList } from '@/components/dashboard/project-list';
+import { usePrompts } from '@/hooks/use-prompts';
+import { PromptList } from '@/components/dashboard/prompt-list';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { FadeIn } from '@/components/ui/motion';
 import { buttonVariants } from '@/components/ui/button';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
 
 export default function ProjectsPage() {
-  const { projects, isLoading } = useProjects();
+  const { projects, isLoading } = usePrompts();
 
   return (
     <FadeIn>
       <Header
-        title="Projects"
-        description="Your prompt projects"
+        title="Prompt Generator"
+        description="Your prompt configurations"
         action={
-          <Link href="/projects/new" className={buttonVariants()}>
+          <Link href="/prompt-generator/new" className={buttonVariants()}>
             <PlusCircle />
-            New Project
+            New Prompt
           </Link>
         }
       />
-      <Breadcrumbs items={[{ label: 'Dashboard', href: '/' }, { label: 'Projects' }]} />
       <PageContainer>
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -34,7 +32,7 @@ export default function ProjectsPage() {
             ))}
           </div>
         ) : (
-          <ProjectList projects={projects} />
+          <PromptList projects={projects} />
         )}
       </PageContainer>
     </FadeIn>

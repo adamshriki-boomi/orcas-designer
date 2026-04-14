@@ -166,7 +166,7 @@ export function WizardShell({
             {isLastStep ? (
               <Button size="sm" onClick={onSave} disabled={!canProceed}>
                 <Save className="size-4" />
-                Save Project
+                Save Prompt
               </Button>
             ) : (
               <Button

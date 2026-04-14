@@ -8,7 +8,7 @@ import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_ID
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
-import { projectToRow } from '@/hooks/use-projects';
+import { promptToRow } from '@/hooks/use-prompts';
 import { generateId } from '@/lib/id';
 import { generatePrompt } from '@/lib/prompt-generator';
 import { isFieldFilled } from '@/lib/validators';
@@ -69,7 +69,7 @@ function WizardContent() {
 
   const setStep = useCallback(
     (step: number) => {
-      router.replace(`/projects/new?step=${step}`);
+      router.replace(`/prompt-generator/new?step=${step}`);
     },
     [router]
   );
@@ -124,10 +124,10 @@ function WizardContent() {
   const handleSave = async () => {
     try {
       const id = generateId();
-      const projectData = { ...formData, id, name: formData.name || 'Untitled Project' };
+      const projectData = { ...formData, id, name: formData.name || 'Untitled Prompt' };
       const prompt = generatePrompt(projectData, sharedSkills, sharedMemories);
       const fullProject = { ...projectData, generatedPrompt: prompt };
-      const row = projectToRow(fullProject, user!.id);
+      const row = promptToRow(fullProject, user!.id);
       row.id = id;
       row.data = {
         companyInfo: fullProject.companyInfo,
@@ -143,12 +143,12 @@ function WizardContent() {
         prototypeSketches: fullProject.prototypeSketches,
       };
       const supabase = createClient();
-      const { error } = await supabase.from('projects').insert(row as never);
+      const { error } = await supabase.from('prompts').insert(row as never);
       if (error) throw error;
-      toast.success('Project saved');
-      router.push(`/projects/placeholder?_id=${encodeURIComponent(id)}`);
+      toast.success('Prompt saved');
+      router.push(`/prompt-generator/placeholder?_id=${encodeURIComponent(id)}`);
     } catch {
-      toast.error('Unable to save project');
+      toast.error('Unable to save prompt');
     }
   };
 
@@ -272,14 +272,13 @@ function WizardContent() {
   if (skillsLoading || memoriesLoading) {
     return (
       <>
-        <Header title="New Project" description="Set up your design prompt" />
+        <Header title="New Prompt" description="Set up your design prompt" />
         <Breadcrumbs items={[
-          { label: 'Dashboard', href: '/' },
-          { label: 'Projects', href: '/projects' },
-          { label: 'New Project' },
+          { label: 'Prompt Generator', href: '/prompt-generator' },
+          { label: 'New Prompt' },
         ]} />
         <PageContainer wide>
-          <SectionLoader label="Loading project data..." />
+          <SectionLoader label="Loading prompt data..." />
         </PageContainer>
       </>
     );
@@ -287,16 +286,15 @@ function WizardContent() {
 
   return (
     <>
-      <Header title="New Project" description="Set up your design prompt" />
+      <Header title="New Prompt" description="Set up your design prompt" />
       <Breadcrumbs items={[
-        { label: 'Dashboard', href: '/' },
-        { label: 'Projects', href: '/projects' },
-        { label: 'New Project' },
+        { label: 'Prompt Generator', href: '/prompt-generator' },
+        { label: 'New Prompt' },
       ]} />
       <PageContainer wide>
         <div className="mb-6 max-w-md">
           <Input
-            label="Project Name"
+            label="Prompt Name"
             type="text"
             value={formData.name}
             onChange={(e) => setName(e.target.value)}

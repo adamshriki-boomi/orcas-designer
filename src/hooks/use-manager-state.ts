@@ -9,13 +9,13 @@ interface ManagerState<TForm> {
   isSaving: boolean;
   deleteDialogOpen: boolean;
   deletingId: string | null;
-  usedInProjects: string[];
+  usedInPrompts: string[];
   isDeleting: boolean;
   viewDialogOpen: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   openAdd: () => void;
   openEdit: (id: string, formData: TForm) => void;
-  openDelete: (id: string, projectNames: string[]) => void;
+  openDelete: (id: string, promptNames: string[]) => void;
   openView: () => void;
   closeDialog: () => void;
   closeDelete: () => void;
@@ -38,7 +38,7 @@ export function useManagerState<TForm>(emptyForm: TForm): ManagerState<TForm> {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [usedInProjects, setUsedInProjects] = useState<string[]>([]);
+  const [usedInPrompts, setUsedInPrompts] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,9 +55,9 @@ export function useManagerState<TForm>(emptyForm: TForm): ManagerState<TForm> {
     setDialogOpen(true);
   }, []);
 
-  const openDelete = useCallback((id: string, projectNames: string[]) => {
+  const openDelete = useCallback((id: string, promptNames: string[]) => {
     setDeletingId(id);
-    setUsedInProjects(projectNames);
+    setUsedInPrompts(promptNames);
     setDeleteDialogOpen(true);
   }, []);
 
@@ -77,7 +77,7 @@ export function useManagerState<TForm>(emptyForm: TForm): ManagerState<TForm> {
   const closeDelete = useCallback(() => {
     setDeleteDialogOpen(false);
     setDeletingId(null);
-    setUsedInProjects([]);
+    setUsedInPrompts([]);
   }, []);
 
   const closeView = useCallback(() => {
@@ -91,7 +91,7 @@ export function useManagerState<TForm>(emptyForm: TForm): ManagerState<TForm> {
     isSaving,
     deleteDialogOpen,
     deletingId,
-    usedInProjects,
+    usedInPrompts,
     isDeleting,
     viewDialogOpen,
     fileInputRef,

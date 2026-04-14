@@ -1,4 +1,4 @@
-import type { Project, SharedSkill, SharedMemory } from './types';
+import type { Prompt, SharedSkill, SharedMemory } from './types';
 import { DESIGN_SYSTEM_MEMORY_IDS } from './constants';
 import { buildContextSection } from './prompt-sections/context-section';
 import { buildImplementationSection } from './prompt-sections/implementation-section';
@@ -22,7 +22,7 @@ function wrapXml(tag: string, content: string): string {
   return `<${tag}>\n${content}\n</${tag}>`;
 }
 
-function hasAnyFileAttachments(project: Project): boolean {
+function hasAnyFileAttachments(project: Prompt): boolean {
   const fields = [
     project.companyInfo,
     project.productInfo,
@@ -39,7 +39,7 @@ function hasAnyFileAttachments(project: Project): boolean {
   return fields.some(f => f.files.length > 0);
 }
 
-function buildQuickReference(project: Project): string {
+function buildQuickReference(project: Prompt): string {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
   const interactionLevel = project.interactionLevel ?? 'static';
   const interactionLabels: Record<string, string> = {
@@ -87,7 +87,7 @@ function buildQuickReference(project: Project): string {
   return lines.join('\n');
 }
 
-export function generatePrompt(project: Project, sharedSkills: SharedSkill[], sharedMemories: SharedMemory[] = []): string {
+export function generatePrompt(project: Prompt, sharedSkills: SharedSkill[], sharedMemories: SharedMemory[] = []): string {
   const fileCallout = hasAnyFileAttachments(project)
     ? '> **Attached Files**: This brief references files by name.\n> Place all referenced files in a `./assets/` folder in your working directory before running.'
     : '';

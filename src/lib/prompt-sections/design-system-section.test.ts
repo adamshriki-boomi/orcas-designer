@@ -1,16 +1,16 @@
 import { buildDesignSystemSection } from './design-system-section'
-import { createTestProject, createProjectWithDesignSystem, createProjectWithStorybookMemory } from '@/test/helpers/project-fixtures'
+import { createTestPrompt, createPromptWithDesignSystem, createPromptWithStorybookMemory } from '@/test/helpers/prompt-fixtures'
 import { emptyFormField } from '@/lib/types'
 
 describe('buildDesignSystemSection', () => {
   it('returns empty string when there is no design system content', () => {
-    const project = createTestProject()
+    const project = createTestPrompt()
     const result = buildDesignSystemSection(project)
     expect(result).toBe('')
   })
 
   it('includes storybook URL and discovery instructions', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designSystemStorybook: {
         ...emptyFormField(),
         urlValue: 'https://storybook.example.com',
@@ -23,7 +23,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('includes NPM package and install command for text-based npm input', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designSystemNpm: {
         ...emptyFormField(),
         inputType: 'text',
@@ -37,7 +37,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('includes design system Figma URL', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designSystemFigma: {
         ...emptyFormField(),
         urlValue: 'https://www.figma.com/design/ds123/Design-System',
@@ -49,7 +49,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('renders section when only storybook memory is selected (no URL)', () => {
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildDesignSystemSection(project)
     expect(result).toContain('## DESIGN SYSTEM')
     expect(result).toContain('component inventory')
@@ -57,7 +57,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('prefers storybook URL over memory reference when both are present', () => {
-    const project = createProjectWithStorybookMemory({
+    const project = createPromptWithStorybookMemory({
       designSystemStorybook: {
         ...emptyFormField(),
         urlValue: 'https://storybook.example.com',
@@ -69,7 +69,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('normalizes NPM package with install prefix in CDN URLs', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designSystemNpm: {
         ...emptyFormField(),
         inputType: 'text',
@@ -84,7 +84,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('includes React-to-web-component bridging note when using storybook memory', () => {
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildDesignSystemSection(project)
     expect(result).toContain('PascalCase')
     expect(result).toContain('kebab-case')
@@ -92,7 +92,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('does not include bridging note when storybook URL is present', () => {
-    const project = createProjectWithStorybookMemory({
+    const project = createPromptWithStorybookMemory({
       designSystemStorybook: {
         ...emptyFormField(),
         urlValue: 'https://storybook.example.com',
@@ -103,14 +103,14 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('includes CRITICAL RULE block when any design system content is present', () => {
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildDesignSystemSection(project)
     expect(result).toContain('CRITICAL RULE')
     expect(result).toContain('MUST use design system components for ALL UI elements')
   })
 
   it('includes AUTHORITATIVE language for storybook memory', () => {
-    const project = createProjectWithStorybookMemory()
+    const project = createPromptWithStorybookMemory()
     const result = buildDesignSystemSection(project)
     expect(result).toContain('AUTHORITATIVE')
     expect(result).toContain('MUST use these components')
@@ -118,7 +118,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('includes INTEGRATION block when both storybook memory and NPM are present', () => {
-    const project = createProjectWithStorybookMemory({
+    const project = createPromptWithStorybookMemory({
       designSystemNpm: {
         ...emptyFormField(),
         inputType: 'text',
@@ -133,7 +133,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('includes MUST language for NPM package', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       designSystemNpm: {
         ...emptyFormField(),
         inputType: 'text',
@@ -146,7 +146,7 @@ describe('buildDesignSystemSection', () => {
   })
 
   it('includes additional context for each sub-section', () => {
-    const project = createProjectWithDesignSystem({
+    const project = createPromptWithDesignSystem({
       designSystemStorybook: {
         ...emptyFormField(),
         urlValue: 'https://storybook.example.com',

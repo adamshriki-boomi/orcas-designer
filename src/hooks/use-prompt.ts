@@ -3,38 +3,38 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
-import type { Project } from '@/lib/types';
-import { projectToRow, toProject } from './use-projects';
+import type { Prompt } from '@/lib/types';
+import { promptToRow, toPrompt } from './use-prompts';
 
-export function useProject(id: string) {
+export function usePrompt(id: string) {
   const { user } = useAuth();
-  const [project, setProject] = useState<Project | null | undefined>(undefined);
+  const [project, setProject] = useState<Prompt | null | undefined>(undefined);
   const isLoading = project === undefined;
 
-  const fetchProject = useCallback(async () => {
+  const fetchPrompt = useCallback(async () => {
     const supabase = createClient();
     const { data, error } = await supabase
-      .from('projects')
+      .from('prompts')
       .select('*')
       .eq('id', id)
       .single();
     if (error || !data) {
       setProject(null);
     } else {
-      setProject(toProject(data));
+      setProject(toPrompt(data));
     }
   }, [id]);
 
   useEffect(() => {
-    if (user && id) fetchProject();
-  }, [user, id, fetchProject]);
+    if (user && id) fetchPrompt();
+  }, [user, id, fetchPrompt]);
 
-  const updateProject = useCallback(async (updates: Partial<Project>): Promise<void> => {
+  const updatePrompt = useCallback(async (updates: Partial<Prompt>): Promise<void> => {
     const supabase = createClient();
 
     // For updates, we need to merge form data into the existing data JSONB
     // First, build the row for non-data fields
-    const row = projectToRow(updates);
+    const row = promptToRow(updates);
     delete row.id; // Don't update the ID
 
     // Handle the data JSONB column specially — merge with existing
@@ -68,10 +68,10 @@ export function useProject(id: string) {
       row.data = currentData;
     }
 
-    const { error } = await supabase.from('projects').update(row as never).eq('id', id);
+    const { error } = await supabase.from('prompts').update(row as never).eq('id', id);
     if (error) throw error;
-    await fetchProject();
-  }, [id, project, fetchProject]);
+    await fetchPrompt();
+  }, [id, project, fetchPrompt]);
 
-  return { project, isLoading, updateProject };
+  return { project, isLoading, updatePrompt };
 }

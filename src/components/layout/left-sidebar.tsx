@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { Waves, Home, FolderOpen, PenLine, Zap, BookOpen, Settings as SettingsIcon } from 'lucide-react';
+import { Waves, Home, BotMessageSquare, PenLine, Zap, BookOpen, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 const SIDEBAR_WIDTH = 220;
@@ -22,7 +22,7 @@ const ExLeftmenubarDivider = dynamic(
 
 const navItems: { href: string; label: string; icon: React.ElementType }[] = [
   { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/projects', label: 'Projects', icon: FolderOpen },
+  { href: '/prompt-generator', label: 'Prompt Generator', icon: BotMessageSquare },
   { href: '/ux-writer', label: 'UX Writer', icon: PenLine },
   { href: '/skills', label: 'Shared Skills', icon: Zap },
   { href: '/memories', label: 'Shared Memories', icon: BookOpen },
@@ -68,8 +68,8 @@ export function LeftSidebar() {
           const isActive =
             item.href === '/'
               ? pathname === '/'
-              : item.href === '/projects'
-              ? pathname === '/projects' || (pathname.startsWith('/projects/') && pathname !== '/projects/new')
+              : item.href === '/prompt-generator'
+              ? pathname === '/prompt-generator' || pathname.startsWith('/prompt-generator/')
               : pathname.startsWith(item.href);
           const Icon = item.icon;
 

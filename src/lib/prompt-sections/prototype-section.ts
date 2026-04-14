@@ -1,6 +1,6 @@
-import type { Project } from '../types';
+import type { Prompt } from '../types';
 
-export function buildPrototypeSection(project: Project): string {
+export function buildPrototypeSection(project: Prompt): string {
   const field = project.prototypeSketches;
   const hasContent = field.urlValue || field.files.length > 0 || field.textValue;
 

@@ -1,17 +1,17 @@
 import { generatePrompt } from './prompt-generator'
 import { emptyFormField } from './types'
 import {
-  createTestProject,
-  createFullProject,
+  createTestPrompt,
+  createFullPrompt,
   createTestFileAttachment,
   createTestSharedMemory,
   createStorybookMemory,
-  createProjectWithStorybookMemory,
-} from '@/test/helpers/project-fixtures'
+  createPromptWithStorybookMemory,
+} from '@/test/helpers/prompt-fixtures'
 
 describe('generatePrompt', () => {
   describe('minimal project', () => {
-    const project = createTestProject()
+    const project = createTestPrompt()
     const prompt = generatePrompt(project, [])
 
     it('contains the main header', () => {
@@ -38,7 +38,7 @@ describe('generatePrompt', () => {
   })
 
   describe('full project', () => {
-    const project = createFullProject()
+    const project = createFullPrompt()
     const prompt = generatePrompt(project, [])
 
     it('contains context section', () => {
@@ -79,7 +79,7 @@ describe('generatePrompt', () => {
 
   describe('project with file attachments', () => {
     it('includes the attached files callout', () => {
-      const project = createTestProject({
+      const project = createTestPrompt({
         companyInfo: {
           ...emptyFormField(),
           files: [createTestFileAttachment()],
@@ -93,7 +93,7 @@ describe('generatePrompt', () => {
   describe('project with shared memories', () => {
     it('includes the memories section', () => {
       const memory = createTestSharedMemory({ id: 'mem-1', name: 'My Memory', content: 'Some context' })
-      const project = createTestProject({ selectedSharedMemoryIds: ['mem-1'] })
+      const project = createTestPrompt({ selectedSharedMemoryIds: ['mem-1'] })
       const prompt = generatePrompt(project, [], [memory])
       expect(prompt).toContain('<memories>')
       expect(prompt).toContain('</memories>')
@@ -103,14 +103,14 @@ describe('generatePrompt', () => {
   describe('project with storybook memory', () => {
     it('includes storybook memory reference in quick-reference', () => {
       const storybookMem = createStorybookMemory()
-      const project = createProjectWithStorybookMemory()
+      const project = createPromptWithStorybookMemory()
       const prompt = generatePrompt(project, [], [storybookMem])
       expect(prompt).toContain('Storybook: via memory')
     })
 
     it('includes both design-system and memories sections', () => {
       const storybookMem = createStorybookMemory()
-      const project = createProjectWithStorybookMemory()
+      const project = createPromptWithStorybookMemory()
       const prompt = generatePrompt(project, [], [storybookMem])
       expect(prompt).toContain('<design-system>')
       expect(prompt).toContain('</design-system>')
@@ -120,7 +120,7 @@ describe('generatePrompt', () => {
 
     it('includes design system line with storybook via memory in quick-reference', () => {
       const storybookMem = createStorybookMemory()
-      const project = createProjectWithStorybookMemory()
+      const project = createPromptWithStorybookMemory()
       const prompt = generatePrompt(project, [], [storybookMem])
       expect(prompt).toContain('Design system:')
       expect(prompt).toContain('Storybook: via memory')
@@ -129,7 +129,7 @@ describe('generatePrompt', () => {
 
   describe('project with empty name', () => {
     it('still contains the header', () => {
-      const project = createTestProject({ name: '' })
+      const project = createTestPrompt({ name: '' })
       const prompt = generatePrompt(project, [])
       expect(prompt).toContain('# Design & Development Brief for Claude Code')
       expect(prompt).toContain('## Project: ')
@@ -138,14 +138,14 @@ describe('generatePrompt', () => {
 
   describe('project with prerequisites', () => {
     it('includes prerequisites section for full project with Figma and URLs', () => {
-      const project = createFullProject()
+      const project = createFullPrompt()
       const prompt = generatePrompt(project, [])
       expect(prompt).toContain('<prerequisites>')
       expect(prompt).toContain('</prerequisites>')
     })
 
     it('does not include prerequisites section for minimal project', () => {
-      const project = createTestProject()
+      const project = createTestPrompt()
       const prompt = generatePrompt(project, [])
       expect(prompt).not.toContain('<prerequisites>')
     })
@@ -153,7 +153,7 @@ describe('generatePrompt', () => {
 
   describe('quick reference design system details', () => {
     it('shows NPM package name in quick reference', () => {
-      const project = createTestProject({
+      const project = createTestPrompt({
         designSystemNpm: {
           ...emptyFormField(),
           inputType: 'text',
@@ -165,7 +165,7 @@ describe('generatePrompt', () => {
     })
 
     it('shows storybook URL in quick reference', () => {
-      const project = createTestProject({
+      const project = createTestPrompt({
         designSystemStorybook: {
           ...emptyFormField(),
           urlValue: 'https://storybook.example.com',
@@ -178,7 +178,7 @@ describe('generatePrompt', () => {
 
   describe('XML wrapping format', () => {
     it('wraps section content between opening and closing tags on separate lines', () => {
-      const project = createTestProject()
+      const project = createTestPrompt()
       const prompt = generatePrompt(project, [])
       const match = prompt.match(/<quick-reference>\n[\s\S]+?\n<\/quick-reference>/)
       expect(match).not.toBeNull()

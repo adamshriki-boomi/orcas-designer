@@ -1,16 +1,16 @@
 import { buildPrototypeSection } from './prototype-section'
-import { createTestProject, createTestFileAttachment } from '@/test/helpers/project-fixtures'
+import { createTestPrompt, createTestFileAttachment } from '@/test/helpers/prompt-fixtures'
 import { emptyFormField } from '@/lib/types'
 
 describe('buildPrototypeSection', () => {
   it('returns empty string when there is no content', () => {
-    const project = createTestProject()
+    const project = createTestPrompt()
     const result = buildPrototypeSection(project)
     expect(result).toBe('')
   })
 
   it('includes the URL when a prototype URL is provided', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       prototypeSketches: {
         ...emptyFormField(),
         urlValue: 'https://prototype.example.com',
@@ -21,7 +21,7 @@ describe('buildPrototypeSection', () => {
   })
 
   it('includes /implement-design reference for figma.com URLs', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       prototypeSketches: {
         ...emptyFormField(),
         urlValue: 'https://www.figma.com/design/proto123/Wireframes',
@@ -33,7 +33,7 @@ describe('buildPrototypeSection', () => {
   })
 
   it('includes text description when text input type is used', () => {
-    const project = createTestProject({
+    const project = createTestPrompt({
       prototypeSketches: {
         ...emptyFormField(),
         inputType: 'text',
@@ -48,7 +48,7 @@ describe('buildPrototypeSection', () => {
   it('includes file names for sketch file attachments', () => {
     const file1 = createTestFileAttachment({ name: 'sketch-home.png' })
     const file2 = createTestFileAttachment({ id: 'file-2', name: 'sketch-detail.jpg' })
-    const project = createTestProject({
+    const project = createTestPrompt({
       prototypeSketches: {
         ...emptyFormField(),
         inputType: 'file',

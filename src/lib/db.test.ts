@@ -1,4 +1,5 @@
 import { clearAllTables, createMockSupabaseClient } from '@/test/helpers/supabase-mock';
+import type { Database } from '@/lib/supabase-types';
 
 const mockClient = createMockSupabaseClient();
 
@@ -6,9 +7,20 @@ beforeEach(() => {
   clearAllTables();
 });
 
+describe('Supabase schema consistency', () => {
+  it('supabase-types.ts defines the "prompts" table used by hooks', () => {
+    // This test fails at compile time if the table key in supabase-types.ts
+    // doesn't match the string literal used in .from() calls.
+    type Tables = Database['public']['Tables'];
+    type HasPrompts = Tables['prompts'];
+    const _check: HasPrompts = {} as HasPrompts;
+    expect(_check).toBeDefined();
+  });
+});
+
 describe('Supabase client operations', () => {
-  it('can insert and retrieve a project', async () => {
-    await mockClient.from('projects').insert({
+  it('can insert and retrieve a prompt', async () => {
+    await mockClient.from('prompts').insert({
       id: 'proj-retrieve',
       user_id: 'user-1',
       name: 'Retrieve Test',
@@ -17,7 +29,7 @@ describe('Supabase client operations', () => {
     });
 
     const { data } = await mockClient
-      .from('projects')
+      .from('prompts')
       .select('*')
       .eq('id', 'proj-retrieve')
       .single();

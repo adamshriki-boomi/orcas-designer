@@ -1,11 +1,11 @@
-import type { Project, SharedSkill } from '../types';
-import { getActiveSkillsForProject } from '../skill-filter';
+import type { Prompt, SharedSkill } from '../types';
+import { getActiveSkillsForPrompt } from '../skill-filter';
 
-export function buildSkillsSection(project: Project, sharedSkills: SharedSkill[]): string {
+export function buildSkillsSection(project: Prompt, sharedSkills: SharedSkill[]): string {
   const lines: string[] = ['## 8. SKILLS TO USE'];
 
   // Filtered recommended skills grouped by category
-  const activeSkills = getActiveSkillsForProject(project);
+  const activeSkills = getActiveSkillsForPrompt(project);
   const categories = [...new Set(activeSkills.map(s => s.category))];
   lines.push('### Recommended Skills');
   for (const category of categories) {

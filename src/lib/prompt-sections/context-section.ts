@@ -1,4 +1,4 @@
-import type { Project, FormFieldData } from '../types';
+import type { Prompt, FormFieldData } from '../types';
 import { parseGoogleDocUrl, buildGoogleDocsInstructions } from './url-utils';
 
 function renderField(label: string, field: FormFieldData): string {
@@ -19,7 +19,7 @@ function renderField(label: string, field: FormFieldData): string {
   return parts.join('\n');
 }
 
-export function buildContextSection(project: Project): string {
+export function buildContextSection(project: Prompt): string {
   const lines: string[] = ['## CONTEXT'];
   const company = renderField('Company Info', project.companyInfo);
   const product = renderField('Product Info', project.productInfo);

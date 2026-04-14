@@ -202,7 +202,7 @@ export function SharedSkillManager() {
             <div>
               <h2 className="font-heading text-base font-semibold">Custom Shared Skills</h2>
               <p className="text-xs text-muted-foreground">
-                {sharedSkills.length === 0 ? 'Create skills to reuse across projects' : `${sharedSkills.length} custom skill${sharedSkills.length !== 1 ? 's' : ''}`}
+                {sharedSkills.length === 0 ? 'Create skills to reuse across prompts' : `${sharedSkills.length} custom skill${sharedSkills.length !== 1 ? 's' : ''}`}
               </p>
             </div>
           </div>
@@ -221,7 +221,7 @@ export function SharedSkillManager() {
             </div>
             <p className="text-sm font-medium text-muted-foreground mb-1">No custom skills yet</p>
             <p className="text-xs text-muted-foreground/70 max-w-xs">
-              Add skills as URLs or files to share them across all your projects.
+              Add skills as URLs or files to share them across all your prompts.
             </p>
           </div>
         ) : (
@@ -250,7 +250,7 @@ export function SharedSkillManager() {
             <DrawerDescription>
               {mgr.editingId
                 ? 'Update the shared skill details.'
-                : 'Create a new skill that can be shared across projects.'}
+                : 'Create a new skill that can be shared across prompts.'}
             </DrawerDescription>
           </DrawerHeader>
 
@@ -352,11 +352,11 @@ export function SharedSkillManager() {
             <AlertDialogTitle>Delete Shared Skill</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this skill? This action cannot be undone.
-              {mgr.usedInProjects.length > 0 && (
+              {mgr.usedInPrompts.length > 0 && (
                 <>
-                  {' '}This skill is currently used in {mgr.usedInProjects.length}{' '}
-                  {mgr.usedInProjects.length === 1 ? 'project' : 'projects'}:{' '}
-                  {mgr.usedInProjects.join(', ')}. It will be removed from all of them.
+                  {' '}This skill is currently used in {mgr.usedInPrompts.length}{' '}
+                  {mgr.usedInPrompts.length === 1 ? 'prompt' : 'prompts'}:{' '}
+                  {mgr.usedInPrompts.join(', ')}. It will be removed from all of them.
                 </>
               )}
             </AlertDialogDescription>

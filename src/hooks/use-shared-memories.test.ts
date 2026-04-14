@@ -161,21 +161,21 @@ describe('shared_memories Supabase operations', () => {
   });
 
   it('isMemoryUsed: contains query finds projects using the memory', async () => {
-    await mockClient.from('projects').insert({
+    await mockClient.from('prompts').insert({
       id: 'proj-a', user_id: 'u1', name: 'Alpha',
       selected_shared_memory_ids: ['mem-1', 'mem-2'],
     });
-    await mockClient.from('projects').insert({
+    await mockClient.from('prompts').insert({
       id: 'proj-b', user_id: 'u1', name: 'Beta',
       selected_shared_memory_ids: ['mem-1'],
     });
-    await mockClient.from('projects').insert({
+    await mockClient.from('prompts').insert({
       id: 'proj-c', user_id: 'u1', name: 'Gamma',
       selected_shared_memory_ids: ['mem-3'],
     });
 
     const { data } = await mockClient
-      .from('projects')
+      .from('prompts')
       .select('name')
       .contains('selected_shared_memory_ids', ['mem-1']);
 
@@ -187,13 +187,13 @@ describe('shared_memories Supabase operations', () => {
   });
 
   it('isMemoryUsed returns empty when no project references the memory', async () => {
-    await mockClient.from('projects').insert({
+    await mockClient.from('prompts').insert({
       id: 'proj-x', user_id: 'u1', name: 'Only Project',
       selected_shared_memory_ids: ['other-mem'],
     });
 
     const { data } = await mockClient
-      .from('projects')
+      .from('prompts')
       .select('name')
       .contains('selected_shared_memory_ids', ['nonexistent']);
 

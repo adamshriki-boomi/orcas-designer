@@ -2,14 +2,16 @@
 
 import type { SharedSkill, CustomSkill } from '@/lib/types';
 import type { MandatorySkill } from '@/lib/constants';
+import type { BuiltInSkill } from '@/lib/built-in-skills';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { TagBadge } from '@/components/ui/tag-badge';
 import { Lock, Trash2, Edit, Link, FileText } from 'lucide-react';
 
-type AnySkill = MandatorySkill | SharedSkill | CustomSkill;
+type AnySkill = MandatorySkill | BuiltInSkill | SharedSkill | CustomSkill;
 
 interface SkillCardProps {
   skill: AnySkill;
@@ -25,6 +27,10 @@ function isMandatorySkill(skill: AnySkill): skill is MandatorySkill {
   return 'category' in skill && 'invocation' in skill;
 }
 
+function isBuiltInContentSkill(skill: AnySkill): skill is BuiltInSkill {
+  return 'content' in skill;
+}
+
 export function SkillCard({
   skill,
   locked = false,
@@ -36,7 +42,8 @@ export function SkillCard({
 }: SkillCardProps) {
   const skillType = 'type' in skill ? skill.type : undefined;
   const description = 'description' in skill ? skill.description : undefined;
-  const category = isMandatorySkill(skill) ? skill.category : undefined;
+  const category = isMandatorySkill(skill) || isBuiltInContentSkill(skill) ? skill.category : undefined;
+  const tags = isBuiltInContentSkill(skill) ? skill.tags : [];
 
   return (
     <Card
@@ -97,6 +104,13 @@ export function SkillCard({
             )}
             {description && <span className="line-clamp-2">{description}</span>}
           </CardDescription>
+        )}
+        {tags.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {tags.map((tag) => (
+              <TagBadge key={tag} tag={tag} />
+            ))}
+          </div>
         )}
       </CardHeader>
     </Card>

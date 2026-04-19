@@ -16,6 +16,7 @@ import {
   getMethodById,
 } from '@/lib/researcher-constants';
 import { BUILT_IN_COMPANY_CONTEXT } from '@/lib/constants';
+import { BUILT_IN_SKILLS } from '@/lib/built-in-skills';
 import { isFieldFilled } from '@/lib/validators';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
@@ -237,10 +238,16 @@ function WizardContent() {
     return set;
   }, [formData]);
 
+  const lockedSkillIds = formData.selectedMethodIds;
+  const uxResearchBuiltInSkills = BUILT_IN_SKILLS.filter((s) => s.category === 'UX Research');
+
   const handleSave = async () => {
     try {
       const id = generateId();
       const name = formData.name || 'Untitled Research';
+      const finalSelectedSkillIds = Array.from(
+        new Set([...formData.selectedSharedSkillIds, ...lockedSkillIds])
+      );
       const framingDocument = buildFramingDocument(
         formData.researchType,
         formData.config,
@@ -253,6 +260,7 @@ function WizardContent() {
         name,
         status: 'draft' as const,
         framingDocument,
+        selectedSharedSkillIds: finalSelectedSkillIds,
       };
 
       const row = researcherProjectToRow(projectData, user!.id);
@@ -359,6 +367,8 @@ function WizardContent() {
             customMemories={formData.customMemories ?? []}
             onCustomMemoriesChange={setCustomMemories}
             lockedMemoryIds={[COMPANY_CONTEXT_MEMORY_ID]}
+            lockedSkillIds={lockedSkillIds}
+            builtInSkills={uxResearchBuiltInSkills}
           />
         );
       case 8:

@@ -34,6 +34,9 @@ import { StaggerContainer, StaggerItem } from '@/components/ui/motion';
 import { SectionLoader } from '@/components/ui/loader';
 import { MemoryCard } from './memory-card';
 import { Plus, Brain } from 'lucide-react';
+import { groupByCategory, orderedCategories } from '@/lib/category-grouping';
+
+const MEMORY_CATEGORY_ORDER = ['UX Research', 'Company', 'Product', 'Design System', 'Writing'];
 
 interface MemoryFormState {
   name: string;
@@ -155,29 +158,45 @@ export function SharedMemoryManager() {
   return (
     <div className="space-y-10">
       {/* Built-in Memories */}
-      {builtInMemories.length > 0 && (
-        <div className="space-y-5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-              <Brain className="size-4 text-primary" />
+      {builtInMemories.length > 0 && (() => {
+        const groups = groupByCategory(builtInMemories);
+        const categoryNames = orderedCategories(Array.from(groups.keys()), MEMORY_CATEGORY_ORDER);
+
+        return (
+          <div className="space-y-5">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                <Brain className="size-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-heading text-base font-semibold">Built-in Memories</h2>
+                <p className="text-xs text-muted-foreground">
+                  {builtInMemories.length} context file{builtInMemories.length !== 1 ? 's' : ''} included by default
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="font-heading text-base font-semibold">Built-in Memories</h2>
-              <p className="text-xs text-muted-foreground">{builtInMemories.length} context file{builtInMemories.length !== 1 ? 's' : ''} included by default</p>
+            <div className="space-y-6">
+              {categoryNames.map((category) => {
+                const memories = groups.get(category) ?? [];
+                return (
+                  <section key={category}>
+                    <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                      {category}
+                    </h3>
+                    <StaggerContainer className="grid gap-2 sm:grid-cols-2">
+                      {memories.map((memory) => (
+                        <StaggerItem key={memory.id}>
+                          <MemoryCard memory={memory} onView={() => openViewDialog(memory)} />
+                        </StaggerItem>
+                      ))}
+                    </StaggerContainer>
+                  </section>
+                );
+              })}
             </div>
           </div>
-          <StaggerContainer className="grid gap-2 sm:grid-cols-2">
-            {builtInMemories.map((memory) => (
-              <StaggerItem key={memory.id}>
-                <MemoryCard
-                  memory={memory}
-                  onView={() => openViewDialog(memory)}
-                />
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Divider */}
       {builtInMemories.length > 0 && <div className="h-px gradient-border" />}

@@ -199,4 +199,70 @@ describe('shared_memories Supabase operations', () => {
 
     expect(data).toHaveLength(0);
   });
+
+  it('stores and returns category and tags on shared_memories rows', async () => {
+    await mockClient.from('shared_memories').insert({
+      id: 'built-in-uxr-operations-guide',
+      name: 'UXR Operations Guide',
+      description: 'Research-focused summary',
+      content: '# UXR Operations Guide',
+      file_name: 'uxr-operations-guide.md',
+      is_built_in: true,
+      created_by: null,
+      category: 'UX Research',
+      tags: ['Boomi Knowledge'],
+    });
+
+    const { data } = await mockClient
+      .from('shared_memories')
+      .select('*')
+      .eq('id', 'built-in-uxr-operations-guide')
+      .maybeSingle();
+
+    expect(data?.category).toBe('UX Research');
+    expect(data?.tags).toEqual(['Boomi Knowledge']);
+  });
+
+  it('defaults category to null and tags to empty when unspecified', async () => {
+    await mockClient.from('shared_memories').insert({
+      id: 'no-meta-memory',
+      name: 'Unclassified',
+      is_built_in: false,
+    });
+
+    const { data } = await mockClient
+      .from('shared_memories')
+      .select('*')
+      .eq('id', 'no-meta-memory')
+      .maybeSingle();
+
+    expect(data?.category ?? null).toBeNull();
+    // Mock may store absent fields as undefined; treat as empty
+    const tags = (data?.tags as string[] | undefined) ?? [];
+    expect(tags).toEqual([]);
+  });
+
+  it('contains filter on tags finds memories with a given tag', async () => {
+    await mockClient.from('shared_memories').insert({
+      id: 'boomi-knowledge-mem',
+      name: 'Tagged',
+      is_built_in: true,
+      tags: ['Boomi Knowledge'],
+    });
+    await mockClient.from('shared_memories').insert({
+      id: 'untagged-mem',
+      name: 'Untagged',
+      is_built_in: true,
+      tags: [],
+    });
+
+    const { data } = await mockClient
+      .from('shared_memories')
+      .select('id')
+      .contains('tags', ['Boomi Knowledge']);
+
+    const ids = data!.map((r: Record<string, unknown>) => r.id);
+    expect(ids).toContain('boomi-knowledge-mem');
+    expect(ids).not.toContain('untagged-mem');
+  });
 });

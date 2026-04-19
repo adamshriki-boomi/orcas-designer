@@ -209,6 +209,7 @@ export type Database = {
       }
       shared_memories: {
         Row: {
+          category: string | null
           content: string
           created_at: string
           created_by: string | null
@@ -217,9 +218,11 @@ export type Database = {
           id: string
           is_built_in: boolean
           name: string
+          tags: string[]
           updated_at: string
         }
         Insert: {
+          category?: string | null
           content?: string
           created_at?: string
           created_by?: string | null
@@ -228,9 +231,11 @@ export type Database = {
           id?: string
           is_built_in?: boolean
           name: string
+          tags?: string[]
           updated_at?: string
         }
         Update: {
+          category?: string | null
           content?: string
           created_at?: string
           created_by?: string | null
@@ -239,6 +244,7 @@ export type Database = {
           id?: string
           is_built_in?: boolean
           name?: string
+          tags?: string[]
           updated_at?: string
         }
         Relationships: [
@@ -390,11 +396,13 @@ export type Database = {
     Functions: {
       upsert_built_in_memory: {
         Args: {
+          p_category?: string | null
           p_content: string
           p_description: string
           p_file_name: string
           p_id: string
           p_name: string
+          p_tags?: string[]
         }
         Returns: undefined
       }

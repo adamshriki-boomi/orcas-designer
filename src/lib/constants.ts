@@ -682,6 +682,132 @@ Boomi AI tone is direct about answering questions and does not over-explain, bur
 | AI recommendations after analysis | "Good job on completing your process. I took a look at it to see how I can help. Here's a summary of my recommendations:" | Empowering |
 | No recommendations needed | "Well done. Your naming conventions are clear and consistent. I don't have any recommendations right now." | Empowering |`;
 
+export const BUILT_IN_UXR_OPERATIONS_GUIDE = `# Boomi UXR Operations Guide (Research-Focused Summary)
+
+*Source: Boomi UX Research Operations Guide v0.1 (Oct 2022), trimmed to research-relevant sections. Operational tooling procedures (gift-card platforms, scheduling tools, CRM exports) are intentionally omitted.*
+
+## UX Research Process Overview
+
+Research flows through these phases: **Intake → Framing → Kickoff → Recruiting → Screening → Scheduling → Plan Activities → Conduct Activities → Analyze & Synthesize → Present → Document & Archive**. Intake captures the question or need; framing turns it into a shared document stakeholders align on; kickoff confirms roles and timeline; the recruit/screen/schedule phases produce qualified participants; activities are carefully scripted and executed; analysis and synthesis are where insights emerge; dissemination and archival close the loop.
+
+## Framing
+
+A framing document is the shared artifact that carries the project from start to finish. Stakeholders and champions refer to it throughout. At Boomi these live in Google Docs today.
+
+## Collaboration
+
+Stakeholders are included throughout the UX Research process — not just at kickoff and readout. Communication happens via Slack status, Slackbot auto-replies, and direct email when the researcher is traveling or out. Transparency about schedules and coverage is part of the team's operating norm.
+
+## Where Work Lives
+
+Research files and raw data recordings are kept on the UX team's Google Drive. The structure distinguishes project folders (feature-specific) from resource folders (general-purpose).
+
+## Raw Data & Recordings
+
+Internal and external participant transcripts and recordings contain Personally Identifiable Information (PII) — name, department, role, and sometimes customer account identifiers. Researchers have a duty to protect them.
+
+- Raw data lives in the "UX Research PRIVATE" drive.
+- Examples include Salesforce customer lists with PII and raw recordings of research sessions.
+- Raw recordings are *not* widely shared. If a stakeholder requests access, the researcher first confirms the request does not violate the participant agreement form. When in doubt, consult teammates.
+
+## Incentives (Policy, Not Procedure)
+
+Incentive decisions are governed by Boomi's Global Gifts and Hospitality Policy (legal-approved). The operating principles:
+
+- "Incentives" are anything of value, including SWAG and gift cards. Limits apply to the *total* of SWAG + gift cards.
+- No cash gifts or cash cards (Visa, etc.).
+- No more than \$100 per person per Boomi fiscal year without ELT + written Legal approval.
+- No incentives to public-sector employees (healthcare, education, public officials, government-funded entities).
+- No incentives to Boomi employees — customers and partners only.
+- Track every incentive recipient in Salesforce; require work email addresses at sign-up.
+- Only use platforms that allow tracking and documentation of who received what.
+
+Sample incentive levels used historically:
+- 1-hour moderated usability session: \$100
+- 45-min moderated usability session: \$75
+- 30-min moderated usability session: \$25-35
+- 15-min unmoderated usability session: \$25
+- 1-hour interview: \$50
+
+Communication template for participants (legal-approved): *"Participants who register, schedule, and complete a session may receive an incentive valued at [\$XXX USD]. Participants are eligible for this incentive if they agree to Boomi's Terms of Use: Reward Redemption under the Tremendous platform."*
+
+## Participants — Where to Find Them
+
+Participants fall into four audience types, each with its own recruitment channels:
+
+### Customers (Boomi users)
+Primary source. Recruit via:
+- Salesforce accounts + contacts
+- Pendo (in-platform live intercepts and user lists)
+- Customer Research Panel
+- Boomi training registrations
+- Referrals from Customer Success, Customer Support, Product Management, Engineering, Learning & Development, Business Operations
+
+Enrich with Salesforce data, dedupe, drop internal @boomi.com emails, exclude opt-outs and red-flagged contacts before outreach.
+
+### Partners
+Reach through Partner Success leads for the relevant partner type (TPP / SI-GSI / OEM). Partner newsletters can include UX research announcements to targeted partner types.
+
+### Internal Boomi users
+Slack direct outreach with introduction, project description, and reason for engagement. Internal audiences include PSOs, Solutions team, Engineers (including pre-sales and Information Architects), Learning & Development, and Product Managers. Maintain a tracking list to avoid over-contacting the same colleagues.
+
+### Non-Customer External Participants
+When research calls for prospects or general users outside the Boomi ecosystem, use onboarded recruitment platforms (e.g., User Interviews) or CX-recommended channels. All such participants sign an NDA before sessions.
+
+## Customer Success Coordination (as of Sep 2024)
+
+- UX may reach out to customers directly without pre-approval from Customer Success.
+- UX sends an FYI email to CS leadership per project so CS can pass it along internally.
+- UX self-serves as much as possible from Salesforce and Pendo.
+- UX only asks CS about specific humans not in Salesforce or with unclear Salesforce data.
+- All product-data questions go to Product Management, not CS.
+
+## Red Flags — Contacts to Exclude
+
+Regardless of study, always exclude opt-outs. Study-specific exclusions commonly include:
+- Inactive accounts, red-status accounts, Boomi Platform = FALSE
+- Regions not prioritized for this study
+- Consulting-firm or personal-email domains for consultant contacts
+- Names or emails flagged "do not contact"
+- Non-platform users
+- Testing or automation contacts
+- Executives at large firms, Legal, Procurement, Accounts Payable contacts
+
+## Screening
+
+Screener surveys sit inside the recruitment email body or as a follow-up link. They screen out participants who don't meet profile criteria and also let participants opt into future studies. At Boomi today these use Google Forms.
+
+## Participant Agreement Form
+
+For studies involving Boomi customers, participants complete a participant agreement form so they understand Boomi's gift policy and confirm their eligibility to accept an incentive. The link appears in the confirmation email, the calendar invite, and reminder emails; if still incomplete at session start, the researcher asks them to complete it then.
+
+## Disseminating Findings
+
+### UXR internal website
+Completed projects are posted on the UX Research internal website (uxr.boomi.com) for organizational discoverability.
+
+### Highlight videos
+Snack-sized edited videos that communicate project findings. iMovie is the common tool.
+
+### P&T Blog Posts
+Share findings with the broader Product & Technology organization via short, readable blog posts. Focus on the story and one or two clear insights, not the full methodology. Good blog posts are accessible to readers outside the immediate team.
+
+## UX Metrics
+
+Refer to the internal Playbook: UX Metrics Program for the canonical metrics framework.
+
+## Triaging Write-in Comments
+
+When a write-in survey comment is not relevant to your product vertical, route it:
+- **Customer Success** if the comment expresses a user's need for help, is extremely long or impassioned, or otherwise suggests an outreach. Find the account in Salesforce, identify the Success Account Owner, and email the CS rep with the comment and context.
+- Other internal teams as appropriate, based on the substance of the comment.
+
+---
+*This memory is a research-process reference. For operational tooling procedures (gift-card sending, scheduling tools, CRM exports, Mail Merge), see the full Boomi UXR Operations Guide in Google Drive.*
+`;
+
+export const BUILT_IN_UXR_OPERATIONS_GUIDE_MEMORY_ID = 'built-in-uxr-operations-guide';
+
 export const WIZARD_STEPS = [
   { key: 'company-info', label: 'Company Info', required: false },
   { key: 'product-info', label: 'Product Info', required: true },

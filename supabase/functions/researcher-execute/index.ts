@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import Anthropic from "npm:@anthropic-ai/sdk@0.39";
+import Anthropic from "npm:@anthropic-ai/sdk@0.90.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -604,10 +604,19 @@ Deno.serve(async (req: Request) => {
         const systemPrompt = buildMethodSystemPrompt(method);
         const userMessage = buildMethodUserMessage(method, config, skillsContent, memoriesContent);
 
+        // Claude Opus 4.7 with maximum extended thinking:
+        // - `thinking: {type: "adaptive"}` replaces the deprecated `budget_tokens` knob on 4.7
+        //   (Opus 4.7 returns 400 if `budget_tokens` is sent). Adaptive lets Claude decide
+        //   thinking depth per request and auto-enables interleaved thinking between tools.
+        // - `output_config.effort: "max"` is Opus-tier only and dials thinking/compute to max.
+        // - `max_tokens: 16000` stays under SDK HTTP timeouts for non-streaming requests.
+        //   (Opus 4.7 supports up to 128K, but values that large require streaming.)
+        // No beta headers are needed — 1M context, adaptive thinking, and effort are all GA on Opus 4.7.
         const message = await anthropic.messages.create({
-          model: "claude-opus-4-0-20250514",
-          max_tokens: 16384,
-          thinking: { type: "enabled", budget_tokens: 10000 },
+          model: "claude-opus-4-7",
+          max_tokens: 16000,
+          thinking: { type: "adaptive" },
+          output_config: { effort: "max" },
           system: systemPrompt,
           messages: [{ role: "user", content: userMessage }],
         });
@@ -692,9 +701,15 @@ Deno.serve(async (req: Request) => {
           .map((r) => `# ${r.title}\n\n${r.content}`)
           .join("\n\n---\n\n");
 
+        // Synthesis uses the same Opus 4.7 + adaptive thinking + max effort config as the
+        // per-method calls. See the per-method `anthropic.messages.create` call above for
+        // a detailed explanation of why `thinking: {type: "adaptive"}` and `effort: "max"`
+        // are the correct choices for maximum extended thinking on Opus 4.7.
         const synthesisMessage = await anthropic.messages.create({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 8192,
+          model: "claude-opus-4-7",
+          max_tokens: 16000,
+          thinking: { type: "adaptive" },
+          output_config: { effort: "max" },
           system: buildSynthesisSystemPrompt(),
           messages: [
             {

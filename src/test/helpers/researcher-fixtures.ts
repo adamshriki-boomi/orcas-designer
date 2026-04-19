@@ -56,6 +56,18 @@ export function createResearcherProjectWithMethods(
   });
 }
 
+export function createResearcherProjectWithLockedSkills(
+  overrides: Partial<ResearcherProject> = {},
+): ResearcherProject {
+  const methodIds = ['heuristic-evaluation', 'persona-development'];
+  return createTestResearcherProject({
+    config: createTestResearcherConfig(),
+    selectedMethodIds: methodIds,
+    selectedSharedSkillIds: [...methodIds],
+    ...overrides,
+  });
+}
+
 export function createTestMethodResult(overrides: Partial<MethodResult> = {}): MethodResult {
   return {
     methodId: 'heuristic-evaluation',

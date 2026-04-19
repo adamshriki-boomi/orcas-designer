@@ -447,31 +447,70 @@ function buildSynthesisSystemPrompt(): string {
 
 You will be given the results from several research methods that were applied to the same product/feature.
 
-You must produce TWO sections:
+You MUST produce TWO sections separated by the exact delimiter line \`<<<SECTION BREAK>>>\` on its own line. Do NOT wrap in JSON. Do NOT use any markdown code fences. Respond with plain markdown only.
 
-## 1. Executive Summary
-A concise synthesis (500-800 words) that:
-- Identifies the most critical findings across all methods
-- Highlights patterns and themes that appeared in multiple methods
-- Prioritizes the top 5-7 actionable recommendations
-- Notes any conflicting findings between methods and how to reconcile them
-- Provides a clear "what to do next" section
+═══════════════════════════════════════════════════════════════
+SECTION 1 — Executive Summary (500-800 words)
+═══════════════════════════════════════════════════════════════
 
-## 2. Process Book
-A comprehensive research journey document (1500-3000 words) that:
-- Describes the research approach and rationale for each method
-- Summarizes key findings from each method with cross-references
-- Documents the analytical process and how conclusions were drawn
-- Provides a complete recommendation roadmap with priority tiers
-- Includes a methodology reflection: what worked well, what could improve
+Write for a busy product designer or PM who needs actionable insights in 2 minutes. Use clear, direct language — no academic jargon, no filler. The summary MUST include these headings, in this order:
 
-Format your response as JSON:
-{
-  "executive_summary": "markdown string",
-  "process_book": "markdown string"
-}
+## TL;DR
+3-4 sentences capturing the most important finding and the single most critical next step.
 
-Return ONLY valid JSON, no markdown fences or extra text.`;
+## Top Action Items
+A numbered list of 5-7 concrete, prioritized actions. Each item follows this exact pattern:
+
+**[Priority: P0 | P1 | P2]** *(Impact: High | Medium | Low)* — Short imperative title
+
+- **What to do:** concrete action (1-2 sentences)
+- **Why:** which finding drives this (reference specific method + severity)
+- **Owner hint:** who is likely to own it (Design / Eng / PM / Research)
+
+Priority legend: P0 = blocks users now, P1 = notable friction, P2 = polish.
+
+## Key Themes
+3-5 patterns that appeared across multiple methods. Each theme: one bold title + one tight sentence. Cross-reference the methods the theme came from.
+
+## Open Questions / Conflicts
+Any findings that contradict each other across methods, or any gaps that need follow-up research. If none, write "No material conflicts — findings were internally consistent."
+
+## What to Do Next
+One short paragraph (3-5 sentences) giving the team a clear starting move this week.
+
+═══════════════════════════════════════════════════════════════
+SECTION 2 — Process Book (1200-2000 words)
+═══════════════════════════════════════════════════════════════
+
+A researcher-facing narrative that documents the study for future reference. Include:
+
+## Research Approach
+Why these methods were chosen for this product/feature. One paragraph.
+
+## Method-by-Method Findings
+For each method provided: its name as a heading, 3-5 bullet takeaways in plain language, and one explicit cross-reference to related findings in other methods where relevant.
+
+## Synthesis Narrative
+2-3 paragraphs describing how you pieced together themes across methods, what surprised you, what was reinforced, and what required judgement calls.
+
+## Recommendation Roadmap
+A short table or bulleted list grouping actions by horizon:
+- **Now (this sprint):** …
+- **Next (1-2 sprints):** …
+- **Later (next quarter+):** …
+
+## Methodology Reflection
+One paragraph on what worked well in this research design and what could be strengthened if the same study were run again.
+
+═══════════════════════════════════════════════════════════════
+FORMAT RULES
+═══════════════════════════════════════════════════════════════
+
+1. Return PLAIN MARKDOWN only. No JSON. No code fences wrapping the response. No preamble.
+2. Put the exact delimiter line \`<<<SECTION BREAK>>>\` — on its own line, nothing else on that line — between the Executive Summary and the Process Book. Use it exactly once.
+3. Use markdown headings (## and ###), bold, and lists. Do NOT use HTML.
+4. Write in active voice, second-person or direct language. No "it should be noted that…" filler.
+5. Be specific. Prefer concrete references to findings (e.g. "Heuristic Evaluation flagged 3 major violations on the export flow") over generic statements.`;
 }
 
 // ── Main Handler ─────────────────────────────────────────────────
@@ -727,16 +766,20 @@ async function runSynthesisAndComplete(
         .map((r) => `# ${r.title}\n\n${r.content}`)
         .join("\n\n---\n\n");
 
-      // Synthesis is summarization — keep Opus 4.7 + adaptive thinking for quality but
-      // cap max_tokens and add a 90s abort so we never outlive the wall-clock budget.
+      // Synthesis runs in its own Edge Function invocation (one step per invocation),
+      // so it has a full ~400s wall-clock budget. Opus 4.7 + adaptive thinking, 8K max
+      // tokens for the combined exec-summary + process-book output, 300s app-level abort
+      // as a final safety net. Output is plain markdown with a sentinel delimiter between
+      // the two sections — much more robust to parse than JSON, which was silently
+      // failing when the model emitted unescaped quotes or got truncated mid-string.
       const synthesisAbort = new AbortController();
-      const synthesisTimeoutId = setTimeout(() => synthesisAbort.abort(), 90_000);
+      const synthesisTimeoutId = setTimeout(() => synthesisAbort.abort(), 300_000);
       let synthesisMessage;
       try {
         synthesisMessage = await anthropic.messages.create(
           {
             model: "claude-opus-4-7",
-            max_tokens: 4000,
+            max_tokens: 8000,
             thinking: { type: "adaptive" },
             system: buildSynthesisSystemPrompt(),
             messages: [
@@ -756,18 +799,45 @@ async function runSynthesisAndComplete(
         (block: Anthropic.ContentBlock) => block.type === "text"
       );
 
-      if (synthesisTextBlock && synthesisTextBlock.type === "text") {
-        let rawSynthesis = synthesisTextBlock.text.trim();
-        if (rawSynthesis.startsWith("```")) {
-          rawSynthesis = rawSynthesis.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-        }
-        const parsed = JSON.parse(rawSynthesis);
-        executiveSummary = parsed.executive_summary || "";
-        processBook = parsed.process_book || "";
+      if (!synthesisTextBlock || synthesisTextBlock.type !== "text") {
+        console.error(`[${projectId}] Synthesis returned no text block. Content blocks:`,
+          synthesisMessage.content.map((b: Anthropic.ContentBlock) => b.type).join(","));
+        throw new Error("Synthesis response contained no text block");
       }
+
+      let raw = synthesisTextBlock.text.trim();
+      // Strip any accidental code fences the model added against our instructions
+      if (raw.startsWith("```")) {
+        raw = raw.replace(/^```(?:markdown|md)?\n?/, "").replace(/\n?```$/, "");
+      }
+
+      const SECTION_DELIM = /^\s*<<<SECTION BREAK>>>\s*$/m;
+      const parts = raw.split(SECTION_DELIM);
+      if (parts.length >= 2) {
+        executiveSummary = parts[0].trim();
+        processBook = parts.slice(1).join("\n\n<<<SECTION BREAK>>>\n\n").trim();
+      } else {
+        // Model didn't emit the delimiter — still salvage by treating the whole response
+        // as the executive summary. This is graceful degradation, not a failure.
+        console.warn(`[${projectId}] Synthesis output missing <<<SECTION BREAK>>> delimiter — treating as exec-summary-only. Length: ${raw.length}`);
+        executiveSummary = raw;
+        processBook = "";
+      }
+
+      // Validate: exec summary is the critical deliverable. If it somehow came back empty,
+      // treat the whole synthesis as failed so the catch branch runs (logs full response,
+      // shows user a clear fallback).
+      if (executiveSummary.length < 100) {
+        console.error(`[${projectId}] Synthesis produced suspiciously short executive summary (${executiveSummary.length} chars). First 200 chars of raw response:`, raw.slice(0, 200));
+        throw new Error(`Executive summary too short (${executiveSummary.length} chars)`);
+      }
+
+      const usage = (synthesisMessage.usage as Record<string, unknown>) || {};
+      console.log(`[${projectId}] Synthesis OK. exec_chars=${executiveSummary.length} book_chars=${processBook.length} input_tokens=${usage.input_tokens} output_tokens=${usage.output_tokens}`);
     } catch (synthesisError) {
-      console.error(`[${projectId}] Failed to generate synthesis:`, synthesisError);
-      executiveSummary = "Synthesis could not be generated. Please review individual method results.";
+      const errMsg = synthesisError instanceof Error ? synthesisError.message : String(synthesisError);
+      console.error(`[${projectId}] Failed to generate synthesis:`, errMsg, synthesisError);
+      executiveSummary = `# Synthesis unavailable\n\nThe AI synthesis step failed with: ${errMsg}\n\nThe individual method results are still available under the **Methods** tab. Please retry the research run from the project page to attempt synthesis again.`;
       processBook = "";
     }
   }

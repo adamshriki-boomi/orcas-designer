@@ -44,7 +44,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       <LeftSidebar />
-      <main className="flex-1 min-w-0 overflow-x-hidden">
+      {/* NOTE: do NOT add `overflow-x-hidden` here. CSS promotes overflow-y
+          from `visible` to `auto` when overflow-x is set to anything else,
+          turning <main> into a scroll container with height=100vh and
+          breaking window scroll. Handle horizontal clipping at the content
+          level instead (PageContainer / wide cards). */}
+      <main className="flex-1 min-w-0">
         {children}
       </main>
     </div>

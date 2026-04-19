@@ -39,6 +39,9 @@ yarn-error.log*
 # superpowers brainstorming
 .superpowers/
 
+# claude code local tooling (plans, settings, worktrees, source scratch)
+.claude/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

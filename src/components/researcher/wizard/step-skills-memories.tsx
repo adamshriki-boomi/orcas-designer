@@ -3,6 +3,7 @@
 import { SharedSkillsPicker } from "@/components/skills/shared-skills-picker";
 import { CustomSkillAdder } from "@/components/skills/custom-skill-adder";
 import { SharedMemoriesPicker } from "@/components/memories/shared-memories-picker";
+import type { BuiltInSkill } from "@/lib/built-in-skills";
 import type { SharedSkill, CustomSkill, SharedMemory, CustomMemory } from "@/lib/types";
 import { useRef, useState } from "react";
 import { useSharedMemories } from "@/hooks/use-shared-memories";
@@ -28,6 +29,8 @@ interface StepSkillsMemoriesProps {
   customMemories: CustomMemory[];
   onCustomMemoriesChange: (memories: CustomMemory[]) => void;
   lockedMemoryIds?: string[];
+  lockedSkillIds?: string[];
+  builtInSkills?: BuiltInSkill[];
 }
 
 export function StepSkillsMemories({
@@ -42,6 +45,8 @@ export function StepSkillsMemories({
   customMemories,
   onCustomMemoriesChange,
   lockedMemoryIds = [],
+  lockedSkillIds = [],
+  builtInSkills = [],
 }: StepSkillsMemoriesProps) {
   const { addMemory } = useSharedMemories();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -119,8 +124,10 @@ export function StepSkillsMemories({
           <h3 className="text-sm font-medium">Shared Skills</h3>
           <SharedSkillsPicker
             sharedSkills={sharedSkills}
+            builtInSkills={builtInSkills}
             selectedIds={selectedSharedSkillIds}
             onChange={onSharedSkillsChange}
+            lockedIds={lockedSkillIds}
           />
         </section>
 

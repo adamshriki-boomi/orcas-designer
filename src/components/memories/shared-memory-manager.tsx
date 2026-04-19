@@ -113,6 +113,8 @@ export function SharedMemoryManager() {
           content: form.content,
           fileName: form.fileName || `${form.name.trim().toLowerCase().replace(/\s+/g, '-')}.md`,
           isBuiltIn: false,
+          category: null,
+          tags: [],
         });
         toast.success('Memory created');
       }

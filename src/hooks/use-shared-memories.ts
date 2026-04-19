@@ -40,6 +40,8 @@ export function toSharedMemory(row: Record<string, unknown>): SharedMemory {
     content: row.content as string,
     fileName: row.file_name as string,
     isBuiltIn: row.is_built_in as boolean,
+    category: (row.category as string | null) ?? null,
+    tags: (row.tags as string[] | null) ?? [],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };

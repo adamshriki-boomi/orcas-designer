@@ -74,6 +74,8 @@ export function StepSkillsMemories({
         content: uploadContent,
         fileName: `${uploadName.trim().toLowerCase().replace(/\s+/g, "-")}.md`,
         isBuiltIn: false,
+        category: null,
+        tags: [],
       });
       onSharedMemoriesChange([...selectedSharedMemoryIds, id]);
       toast.success("Memory saved to shared library");

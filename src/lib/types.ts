@@ -64,6 +64,8 @@ export interface SharedMemory {
   content: string;
   fileName: string;
   isBuiltIn: boolean;
+  category: string | null;
+  tags: string[];
   createdAt: string;
   updatedAt: string;
 }

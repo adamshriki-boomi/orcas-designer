@@ -8,7 +8,7 @@ export interface BuiltInSkill {
   tags: string[];
   description: string;
   content: string;
-  icon?: string;
+  icon: string;
 }
 
 // Framework guidance per method — same text used by the Researcher Edge Function's getFrameworkGuidance.
@@ -156,8 +156,13 @@ Conclude with strategic recommendations for differentiation.`,
 };
 
 function buildContent(method: BuiltInResearchMethod): string {
-  const guidance = FRAMEWORK_GUIDANCE[method.id]
-    ?? 'Follow established UX research best practices for this method.';
+  const guidance = FRAMEWORK_GUIDANCE[method.id];
+  if (!guidance) {
+    throw new Error(
+      `[built-in-skills] No FRAMEWORK_GUIDANCE entry for method ID "${method.id}". ` +
+      `Add an entry to FRAMEWORK_GUIDANCE before adding a new research method.`
+    );
+  }
 
   return `# ${method.name}
 

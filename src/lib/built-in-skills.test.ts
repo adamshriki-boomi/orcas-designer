@@ -44,4 +44,20 @@ describe('BUILT_IN_SKILLS', () => {
   it('getBuiltInSkillById returns null for unknown IDs', () => {
     expect(getBuiltInSkillById('does-not-exist')).toBeNull();
   });
+
+  it('all research methods have a FRAMEWORK_GUIDANCE entry (no generic fallback)', () => {
+    // If any skill ended up with the generic fallback sentence, the test fails.
+    // The real failure mode (module-init error) is already covered by the fact
+    // that module import succeeded.
+    for (const skill of BUILT_IN_SKILLS) {
+      expect(skill.content).not.toContain('Follow established UX research best practices for this method.');
+    }
+  });
+
+  it('every skill has a non-empty icon', () => {
+    for (const skill of BUILT_IN_SKILLS) {
+      expect(skill.icon).toBeTruthy();
+      expect(typeof skill.icon).toBe('string');
+    }
+  });
 });

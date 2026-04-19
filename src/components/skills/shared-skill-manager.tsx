@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { SharedSkill, FileAttachment } from '@/lib/types';
 import type { MandatorySkill } from '@/lib/constants';
-import { MANDATORY_SKILLS, SKILL_CATEGORIES } from '@/lib/constants';
+import { MANDATORY_SKILLS } from '@/lib/constants';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
 import { useManagerState } from '@/hooks/use-manager-state';
 import { fileToAttachment } from '@/lib/file-utils';
@@ -33,8 +33,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion';
 import { SectionLoader } from '@/components/ui/loader';
+import { TagBadge } from '@/components/ui/tag-badge';
 import { SkillCard } from './skill-card';
+import { BUILT_IN_SKILLS, type BuiltInSkill } from '@/lib/built-in-skills';
+import { groupByCategory, orderedCategories } from '@/lib/category-grouping';
 import { Plus, Link, FileText, Wand2, ExternalLink } from 'lucide-react';
+
+const SKILL_CATEGORY_ORDER = ['UX Research', 'Design', 'Superpowers', 'Figma', 'Atlassian', 'Claude Management', 'Meta'];
 
 interface SkillFormState {
   name: string;
@@ -59,7 +64,7 @@ export function SharedSkillManager() {
     useSharedSkills();
 
   const mgr = useManagerState<SkillFormState>(emptyFormState);
-  const [viewingSkill, setViewingSkill] = useState<MandatorySkill | SharedSkill | null>(null);
+  const [viewingSkill, setViewingSkill] = useState<MandatorySkill | BuiltInSkill | SharedSkill | null>(null);
 
   function openEditDialog(skill: SharedSkill) {
     mgr.openEdit(skill.id, {
@@ -77,7 +82,7 @@ export function SharedSkillManager() {
     mgr.openDelete(skillId, projects);
   }
 
-  function openViewDialog(skill: MandatorySkill | SharedSkill) {
+  function openViewDialog(skill: MandatorySkill | BuiltInSkill | SharedSkill) {
     setViewingSkill(skill);
     mgr.openView();
   }
@@ -147,7 +152,7 @@ export function SharedSkillManager() {
     mgr.form.description.trim() !== '' &&
     (mgr.form.type === 'url' ? mgr.form.urlValue.trim() !== '' : mgr.form.file !== null || mgr.form.existingFile !== null);
 
-  function isMandatory(skill: MandatorySkill | SharedSkill): skill is MandatorySkill {
+  function isMandatory(skill: MandatorySkill | BuiltInSkill | SharedSkill): skill is MandatorySkill {
     return 'invocation' in skill;
   }
 
@@ -161,32 +166,39 @@ export function SharedSkillManager() {
           </div>
           <div>
             <h2 className="font-heading text-base font-semibold">Built-in Skills</h2>
-            <p className="text-xs text-muted-foreground">{MANDATORY_SKILLS.length} skills included by default</p>
+            <p className="text-xs text-muted-foreground">{MANDATORY_SKILLS.length + BUILT_IN_SKILLS.length} skills included by default</p>
           </div>
         </div>
-        <div className="space-y-6">
-          {SKILL_CATEGORIES.map((category) => {
-            const skills = MANDATORY_SKILLS.filter((s) => s.category === category);
-            return (
-              <section key={category}>
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  {category}
-                </h3>
-                <StaggerContainer className="grid gap-2 sm:grid-cols-2">
-                  {skills.map((skill) => (
-                    <StaggerItem key={skill.name}>
-                      <SkillCard
-                        skill={skill}
-                        locked
-                        onView={() => openViewDialog(skill)}
-                      />
-                    </StaggerItem>
-                  ))}
-                </StaggerContainer>
-              </section>
-            );
-          })}
-        </div>
+        {(() => {
+          const all: Array<MandatorySkill | BuiltInSkill> = [...MANDATORY_SKILLS, ...BUILT_IN_SKILLS];
+          const groups = groupByCategory(all);
+          const categoryNames = orderedCategories(Array.from(groups.keys()), SKILL_CATEGORY_ORDER);
+          return (
+            <div className="space-y-6">
+              {categoryNames.map((category) => {
+                const skills = groups.get(category) ?? [];
+                return (
+                  <section key={category}>
+                    <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                      {category}
+                    </h3>
+                    <StaggerContainer className="grid gap-2 sm:grid-cols-2">
+                      {skills.map((skill) => (
+                        <StaggerItem key={skill.name}>
+                          <SkillCard
+                            skill={skill}
+                            locked
+                            onView={() => openViewDialog(skill)}
+                          />
+                        </StaggerItem>
+                      ))}
+                    </StaggerContainer>
+                  </section>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Divider */}
@@ -410,6 +422,24 @@ export function SharedSkillManager() {
                       <ExternalLink className="size-3.5" />
                       {viewingSkill.repoUrl.replace('https://github.com/', '')}
                     </a>
+                  </div>
+                </>
+              ) : 'content' in viewingSkill ? (
+                <>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="secondary">{viewingSkill.category}</Badge>
+                    <Badge variant="outline">Built-in</Badge>
+                    {viewingSkill.tags.map((tag) => (
+                      <TagBadge key={tag} tag={tag} />
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Description</p>
+                    <p className="text-sm">{viewingSkill.description}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Content</p>
+                    <pre className="whitespace-pre-wrap font-mono text-xs">{viewingSkill.content}</pre>
                   </div>
                 </>
               ) : (

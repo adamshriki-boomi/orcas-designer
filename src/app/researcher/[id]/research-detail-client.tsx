@@ -19,7 +19,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +30,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { createClient } from '@/lib/supabase';
+import { cn } from '@/lib/utils';
 import { RESEARCH_TYPE_INFO, getMethodById } from '@/lib/researcher-constants';
 import type { ResearcherProject, MethodResult } from '@/lib/researcher-types';
+import { MarkdownContent } from '@/components/researcher/markdown-content';
+import { ExecutiveSummaryView } from '@/components/researcher/executive-summary-view';
 import dynamic from 'next/dynamic';
 
 const ExBadge = dynamic(
@@ -100,46 +102,99 @@ function RunningProgress({ project }: { project: ResearcherProject }) {
 }
 
 /* ── Expandable method result section ── */
-function MethodResultSection({ result }: { result: MethodResult }) {
-  const [expanded, setExpanded] = useState(false);
+function MethodResultSection({ result, defaultExpanded }: { result: MethodResult; defaultExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   const method = getMethodById(result.methodId);
 
+  const completedDate = result.completedAt
+    ? new Date(result.completedAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '';
+
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <article
+      className={cn(
+        'overflow-hidden rounded-2xl border bg-card shadow-sm transition-all',
+        expanded && 'shadow-md',
+      )}
+    >
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-muted/30 transition-colors cursor-pointer"
+        aria-expanded={expanded}
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/30 cursor-pointer"
       >
-        <div className="flex items-center gap-3">
-          {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-          <span className="text-sm font-medium">{result.title || method?.name || result.methodId}</span>
-          {result.error && (
-            <ExBadge color={"red" as never} shape={"round" as never} useTextContent>
-              Error
-            </ExBadge>
+        <div className="flex min-w-0 items-center gap-3">
+          <div
+            className={cn(
+              'flex size-10 shrink-0 items-center justify-center rounded-xl transition-transform',
+              expanded ? 'bg-primary text-primary-foreground rotate-90' : 'bg-primary/10 text-primary',
+            )}
+          >
+            <ChevronRight className="size-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-heading text-base font-semibold leading-tight truncate">
+                {result.title || method?.name || result.methodId}
+              </h3>
+              {result.error && (
+                <ExBadge color={"red" as never} shape={"round" as never} useTextContent>
+                  Error
+                </ExBadge>
+              )}
+              {!result.error && method?.mode && (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                    method.mode === 'analytical'
+                      ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                      : 'bg-primary/10 text-primary',
+                  )}
+                >
+                  {method.mode}
+                </span>
+              )}
+            </div>
+            {!expanded && method?.shortDescription && (
+              <p className="mt-0.5 text-xs text-muted-foreground truncate">
+                {method.shortDescription}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-3 text-xs text-muted-foreground">
+          {completedDate && (
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-muted/60 px-2 py-1">
+              <Clock className="size-3" />
+              {completedDate}
+            </span>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">
-          {result.completedAt
-            ? new Date(result.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-            : ''}
-        </span>
       </button>
+
       {expanded && (
-        <div className="border-t px-4 py-4">
+        <div className="border-t bg-gradient-to-b from-muted/20 to-transparent px-6 py-6">
           {result.error ? (
-            <p className="text-sm text-destructive">{result.error}</p>
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
+                <div>
+                  <p className="font-semibold text-destructive">Method failed</p>
+                  <p className="mt-1 text-sm text-destructive/80">{result.error}</p>
+                </div>
+              </div>
+            </div>
           ) : (
-            <ScrollArea className="max-h-96">
-              <pre className="whitespace-pre-wrap text-sm font-mono text-muted-foreground">
-                {result.content}
-              </pre>
-            </ScrollArea>
+            <MarkdownContent>{result.content}</MarkdownContent>
           )}
         </div>
       )}
-    </div>
+    </article>
   );
 }
 
@@ -388,23 +443,27 @@ export default function ResearchDetailClient({ id }: Props) {
             {/* ===== Summary Tab ===== */}
             <TabsContent value="summary">
               {project.executiveSummary ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Executive Summary</h2>
+                <div className="space-y-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="font-heading text-2xl font-bold tracking-tight">
+                        Executive Summary
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        Action-oriented synthesis across {methodResults.length} research method
+                        {methodResults.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleCopy(project.executiveSummary!, 'Executive summary')}
                     >
                       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                      {copied ? 'Copied' : 'Copy'}
+                      {copied ? 'Copied' : 'Copy markdown'}
                     </Button>
                   </div>
-                  <ScrollArea className="max-h-[600px] rounded-lg border p-4">
-                    <pre className="whitespace-pre-wrap text-sm font-mono text-muted-foreground">
-                      {project.executiveSummary}
-                    </pre>
-                  </ScrollArea>
+                  <ExecutiveSummaryView markdown={project.executiveSummary} />
                 </div>
               ) : (
                 <div className="py-16 text-center">
@@ -421,16 +480,33 @@ export default function ResearchDetailClient({ id }: Props) {
             {/* ===== Methods Tab ===== */}
             <TabsContent value="methods">
               {methodResults.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Method Results</h2>
-                    <span className="text-xs text-muted-foreground">
-                      {methodResults.length} method{methodResults.length !== 1 ? 's' : ''}
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="font-heading text-2xl font-bold tracking-tight">
+                        Method Results
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        Detailed findings from each research method — click any card to expand
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs">
+                      <FlaskConical className="size-3.5 text-primary" />
+                      <span className="font-semibold text-foreground">{methodResults.length}</span>
+                      <span className="text-muted-foreground">
+                        method{methodResults.length !== 1 ? 's' : ''}
+                      </span>
                     </span>
                   </div>
-                  {methodResults.map((result) => (
-                    <MethodResultSection key={result.methodId} result={result} />
-                  ))}
+                  <div className="space-y-3">
+                    {methodResults.map((result, i) => (
+                      <MethodResultSection
+                        key={result.methodId}
+                        result={result}
+                        defaultExpanded={methodResults.length === 1 && i === 0}
+                      />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="py-16 text-center">
@@ -447,23 +523,28 @@ export default function ResearchDetailClient({ id }: Props) {
             {/* ===== Framing Document Tab ===== */}
             <TabsContent value="framing">
               {project.framingDocument ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Framing Document</h2>
+                <div className="space-y-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="font-heading text-2xl font-bold tracking-tight">
+                        Framing Document
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        The research question, goals, and scope captured at kickoff
+                      </p>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleCopy(project.framingDocument!, 'Framing document')}
                     >
                       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                      {copied ? 'Copied' : 'Copy'}
+                      {copied ? 'Copied' : 'Copy markdown'}
                     </Button>
                   </div>
-                  <ScrollArea className="max-h-[600px] rounded-lg border p-4">
-                    <pre className="whitespace-pre-wrap text-sm font-mono text-muted-foreground">
-                      {project.framingDocument}
-                    </pre>
-                  </ScrollArea>
+                  <div className="rounded-2xl border bg-card p-6 sm:p-8">
+                    <MarkdownContent>{project.framingDocument}</MarkdownContent>
+                  </div>
                 </div>
               ) : (
                 <div className="py-16 text-center">
@@ -476,23 +557,28 @@ export default function ResearchDetailClient({ id }: Props) {
             {/* ===== Process Book Tab ===== */}
             <TabsContent value="process-book">
               {project.processBook ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Process Book</h2>
+                <div className="space-y-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="font-heading text-2xl font-bold tracking-tight">
+                        Process Book
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        The researcher-facing narrative: approach, findings, synthesis, roadmap
+                      </p>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleCopy(project.processBook!, 'Process book')}
                     >
                       {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                      {copied ? 'Copied' : 'Copy'}
+                      {copied ? 'Copied' : 'Copy markdown'}
                     </Button>
                   </div>
-                  <ScrollArea className="max-h-[600px] rounded-lg border p-4">
-                    <pre className="whitespace-pre-wrap text-sm font-mono text-muted-foreground">
-                      {project.processBook}
-                    </pre>
-                  </ScrollArea>
+                  <div className="rounded-2xl border bg-card p-6 sm:p-8">
+                    <MarkdownContent>{project.processBook}</MarkdownContent>
+                  </div>
                 </div>
               ) : (
                 <div className="py-16 text-center">

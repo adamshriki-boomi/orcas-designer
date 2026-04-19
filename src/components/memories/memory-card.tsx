@@ -4,6 +4,7 @@ import type { SharedMemory } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TagBadge } from '@/components/ui/tag-badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Lock, Trash2, Edit, FileText } from 'lucide-react';
@@ -76,6 +77,13 @@ export function MemoryCard({
         )}
         {memory.description && (
           <CardDescription className="line-clamp-2">{memory.description}</CardDescription>
+        )}
+        {memory.tags && memory.tags.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {memory.tags.map((tag) => (
+              <TagBadge key={tag} tag={tag} />
+            ))}
+          </div>
         )}
       </CardHeader>
     </Card>

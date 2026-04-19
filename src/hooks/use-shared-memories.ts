@@ -176,6 +176,8 @@ export function useSharedMemories() {
         file_name: memory.fileName,
         is_built_in: false,
         created_by: user?.id,
+        category: memory.category,
+        tags: memory.tags,
       })
       .select('id')
       .single();
@@ -191,6 +193,8 @@ export function useSharedMemories() {
     if (updates.description !== undefined) mapped.description = updates.description;
     if (updates.content !== undefined) mapped.content = updates.content;
     if (updates.fileName !== undefined) mapped.file_name = updates.fileName;
+    if (updates.category !== undefined) mapped.category = updates.category;
+    if (updates.tags !== undefined) mapped.tags = updates.tags;
 
     const { error } = await supabase.from('shared_memories').update(mapped as never).eq('id', id);
     if (error) throw error;

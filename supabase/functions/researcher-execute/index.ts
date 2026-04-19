@@ -701,23 +701,34 @@ Deno.serve(async (req: Request) => {
           .map((r) => `# ${r.title}\n\n${r.content}`)
           .join("\n\n---\n\n");
 
-        // Synthesis uses the same Opus 4.7 + adaptive thinking + max effort config as the
-        // per-method calls. See the per-method `anthropic.messages.create` call above for
-        // a detailed explanation of why `thinking: {type: "adaptive"}` and `effort: "max"`
-        // are the correct choices for maximum extended thinking on Opus 4.7.
-        const synthesisMessage = await anthropic.messages.create({
-          model: "claude-opus-4-7",
-          max_tokens: 16000,
-          thinking: { type: "adaptive" },
-          output_config: { effort: "max" },
-          system: buildSynthesisSystemPrompt(),
-          messages: [
+        // Synthesis is summarization (500-800 words target per system prompt). We keep
+        // Opus 4.7 + adaptive thinking for quality but drop `effort: "max"` and cap
+        // `max_tokens` at 4000 — max effort + 16K tokens burned >150s of wall-clock and
+        // hit the Supabase Edge Function timeout mid-synthesis. AbortController adds a
+        // 90s app-level timeout as belt-and-suspenders; on timeout the catch branch
+        // falls back to a placeholder summary and still marks the project completed.
+        const synthesisAbort = new AbortController();
+        const synthesisTimeoutId = setTimeout(() => synthesisAbort.abort(), 90_000);
+        let synthesisMessage;
+        try {
+          synthesisMessage = await anthropic.messages.create(
             {
-              role: "user",
-              content: `Here are the research method results to synthesize:\n\n${synthesisInput}`,
+              model: "claude-opus-4-7",
+              max_tokens: 4000,
+              thinking: { type: "adaptive" },
+              system: buildSynthesisSystemPrompt(),
+              messages: [
+                {
+                  role: "user",
+                  content: `Here are the research method results to synthesize:\n\n${synthesisInput}`,
+                },
+              ],
             },
-          ],
-        });
+            { signal: synthesisAbort.signal },
+          );
+        } finally {
+          clearTimeout(synthesisTimeoutId);
+        }
 
         const synthesisTextBlock = synthesisMessage.content.find(
           (block: Anthropic.ContentBlock) => block.type === "text"

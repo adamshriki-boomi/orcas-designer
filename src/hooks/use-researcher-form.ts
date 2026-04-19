@@ -38,8 +38,17 @@ function researcherFormReducer(state: ResearcherProject, action: ResearcherFormA
       return { ...state, config: { ...state.config, targetAudience: action.payload } };
     case 'SET_SUCCESS_CRITERIA':
       return { ...state, config: { ...state.config, successCriteria: action.payload } };
-    case 'SET_SELECTED_METHODS':
-      return { ...state, selectedMethodIds: action.payload };
+    case 'SET_SELECTED_METHODS': {
+      const newMethodIds = action.payload;
+      const previousMethodIds = state.selectedMethodIds;
+      const removedMethodIds = previousMethodIds.filter((id) => !newMethodIds.includes(id));
+      const prunedSkillIds = state.selectedSharedSkillIds.filter((id) => !removedMethodIds.includes(id));
+      return {
+        ...state,
+        selectedMethodIds: newMethodIds,
+        selectedSharedSkillIds: prunedSkillIds,
+      };
+    }
     case 'SET_DATA_UPLOAD':
       return { ...state, config: { ...state.config, dataUpload: action.payload } };
     case 'SET_SHARED_SKILLS':

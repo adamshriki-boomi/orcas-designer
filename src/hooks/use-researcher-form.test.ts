@@ -141,6 +141,31 @@ describe('useResearcherForm', () => {
     ]);
   });
 
+  it('setSelectedMethods prunes skill IDs that match removed method IDs', () => {
+    const { result } = renderHook(() => useResearcherForm());
+
+    act(() => {
+      result.current.setSelectedMethods(['heuristic-evaluation', 'persona-development']);
+      result.current.setSharedSkills(['heuristic-evaluation', 'persona-development', 'custom-uuid-skill']);
+    });
+
+    expect(result.current.formData.selectedSharedSkillIds).toContain('heuristic-evaluation');
+    expect(result.current.formData.selectedSharedSkillIds).toContain('persona-development');
+    expect(result.current.formData.selectedSharedSkillIds).toContain('custom-uuid-skill');
+
+    act(() => {
+      // Unselect heuristic-evaluation method
+      result.current.setSelectedMethods(['persona-development']);
+    });
+
+    // heuristic-evaluation is removed from skills because it matched a removed method ID
+    expect(result.current.formData.selectedSharedSkillIds).not.toContain('heuristic-evaluation');
+    // persona-development stays because the method is still selected
+    expect(result.current.formData.selectedSharedSkillIds).toContain('persona-development');
+    // Unrelated custom skill stays
+    expect(result.current.formData.selectedSharedSkillIds).toContain('custom-uuid-skill');
+  });
+
   it('setDataUpload updates config.dataUpload', () => {
     const { result } = renderHook(() => useResearcherForm());
     const upload = {

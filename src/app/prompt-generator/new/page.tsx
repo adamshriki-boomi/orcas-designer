@@ -12,7 +12,7 @@ import { promptToRow } from '@/hooks/use-prompts';
 import { generateId } from '@/lib/id';
 import { generatePrompt } from '@/lib/prompt-generator';
 import { isFieldFilled } from '@/lib/validators';
-import { WIZARD_STEPS, TOTAL_STEPS, BUILT_IN_COMPANY_CONTEXT } from '@/lib/constants';
+import { WIZARD_STEPS, TOTAL_STEPS, PROMPT_GENERATOR_STEP_GROUPS, BUILT_IN_COMPANY_CONTEXT } from '@/lib/constants';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
@@ -302,6 +302,8 @@ function WizardContent() {
           />
         </div>
         <WizardShell
+          steps={WIZARD_STEPS}
+          stepGroups={PROMPT_GENERATOR_STEP_GROUPS}
           currentStep={currentStep}
           onStepChange={setStep}
           canProceed={canProceed}

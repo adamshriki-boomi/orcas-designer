@@ -41,6 +41,95 @@ export type Database = {
         }
         Relationships: []
       }
+      researcher_projects: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          status: string
+          research_type: string
+          config: Json
+          selected_method_ids: string[]
+          selected_shared_skill_ids: string[]
+          custom_skills: Json
+          selected_shared_memory_ids: string[]
+          custom_memories: Json
+          job_id: string | null
+          started_at: string | null
+          completed_at: string | null
+          error_message: string | null
+          progress: Json | null
+          framing_document: string | null
+          executive_summary: string | null
+          process_book: string | null
+          method_results: Json | null
+          confluence_page_id: string | null
+          confluence_page_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name?: string
+          status?: string
+          research_type?: string
+          config?: Json
+          selected_method_ids?: string[]
+          selected_shared_skill_ids?: string[]
+          custom_skills?: Json
+          selected_shared_memory_ids?: string[]
+          custom_memories?: Json
+          job_id?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          progress?: Json | null
+          framing_document?: string | null
+          executive_summary?: string | null
+          process_book?: string | null
+          method_results?: Json | null
+          confluence_page_id?: string | null
+          confluence_page_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          status?: string
+          research_type?: string
+          config?: Json
+          selected_method_ids?: string[]
+          selected_shared_skill_ids?: string[]
+          custom_skills?: Json
+          selected_shared_memory_ids?: string[]
+          custom_memories?: Json
+          job_id?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          progress?: Json | null
+          framing_document?: string | null
+          executive_summary?: string | null
+          process_book?: string | null
+          method_results?: Json | null
+          confluence_page_id?: string | null
+          confluence_page_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "researcher_projects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompts: {
         Row: {
           accessibility_level: string
@@ -209,6 +298,9 @@ export type Database = {
       user_settings: {
         Row: {
           claude_api_key: string
+          confluence_base_url: string
+          confluence_email: string
+          confluence_api_token: string
           created_at: string
           id: string
           updated_at: string
@@ -216,6 +308,9 @@ export type Database = {
         }
         Insert: {
           claude_api_key?: string
+          confluence_base_url?: string
+          confluence_email?: string
+          confluence_api_token?: string
           created_at?: string
           id?: string
           updated_at?: string
@@ -223,6 +318,9 @@ export type Database = {
         }
         Update: {
           claude_api_key?: string
+          confluence_base_url?: string
+          confluence_email?: string
+          confluence_api_token?: string
           created_at?: string
           id?: string
           updated_at?: string

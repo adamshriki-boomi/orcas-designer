@@ -6,6 +6,9 @@ import { useAuth } from '@/contexts/auth-context';
 
 interface UserSettings {
   claudeApiKey: string;
+  confluenceBaseUrl: string;
+  confluenceEmail: string;
+  confluenceApiToken: string;
 }
 
 function maskApiKey(key: string): string {
@@ -24,12 +27,22 @@ export function useUserSettings() {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('user_settings')
-      .select('claude_api_key')
+      .select('claude_api_key, confluence_base_url, confluence_email, confluence_api_token')
       .eq('user_id', user.id)
       .maybeSingle();
 
     if (error) { console.error('Failed to fetch settings:', error); }
-    setSettings(data ? { claudeApiKey: data.claude_api_key } : { claudeApiKey: '' });
+    setSettings(data ? {
+      claudeApiKey: data.claude_api_key,
+      confluenceBaseUrl: data.confluence_base_url ?? '',
+      confluenceEmail: data.confluence_email ?? '',
+      confluenceApiToken: data.confluence_api_token ?? '',
+    } : {
+      claudeApiKey: '',
+      confluenceBaseUrl: '',
+      confluenceEmail: '',
+      confluenceApiToken: '',
+    });
     setLoading(false);
   }, [user]);
 
@@ -37,7 +50,8 @@ export function useUserSettings() {
     if (user) fetchSettings();
   }, [user, fetchSettings]);
 
-  const saveApiKey = useCallback(async (apiKey: string) => {
+  /** Upsert a partial set of fields into user_settings. */
+  const upsertSettings = useCallback(async (fields: Record<string, string>) => {
     if (!user) return;
     const supabase = createClient();
 
@@ -50,18 +64,21 @@ export function useUserSettings() {
     if (existing) {
       const { error } = await supabase
         .from('user_settings')
-        .update({ claude_api_key: apiKey } as never)
+        .update(fields as never)
         .eq('user_id', user.id);
       if (error) throw error;
     } else {
       const { error } = await supabase
         .from('user_settings')
-        .insert({ user_id: user.id, claude_api_key: apiKey });
+        .insert({ user_id: user.id, ...fields });
       if (error) throw error;
     }
-
-    setSettings({ claudeApiKey: apiKey });
   }, [user]);
+
+  const saveApiKey = useCallback(async (apiKey: string) => {
+    await upsertSettings({ claude_api_key: apiKey });
+    setSettings((prev) => prev ? { ...prev, claudeApiKey: apiKey } : prev);
+  }, [upsertSettings]);
 
   const deleteApiKey = useCallback(async () => {
     if (!user) return;
@@ -71,8 +88,45 @@ export function useUserSettings() {
       .delete()
       .eq('user_id', user.id);
     if (error) throw error;
-    setSettings({ claudeApiKey: '' });
+    setSettings({
+      claudeApiKey: '',
+      confluenceBaseUrl: '',
+      confluenceEmail: '',
+      confluenceApiToken: '',
+    });
   }, [user]);
+
+  const saveConfluenceSettings = useCallback(async (
+    baseUrl: string,
+    email: string,
+    apiToken: string
+  ) => {
+    await upsertSettings({
+      confluence_base_url: baseUrl,
+      confluence_email: email,
+      confluence_api_token: apiToken,
+    });
+    setSettings((prev) => prev ? {
+      ...prev,
+      confluenceBaseUrl: baseUrl,
+      confluenceEmail: email,
+      confluenceApiToken: apiToken,
+    } : prev);
+  }, [upsertSettings]);
+
+  const deleteConfluenceSettings = useCallback(async () => {
+    await upsertSettings({
+      confluence_base_url: '',
+      confluence_email: '',
+      confluence_api_token: '',
+    });
+    setSettings((prev) => prev ? {
+      ...prev,
+      confluenceBaseUrl: '',
+      confluenceEmail: '',
+      confluenceApiToken: '',
+    } : prev);
+  }, [upsertSettings]);
 
   return {
     settings,
@@ -81,5 +135,10 @@ export function useUserSettings() {
     deleteApiKey,
     hasApiKey: Boolean(settings?.claudeApiKey),
     maskedKey: maskApiKey(settings?.claudeApiKey ?? ''),
+    saveConfluenceSettings,
+    deleteConfluenceSettings,
+    hasConfluenceSettings: Boolean(
+      settings?.confluenceBaseUrl && settings?.confluenceEmail && settings?.confluenceApiToken
+    ),
   };
 }

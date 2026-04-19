@@ -703,6 +703,12 @@ export const WIZARD_STEPS = [
 
 export const TOTAL_STEPS = WIZARD_STEPS.length;
 
+export const PROMPT_GENERATOR_STEP_GROUPS = [
+  { label: 'Context', range: [0, 5] as const },
+  { label: 'Design Assets', range: [6, 10] as const },
+  { label: 'Configuration', range: [11, 15] as const },
+];
+
 // Built-in memory IDs — used by prompt section builders (pure functions) and hooks
 export const BUILT_IN_COMPANY_CONTEXT_MEMORY_ID = 'built-in-company-context';
 export const BUILT_IN_PRODUCT_MEMORY_ID = 'built-in-rivery-context';

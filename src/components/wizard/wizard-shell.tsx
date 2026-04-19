@@ -3,37 +3,50 @@
 import { useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
-import { WIZARD_STEPS, TOTAL_STEPS } from "@/lib/constants";
 import { ChevronLeft, ChevronRight, Save, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STEP_GROUPS = [
-  { label: "Context", range: [0, 5] as const },
-  { label: "Design Assets", range: [6, 10] as const },
-  { label: "Configuration", range: [11, 15] as const },
-];
+interface WizardStep {
+  key: string;
+  label: string;
+  required: boolean;
+}
+
+interface StepGroup {
+  label: string;
+  range: readonly [number, number];
+}
 
 interface WizardShellProps {
+  steps: readonly WizardStep[];
+  stepGroups: readonly StepGroup[];
   currentStep: number;
   onStepChange: (step: number) => void;
   children: React.ReactNode;
   canProceed?: boolean;
   validationMessage?: string | null;
   onSave?: () => void;
+  saveLabel?: string;
+  saveIcon?: React.ReactNode;
   completedSteps?: Set<number>;
 }
 
 export function WizardShell({
+  steps,
+  stepGroups,
   currentStep,
   onStepChange,
   children,
   canProceed = true,
   validationMessage,
   onSave,
+  saveLabel = "Save Prompt",
+  saveIcon,
   completedSteps = new Set(),
 }: WizardShellProps) {
+  const totalSteps = steps.length;
   const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === TOTAL_STEPS - 1;
+  const isLastStep = currentStep === totalSteps - 1;
   const directionRef = useRef(1);
 
   function goTo(step: number) {
@@ -41,7 +54,7 @@ export function WizardShell({
     onStepChange(step);
   }
 
-  const progressPercent = ((currentStep + 1) / TOTAL_STEPS) * 100;
+  const progressPercent = ((currentStep + 1) / totalSteps) * 100;
 
   return (
     <div className="flex gap-8">
@@ -49,9 +62,9 @@ export function WizardShell({
       <aside className="hidden md:block w-64 shrink-0 sticky top-20 self-start" aria-label="Wizard progress">
         <div>
           <div className="space-y-6">
-            {STEP_GROUPS.map((group) => {
+            {stepGroups.map((group) => {
               const [start, end] = group.range;
-              const steps = WIZARD_STEPS.slice(start, end + 1);
+              const groupSteps = steps.slice(start, end + 1);
 
               return (
                 <div key={group.label}>
@@ -59,7 +72,7 @@ export function WizardShell({
                     {group.label}
                   </p>
                   <div className="space-y-0.5">
-                    {steps.map((step, i) => {
+                    {groupSteps.map((step, i) => {
                       const stepIndex = start + i;
                       const isActive = stepIndex === currentStep;
                       const isCompleted = completedSteps.has(stepIndex);
@@ -122,8 +135,8 @@ export function WizardShell({
             {currentStep + 1}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-medium truncate">{WIZARD_STEPS[currentStep]?.label}</p>
-            <p className="text-xs text-muted-foreground">Step {currentStep + 1} of {TOTAL_STEPS}</p>
+            <p className="text-sm font-medium truncate">{steps[currentStep]?.label}</p>
+            <p className="text-xs text-muted-foreground">Step {currentStep + 1} of {totalSteps}</p>
           </div>
         </div>
         <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
@@ -165,8 +178,8 @@ export function WizardShell({
           <div className="flex items-center gap-2">
             {isLastStep ? (
               <Button size="sm" onClick={onSave} disabled={!canProceed}>
-                <Save className="size-4" />
-                Save Prompt
+                {saveIcon ?? <Save className="size-4" />}
+                {saveLabel}
               </Button>
             ) : (
               <Button

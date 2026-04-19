@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { Trash2, Sun, Moon, LogOut, Save } from 'lucide-react';
+import { Trash2, Sun, Moon, LogOut, Save, Eye, EyeOff } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { FadeIn } from '@/components/ui/motion';
@@ -24,7 +24,17 @@ import {
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
-  const { loading, saveApiKey, deleteApiKey, hasApiKey, maskedKey } = useUserSettings();
+  const {
+    loading,
+    settings,
+    saveApiKey,
+    deleteApiKey,
+    hasApiKey,
+    maskedKey,
+    saveConfluenceSettings,
+    deleteConfluenceSettings,
+    hasConfluenceSettings,
+  } = useUserSettings();
   const { resolvedTheme, setTheme } = useTheme();
 
   const [mounted, setMounted] = useState(false);
@@ -32,6 +42,15 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Confluence form state
+  const [confluenceBaseUrl, setConfluenceBaseUrl] = useState('');
+  const [confluenceEmail, setConfluenceEmail] = useState('');
+  const [confluenceApiToken, setConfluenceApiToken] = useState('');
+  const [showConfluenceToken, setShowConfluenceToken] = useState(false);
+  const [savingConfluence, setSavingConfluence] = useState(false);
+  const [deleteConfluenceDialogOpen, setDeleteConfluenceDialogOpen] = useState(false);
+  const [deletingConfluence, setDeletingConfluence] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -62,6 +81,43 @@ export default function SettingsPage() {
       setDeleting(false);
     }
   }
+
+  async function handleSaveConfluence() {
+    setSavingConfluence(true);
+    try {
+      await saveConfluenceSettings(
+        confluenceBaseUrl.trim(),
+        confluenceEmail.trim(),
+        confluenceApiToken.trim()
+      );
+      setConfluenceBaseUrl('');
+      setConfluenceEmail('');
+      setConfluenceApiToken('');
+      toast.success('Confluence settings saved');
+    } catch {
+      toast.error('Unable to save Confluence settings');
+    } finally {
+      setSavingConfluence(false);
+    }
+  }
+
+  async function handleDeleteConfluence() {
+    setDeletingConfluence(true);
+    try {
+      await deleteConfluenceSettings();
+      toast.success('Confluence settings removed');
+      setDeleteConfluenceDialogOpen(false);
+    } catch {
+      toast.error('Unable to remove Confluence settings');
+    } finally {
+      setDeletingConfluence(false);
+    }
+  }
+
+  const confluenceFormValid =
+    confluenceBaseUrl.trim() !== '' &&
+    confluenceEmail.trim() !== '' &&
+    confluenceApiToken.trim() !== '';
 
   return (
     <FadeIn>
@@ -150,7 +206,115 @@ export default function SettingsPage() {
             </AlertDialogContent>
           </AlertDialog>
 
-          {/* Section 3: Account */}
+          {/* Section 3: Confluence Integration */}
+          <section className="rounded-lg border border-border bg-card p-4">
+            <h2 className="text-sm font-semibold mb-1">Confluence Integration</h2>
+            <p className="text-sm text-muted-foreground mb-3">
+              Connect your Atlassian Confluence account to publish research results directly to a Confluence space.
+            </p>
+            {hasConfluenceSettings ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm text-foreground">{settings?.confluenceBaseUrl}</p>
+                    <p className="text-sm text-muted-foreground">{settings?.confluenceEmail}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDeleteConfluenceDialogOpen(true)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="size-4 mr-1.5" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Base URL</label>
+                  <Input
+                    type="text"
+                    placeholder={loading ? 'Loading...' : 'https://yourcompany.atlassian.net'}
+                    value={confluenceBaseUrl}
+                    onChange={(e) => setConfluenceBaseUrl(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Email</label>
+                  <Input
+                    type="email"
+                    placeholder={loading ? 'Loading...' : 'your-email@company.com'}
+                    value={confluenceEmail}
+                    onChange={(e) => setConfluenceEmail(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">API Token</label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type={showConfluenceToken ? 'text' : 'password'}
+                        placeholder={loading ? 'Loading...' : 'Your Confluence API token'}
+                        value={confluenceApiToken}
+                        onChange={(e) => setConfluenceApiToken(e.target.value)}
+                        disabled={loading}
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowConfluenceToken(!showConfluenceToken)}
+                      className="shrink-0"
+                    >
+                      {showConfluenceToken ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSaveConfluence}
+                    disabled={!confluenceFormValid || savingConfluence}
+                    size="sm"
+                  >
+                    <Save className="size-4 mr-1.5" />
+                    {savingConfluence ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Delete Confluence Settings Confirmation */}
+          <AlertDialog open={deleteConfluenceDialogOpen} onOpenChange={setDeleteConfluenceDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove Confluence settings</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to remove your Confluence credentials? You will not be able to publish research results to Confluence until you re-add them.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={handleDeleteConfluence}
+                  disabled={deletingConfluence}
+                >
+                  {deletingConfluence ? 'Removing...' : 'Remove'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Section 4: Account */}
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold mb-3">Account</h2>
             <div className="flex items-center justify-between">

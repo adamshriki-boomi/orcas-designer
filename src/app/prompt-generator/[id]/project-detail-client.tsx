@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   RefreshCw,
@@ -62,7 +63,24 @@ interface PromptDetailClientProps {
 }
 
 export default function PromptDetailClient({ id }: PromptDetailClientProps) {
-  const { project, isLoading: promptLoading } = usePrompt(id);
+  const searchParams = useSearchParams();
+  // The /[id] route is pre-rendered only for the static `placeholder` stub to
+  // keep the SPA export working. Real ids arrive via the 404 redirect as
+  // `?_id=<real-id>`. Unwrap here and clean the URL so the page behaves
+  // identically to a direct visit.
+  const [actualId] = useState(() => {
+    const queryId = searchParams.get('_id');
+    return queryId && id === 'placeholder' ? queryId : id;
+  });
+  useEffect(() => {
+    if (searchParams.get('_id')) {
+      const base = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+      window.history.replaceState(null, '', `${base}/prompt-generator/${actualId}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const { project, isLoading: promptLoading } = usePrompt(actualId);
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
   const {

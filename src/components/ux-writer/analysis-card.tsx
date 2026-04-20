@@ -45,7 +45,7 @@ export const AnalysisCard = memo(function AnalysisCard({ analysis }: { analysis:
               <PenLine className="size-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="font-heading font-semibold truncate">
+              <CardTitle className="font-heading font-semibold line-clamp-2 break-words">
                 {analysis.name || 'Untitled Analysis'}
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">{relativeTime}</p>

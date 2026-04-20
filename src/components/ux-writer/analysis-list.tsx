@@ -30,7 +30,7 @@ export function AnalysisList({ analyses }: { analyses: UxAnalysisEntry[] }) {
   }
 
   return (
-    <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-5">
       {analyses.map((analysis) => (
         <StaggerItem key={analysis.id}>
           <AnalysisCard analysis={analysis} />

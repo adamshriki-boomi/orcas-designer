@@ -75,7 +75,7 @@ function ResearchCard({ project }: { project: ResearcherProject }) {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="font-heading font-semibold truncate">
+              <CardTitle className="font-heading font-semibold line-clamp-2 break-words">
                 {project.name || 'Untitled Research'}
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">{relativeTime}</p>
@@ -143,7 +143,7 @@ export default function ResearcherPage() {
       />
       <PageContainer>
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-40 animate-pulse rounded-2xl bg-muted" />
             ))}
@@ -166,7 +166,7 @@ export default function ResearcherPage() {
             </Link>
           </FadeIn>
         ) : (
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {projects.map((project) => (
               <StaggerItem key={project.id}>
                 <ResearchCard project={project} />

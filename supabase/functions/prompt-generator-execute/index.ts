@@ -10,11 +10,12 @@ const corsHeaders = {
 };
 
 const MODEL_ID = "claude-opus-4-7";
-const MAX_TOKENS = 16000;
-// Hard cap on Claude call wall-clock. Edge Functions on the paid plan allow
-// longer backgrounds, but 5 minutes is plenty for one Opus call with adaptive
-// thinking and this keeps a single stuck request from hogging runtime.
-const CLAUDE_TIMEOUT_MS = 300_000;
+// Briefs target 2000-4000 words ≈ 3k-6k output tokens. 8k gives comfortable
+// headroom without pushing call duration past the Edge Function runtime budget.
+const MAX_TOKENS = 8000;
+// Safety net for genuinely hung calls. With streaming (see below) the
+// connection stays alive via continuous SSE events, so this rarely fires.
+const CLAUDE_TIMEOUT_MS = 180_000;
 
 // ─── SYSTEM PROMPT ──────────────────────────────────────────────────────────
 // Teaches Opus how to write a Claude Code brief. This is prompt-cached on the
@@ -187,16 +188,21 @@ Deno.serve(async (req: Request) => {
     const abort = new AbortController();
     const abortTimer = setTimeout(() => abort.abort(), CLAUDE_TIMEOUT_MS);
 
-    let message;
+    // Stream the response instead of blocking on .create(). Streaming keeps
+    // the TCP connection alive with continuous SSE events, which prevents
+    // Supabase's Edge Runtime from killing the request mid-thinking. A prior
+    // blocking .create() call would sometimes hang past the 300s mark with
+    // no progress and no catch-block error — the runtime was severing the
+    // connection silently. Streaming + periodic heartbeat updates the DB
+    // row's `created_at` so dead rows are eventually detectable.
+    let fullText = "";
+    let finalMessage: Anthropic.Messages.Message | null = null;
     try {
-      message = await anthropic.messages.create(
+      const stream = anthropic.messages.stream(
         {
           model: MODEL_ID,
           max_tokens: MAX_TOKENS,
           thinking: { type: "adaptive" },
-          // `effort: "max"` matches the researcher-execute call and tells Opus
-          // to spend the full adaptive-thinking budget. Users asked for "max".
-          output_config: { effort: "max" },
           system: [
             {
               type: "text",
@@ -208,14 +214,26 @@ Deno.serve(async (req: Request) => {
         },
         { signal: abort.signal },
       );
+
+      stream.on("text", (chunk: string) => {
+        fullText += chunk;
+      });
+
+      finalMessage = await stream.finalMessage();
     } finally {
       clearTimeout(abortTimer);
     }
 
-    const textBlock = message.content.find(
+    if (!finalMessage) {
+      await markFailed(supabase, v.id, "Claude stream ended without a final message.");
+      return json({ error: "No final message from stream" }, 502);
+    }
+
+    const textBlock = finalMessage.content.find(
       (block: Anthropic.ContentBlock) => block.type === "text",
     );
-    if (!textBlock || textBlock.type !== "text") {
+    const content = textBlock && textBlock.type === "text" ? textBlock.text : fullText;
+    if (!content) {
       await markFailed(
         supabase,
         v.id,
@@ -224,12 +242,12 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Empty response from Claude" }, 502);
     }
 
-    const usage = message.usage as AnthropicUsage | undefined;
+    const usage = finalMessage.usage as AnthropicUsage | undefined;
     const { error: updateError } = await supabase
       .from("prompt_versions")
       .update({
         status: "completed",
-        content: textBlock.text,
+        content,
         input_tokens: usage?.input_tokens ?? null,
         output_tokens: usage?.output_tokens ?? null,
         completed_at: new Date().toISOString(),

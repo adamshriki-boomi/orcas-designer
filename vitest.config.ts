@@ -15,7 +15,11 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary'],
-      include: ['src/lib/**/*.ts', 'src/hooks/**/*.ts'],
+      include: [
+        'src/lib/**/*.ts',
+        'src/hooks/**/*.ts',
+        'src/components/dashboard/**/*.{ts,tsx}',
+      ],
     },
   },
 })

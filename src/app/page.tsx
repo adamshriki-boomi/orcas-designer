@@ -1,191 +1,203 @@
 'use client';
 
 import { useMemo } from 'react';
-import dynamic from 'next/dynamic';
+import {
+  BotMessageSquare,
+  Brain,
+  CheckCircle2,
+  FlaskConical,
+  Loader2,
+  PenLine,
+  RefreshCw,
+  Wand2,
+} from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
 import { usePrompts } from '@/hooks/use-prompts';
+import { useResearcherProjects } from '@/hooks/use-researcher-projects';
+import { useUxAnalyses } from '@/hooks/use-ux-analyses';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
 import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID } from '@/hooks/use-shared-memories';
+import { useRecentActivity } from '@/hooks/use-recent-activity';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
-import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
-import { cn } from '@/lib/utils';
+import { DashboardHero, greetingFor } from '@/components/dashboard/dashboard-hero';
+import { ActiveWorkPanel } from '@/components/dashboard/active-work-panel';
+import { ActivityFeed } from '@/components/dashboard/activity-feed';
+import { StatsStrip } from '@/components/dashboard/stats-strip';
+import { TrendsSection } from '@/components/dashboard/trends-section';
 import { MANDATORY_SKILLS } from '@/lib/constants';
 import { getActiveSkillsForPrompt } from '@/lib/skill-filter';
-import { Layers, RefreshCw, Wand2, Brain } from 'lucide-react';
+import {
+  bucketByMonth,
+  countPromptsByInteractionLevel,
+  countResearchByStatus,
+  countResearchMethodUsage,
+  countSharedMemoryUsage,
+  countSharedSkillUsage,
+  mergeActivityFeeds,
+  topN,
+} from '@/lib/dashboard-metrics';
+import { BUILT_IN_RESEARCH_METHODS } from '@/lib/researcher-constants';
 
-const ExChartLazy = dynamic(
-  () => import('@boomi/exosphere').then((m) => ({ default: m.ExChart })),
-  { ssr: false }
-);
-
-function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl shadow-card bg-card p-4">
-      <div className={cn("flex size-10 items-center justify-center rounded-xl", color)}>
-        <Icon className="size-5 text-white" />
-      </div>
-      <div>
-        <p className="font-heading text-2xl font-bold tabular-nums">{value}</p>
-        <p className="text-xs text-muted-foreground">{label}</p>
-      </div>
-    </div>
-  );
-}
+const DASHBOARD_DESCRIPTION = 'Your workspace across prompts, research, and UX writing';
 
 export default function DashboardPage() {
-  const { projects, isLoading } = usePrompts();
+  const { user } = useAuth();
+  const { projects: prompts, isLoading: promptsLoading } = usePrompts();
+  const { projects: research, isLoading: researchLoading } = useResearcherProjects();
+  const { analyses, isLoading: analysesLoading } = useUxAnalyses();
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
+  const { items: activity } = useRecentActivity(10);
+
+  const isLoading = promptsLoading || researchLoading || analysesLoading;
+
+  const fullName = (user?.user_metadata as Record<string, unknown> | undefined)?.full_name as
+    | string
+    | undefined;
+
+  const runningJobs = useMemo(
+    () => research.filter((p) => p.status === 'running' || p.status === 'pending'),
+    [research]
+  );
+
+  const recentDrafts = useMemo(
+    () => mergeActivityFeeds(prompts, research, analyses, 5),
+    [prompts, research, analyses]
+  );
 
   const totalRegenerations = useMemo(
-    () => projects.reduce((sum, p) => sum + (p.regenerationCount ?? 0), 0),
-    [projects]
+    () => prompts.reduce((s, p) => s + (p.regenerationCount ?? 0), 0),
+    [prompts]
   );
-  const totalSkills = sharedSkills.length + MANDATORY_SKILLS.length;
-  const totalMemories = sharedMemories.length;
 
-  // Monthly buckets for last 6 months
-  const monthlyBuckets = useMemo(() => {
-    const now = new Date();
-    const buckets: Record<string, number> = {};
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-      buckets[key] = 0;
-    }
-    projects.forEach((p) => {
-      const d = new Date(p.createdAt);
-      const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-      if (key in buckets) buckets[key]++;
-    });
-    return Object.entries(buckets).map(([label, count]) => ({ x: label, y: count, z: label }));
-  }, [projects]);
+  const completedResearch = useMemo(
+    () => research.filter((p) => p.status === 'completed').length,
+    [research]
+  );
 
-  // Projects by Interaction Level donut chart
-  const interactionChartOptions = useMemo(() => ({
-    type: 'donut-chart',
-    width: 250,
-    height: 250,
-    thickness: 55,
-    showLegends: true,
-    legendShape: 'square',
-    useNewLayout: true,
-    legendAlignment: 'center',
-    tooltip: { compactNumber: false },
-    data: [
-      { x: 'Static Mockups', y: projects.filter(p => p.interactionLevel === 'static').length },
-      { x: 'Click-through', y: projects.filter(p => p.interactionLevel === 'click-through').length },
-      { x: 'Full Prototype', y: projects.filter(p => p.interactionLevel === 'full-prototype').length },
-    ],
-  }), [projects]);
+  const subtitleParts: string[] = [];
+  if (runningJobs.length > 0)
+    subtitleParts.push(`${runningJobs.length} research job${runningJobs.length === 1 ? '' : 's'} running`);
+  if (prompts.length > 0 || analyses.length > 0)
+    subtitleParts.push(`${prompts.length + analyses.length + research.length} items in your workspace`);
+  const subtitle = subtitleParts.join(' · ');
 
-  const projectsOverTimeOptions = useMemo(() => ({
-    type: 'stack-bar',
-    width: 400,
-    height: 280,
-    barWidth: 'medium',
-    showLegends: false,
-    showGridLines: true,
-    tooltip: { compactNumber: false },
-    data: monthlyBuckets,
-  }), [monthlyBuckets]);
+  const personalStats = [
+    {
+      icon: BotMessageSquare,
+      label: 'Prompts',
+      value: prompts.length,
+      iconColor: 'bg-primary',
+    },
+    {
+      icon: FlaskConical,
+      label: 'Research projects',
+      value: research.length,
+      iconColor: 'bg-accent',
+    },
+    {
+      icon: PenLine,
+      label: 'UX analyses',
+      value: analyses.length,
+      iconColor: 'bg-violet-500',
+    },
+    {
+      icon: RefreshCw,
+      label: 'Regenerations',
+      value: totalRegenerations,
+      iconColor: 'bg-emerald-500',
+    },
+  ];
 
-  // Skills usage: include mandatory skills (active per project) + shared skills
-  const skillsUsageOptions = useMemo(() => {
-    const mandatoryData = MANDATORY_SKILLS
-      .filter(s => s.includeCondition !== 'never')
-      .map(skill => ({
-        name: skill.name,
-        count: projects.filter(p => getActiveSkillsForPrompt(p).some(as => as.name === skill.name)).length,
-      }))
-      .filter(d => d.count > 0);
+  const pulseStats = [
+    {
+      icon: Wand2,
+      label: 'Shared skills',
+      value: sharedSkills.length + MANDATORY_SKILLS.length,
+      iconColor: 'bg-primary',
+    },
+    {
+      icon: Brain,
+      label: 'Shared memories',
+      value: sharedMemories.length,
+      iconColor: 'bg-violet-500',
+    },
+    {
+      icon: Loader2,
+      label: 'Running jobs',
+      value: runningJobs.length,
+      iconColor: 'bg-yellow-500',
+    },
+    {
+      icon: CheckCircle2,
+      label: 'Completed research',
+      value: completedResearch,
+      iconColor: 'bg-emerald-500',
+    },
+  ];
 
-    const skillUsageCounts = new Map<string, number>();
-    for (const p of projects) {
-      for (const sid of p.selectedSharedSkillIds) {
-        skillUsageCounts.set(sid, (skillUsageCounts.get(sid) ?? 0) + 1);
-      }
-    }
-
-    const sharedData = sharedSkills.map(skill => ({
-      name: skill.name,
-      count: skillUsageCounts.get(skill.id) ?? 0,
+  const trendsData = useMemo(() => {
+    // Skills: combine mandatory (counted by per-prompt activation) + shared
+    const mandatoryUsage = MANDATORY_SKILLS.filter((s) => s.includeCondition !== 'never').map((skill) => ({
+      label: skill.name,
+      count: prompts.filter((p) => getActiveSkillsForPrompt(p).some((as) => as.name === skill.name)).length,
     }));
+    const sharedSkillUsage = countSharedSkillUsage(prompts);
+    const sharedSkillsData = sharedSkills.map((skill) => ({
+      label: skill.name,
+      count: sharedSkillUsage.get(skill.id) ?? 0,
+    }));
+    const topSkills = topN(
+      [...mandatoryUsage, ...sharedSkillsData],
+      (d) => ({ label: d.label, count: d.count }),
+      8
+    );
 
-    const allSkills = [...mandatoryData, ...sharedData]
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-
-    return {
-      type: 'stack-bar',
-      width: 400,
-      height: 280,
-      barWidth: 'medium',
-      showGridLines: true,
-      showLegends: false,
-      tooltip: { compactNumber: false },
-      data: allSkills.map(s => ({
-        x: s.name.slice(0, 14),
-        y: s.count,
-        z: s.name.slice(0, 14),
-      })),
-    };
-  }, [projects, sharedSkills]);
-
-  // Memories usage: include all shared memories (built-in + custom)
-  const memoriesUsageOptions = useMemo(() => {
-    const memoryUsageCounts = new Map<string, number>();
-    for (const p of projects) {
-      for (const mid of p.selectedSharedMemoryIds ?? []) {
-        memoryUsageCounts.set(mid, (memoryUsageCounts.get(mid) ?? 0) + 1);
-      }
-    }
-
-    const allMemories = sharedMemories
-      .map(m => ({
-        name: m.name,
+    // Memories: company context counted on all prompts
+    const sharedMemoryUsage = countSharedMemoryUsage(prompts);
+    const topMemories = topN(
+      sharedMemories.map((m) => ({
+        label: m.name,
         count: m.id === COMPANY_CONTEXT_MEMORY_ID
-          ? projects.length
-          : (memoryUsageCounts.get(m.id) ?? 0),
-      }))
-      .filter(d => d.count > 0)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
+          ? prompts.length
+          : sharedMemoryUsage.get(m.id) ?? 0,
+      })),
+      (d) => ({ label: d.label, count: d.count }),
+      8
+    );
+
+    // Top research methods
+    const methodUsage = countResearchMethodUsage(research);
+    const topResearchMethods = topN(
+      BUILT_IN_RESEARCH_METHODS.map((m) => ({
+        label: m.name,
+        count: methodUsage.get(m.id) ?? 0,
+      })),
+      (d) => ({ label: d.label, count: d.count }),
+      8
+    );
 
     return {
-      type: 'stack-bar',
-      width: 400,
-      height: 280,
-      barWidth: 'medium',
-      showGridLines: true,
-      showLegends: false,
-      tooltip: { compactNumber: false },
-      data: allMemories.map(m => ({
-        x: m.name.slice(0, 14),
-        y: m.count,
-        z: m.name.slice(0, 14),
-      })),
+      interactionLevels: countPromptsByInteractionLevel(prompts),
+      researchByStatus: countResearchByStatus(research),
+      promptsOverTime: bucketByMonth(prompts.map((p) => p.createdAt)),
+      researchOverTime: bucketByMonth(
+        research.filter((r) => r.completedAt).map((r) => r.completedAt as string)
+      ),
+      uxOverTime: bucketByMonth(analyses.map((a) => a.createdAt)),
+      topSkills,
+      topMemories,
+      topResearchMethods,
     };
-  }, [sharedMemories, projects]);
-
-  const hasSkillsData = skillsUsageOptions.data.length > 0;
-  const hasMemoriesData = memoriesUsageOptions.data.length > 0;
+  }, [prompts, research, analyses, sharedSkills, sharedMemories]);
 
   if (isLoading) {
     return (
       <>
-        <Header title="Dashboard" description="Create and manage your prompt configurations" />
+        <Header title="Dashboard" description={DASHBOARD_DESCRIPTION} />
         <PageContainer>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-20 animate-pulse rounded-2xl bg-muted" />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-72 animate-pulse rounded-2xl bg-muted" />
-            ))}
-          </div>
+          <DashboardSkeleton />
         </PageContainer>
       </>
     );
@@ -193,60 +205,40 @@ export default function DashboardPage() {
 
   return (
     <>
-      <FadeIn>
-        <Header
-          title="Dashboard"
-          description="Create and manage your prompt configurations"
-        />
-        <PageContainer>
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StaggerItem>
-              <StatCard icon={Layers} label="Total Prompts" value={projects.length} color="gradient-primary" />
-            </StaggerItem>
-            <StaggerItem>
-              <StatCard icon={RefreshCw} label="Regenerated" value={totalRegenerations} color="bg-accent" />
-            </StaggerItem>
-            <StaggerItem>
-              <StatCard icon={Wand2} label="Total Skills" value={totalSkills} color="bg-primary" />
-            </StaggerItem>
-            <StaggerItem>
-              <StatCard icon={Brain} label="Total Memories" value={totalMemories} color="bg-violet-500" />
-            </StaggerItem>
-          </StaggerContainer>
-
-          {/* Charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-2xl shadow-card bg-card p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Prompts by Interaction Level</h3>
-              {projects.length > 0 ? (
-                <ExChartLazy options={interactionChartOptions} />
-              ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No prompts yet</p>
-              )}
-            </div>
-            <div className="rounded-2xl shadow-card bg-card p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Prompts Over Time</h3>
-              <ExChartLazy options={projectsOverTimeOptions} />
-            </div>
-            <div className="rounded-2xl shadow-card bg-card p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Skills Usage</h3>
-              {hasSkillsData ? (
-                <ExChartLazy options={skillsUsageOptions} />
-              ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No skills in use</p>
-              )}
-            </div>
-            <div className="rounded-2xl shadow-card bg-card p-4">
-              <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Memories Usage</h3>
-              {hasMemoriesData ? (
-                <ExChartLazy options={memoriesUsageOptions} />
-              ) : (
-                <p className="text-sm text-muted-foreground py-8 text-center">No memories in use</p>
-              )}
-            </div>
-          </div>
-        </PageContainer>
-      </FadeIn>
+      <Header title="Dashboard" description={DASHBOARD_DESCRIPTION} />
+      <PageContainer>
+        <div className="space-y-8">
+          <DashboardHero greeting={greetingFor(fullName)} subtitle={subtitle || undefined} />
+          <ActiveWorkPanel runningJobs={runningJobs} recentDrafts={recentDrafts} />
+          <StatsStrip stats={personalStats} />
+          <ActivityFeed items={activity} limit={10} />
+          <StatsStrip stats={pulseStats} />
+          <TrendsSection {...trendsData} />
+        </div>
+      </PageContainer>
     </>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      <div className="h-40 animate-pulse rounded-2xl bg-muted" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="h-56 animate-pulse rounded-2xl bg-muted" />
+        <div className="h-56 animate-pulse rounded-2xl bg-muted" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-20 animate-pulse rounded-2xl bg-muted" />
+        ))}
+      </div>
+      <div className="h-80 animate-pulse rounded-2xl bg-muted" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-72 animate-pulse rounded-2xl bg-muted" />
+        ))}
+      </div>
+    </div>
   );
 }

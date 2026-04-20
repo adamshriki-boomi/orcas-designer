@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { BUILT_IN_SKILLS, getBuiltInSkillById } from './built-in-skills';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { BUILT_IN_SKILLS, FRAMEWORK_GUIDANCE, getBuiltInSkillById } from './built-in-skills';
 import { BUILT_IN_RESEARCH_METHODS } from './researcher-constants';
 
 describe('BUILT_IN_SKILLS', () => {
@@ -59,5 +61,40 @@ describe('BUILT_IN_SKILLS', () => {
       expect(skill.icon).toBeTruthy();
       expect(typeof skill.icon).toBe('string');
     }
+  });
+});
+
+/**
+ * Parity check against the Researcher Edge Function.
+ *
+ * `supabase/functions/researcher-execute/index.ts` cannot import from `src/`
+ * because it runs under Deno, so its FRAMEWORK_GUIDANCE map is maintained as
+ * a byte-for-byte copy of the one in this file. The tests below read the Edge
+ * Function source at test time and assert that every method's guidance string
+ * appears verbatim there — any drift (renamed method, edited guidance text,
+ * forgotten copy) fails the build.
+ */
+describe('FRAMEWORK_GUIDANCE parity with Edge Function', () => {
+  const EDGE_FILE = path.resolve(__dirname, '../../supabase/functions/researcher-execute/index.ts');
+  const edgeSource = readFileSync(EDGE_FILE, 'utf-8');
+
+  it('Edge Function declares a FRAMEWORK_GUIDANCE map', () => {
+    expect(edgeSource).toMatch(/const FRAMEWORK_GUIDANCE\s*:\s*Record<string,\s*string>\s*=\s*\{/);
+  });
+
+  // One focused test per entry — a failure points straight at the drifted key.
+  for (const [id, content] of Object.entries(FRAMEWORK_GUIDANCE)) {
+    it(`Edge Function contains byte-identical guidance for "${id}"`, () => {
+      expect(edgeSource).toContain(content);
+    });
+  }
+
+  it('Edge Function map has the same 15 entries and nothing extra', () => {
+    const blockMatch = edgeSource.match(/const FRAMEWORK_GUIDANCE[^{]*\{([\s\S]*?)^};/m);
+    expect(blockMatch, 'could not locate FRAMEWORK_GUIDANCE block in edge function').toBeTruthy();
+    const body = blockMatch![1];
+    // Each entry starts with `'method-id':\s*\``
+    const keys = Array.from(body.matchAll(/['"]([a-z0-9-]+)['"]\s*:\s*`/g)).map((m) => m[1]);
+    expect(new Set(keys)).toEqual(new Set(Object.keys(FRAMEWORK_GUIDANCE)));
   });
 });

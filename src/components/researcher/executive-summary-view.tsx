@@ -37,28 +37,55 @@ interface ParsedSummary {
 }
 
 // ─── Parser ──────────────────────────────────────────────────────────
+// Exported for testing. These operate on arbitrary LLM output so the
+// regex shape drift risk is real — `executive-summary-view.test.ts`
+// exercises each branch.
 
-function parseExecutiveSummary(markdown: string): ParsedSummary {
+const EMPTY_SUMMARY: ParsedSummary = {
+  tldr: '',
+  actionItems: [],
+  keyThemes: '',
+  openQuestions: '',
+  whatNext: '',
+  extras: [],
+};
+
+export function parseExecutiveSummary(markdown: string): ParsedSummary {
   const raw = markdown.trim();
 
-  // Split by `## Heading` — first split entry is pre-heading content (usually empty)
-  const blocks = raw.split(/^##\s+/m).map((b) => b.trim()).filter(Boolean);
+  // No `## …` headings at all → nothing structured to pull out. Let the caller
+  // render the markdown as-is instead of mining a heading out of the first line.
+  if (!/^##\s+/m.test(raw)) {
+    return EMPTY_SUMMARY;
+  }
+
+  // Locate each heading position so we can slice [heading, next-heading) bodies.
+  const headingRe = /^##\s+(.+)$/gm;
+  const headings: Array<{ label: string; matchStart: number; bodyStart: number }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = headingRe.exec(raw)) !== null) {
+    headings.push({
+      label: m[1].trim(),
+      matchStart: m.index,
+      bodyStart: m.index + m[0].length,
+    });
+  }
 
   const sections = new Map<string, string>();
   const extras: ParsedSummary['extras'] = [];
 
-  for (const block of blocks) {
-    const newlineIdx = block.indexOf('\n');
-    const heading = (newlineIdx === -1 ? block : block.slice(0, newlineIdx)).trim();
-    const body = newlineIdx === -1 ? '' : block.slice(newlineIdx + 1).trim();
-    const key = heading.toLowerCase();
+  for (let i = 0; i < headings.length; i++) {
+    const { label, bodyStart } = headings[i];
+    const bodyEnd = i + 1 < headings.length ? headings[i + 1].matchStart : raw.length;
+    const body = raw.slice(bodyStart, bodyEnd).trim();
+    const key = label.toLowerCase();
 
     if (key.startsWith('tl;dr') || key.startsWith('tldr')) sections.set('tldr', body);
     else if (key.includes('action item')) sections.set('actions', body);
     else if (key.includes('key theme') || key.includes('theme')) sections.set('themes', body);
     else if (key.includes('open question') || key.includes('conflict')) sections.set('open', body);
     else if (key.includes('what to do next') || key.includes('next step')) sections.set('next', body);
-    else extras.push({ heading, body });
+    else extras.push({ heading: label, body });
   }
 
   return {
@@ -71,22 +98,18 @@ function parseExecutiveSummary(markdown: string): ParsedSummary {
   };
 }
 
-function parseActionItems(text: string): ActionItem[] {
+export function parseActionItems(text: string): ActionItem[] {
   if (!text.trim()) return [];
 
   // Each action starts with **[Priority: P0]** *(Impact: High)* — Title
-  // Split the body on this pattern, keeping the match.
   const headerRe = /\*\*\[Priority:\s*(P0|P1|P2)\]\*\*\s*\*\(Impact:\s*(High|Medium|Low)\)\*\s*[—–-]\s*([^\n]+)/g;
-  const items: ActionItem[] = [];
-  let prevIdx = 0;
-  let prevMatch: RegExpExecArray | null = null;
-
   const matches: Array<{ m: RegExpExecArray; start: number; end: number }> = [];
   let m: RegExpExecArray | null;
   while ((m = headerRe.exec(text)) !== null) {
     matches.push({ m, start: m.index, end: m.index + m[0].length });
   }
 
+  const items: ActionItem[] = [];
   for (let i = 0; i < matches.length; i++) {
     const { m: match, end } = matches[i];
     const [, priority, impact, title] = match;
@@ -105,9 +128,6 @@ function parseActionItems(text: string): ActionItem[] {
       why: cleanField(whyMatch?.[1]),
       ownerHint: cleanField(ownerMatch?.[1]),
     });
-
-    // silence unused var warning
-    void prevIdx; void prevMatch;
   }
 
   return items;

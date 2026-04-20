@@ -1,4 +1,4 @@
-import { researcherProjectToRow, toResearcherProject } from './researcher-utils';
+import { mergeLockedSkillIds, researcherProjectToRow, toResearcherProject } from './researcher-utils';
 import {
   createTestResearcherProject,
   createResearcherProjectWithResults,
@@ -157,5 +157,48 @@ describe('toResearcherProject', () => {
     expect(roundTripped.executiveSummary).toBe(original.executiveSummary);
     expect(roundTripped.processBook).toBe(original.processBook);
     expect(roundTripped.methodResults).toEqual(original.methodResults);
+  });
+});
+
+describe('mergeLockedSkillIds', () => {
+  it('returns the union of user-selected and locked IDs', () => {
+    const result = mergeLockedSkillIds(['custom-uuid-1'], ['heuristic-evaluation']);
+    expect(result).toEqual(['custom-uuid-1', 'heuristic-evaluation']);
+  });
+
+  it('dedupes when a locked ID was already user-selected', () => {
+    const result = mergeLockedSkillIds(
+      ['heuristic-evaluation', 'custom-uuid-1'],
+      ['heuristic-evaluation', 'persona-development'],
+    );
+    expect(result).toEqual(['heuristic-evaluation', 'custom-uuid-1', 'persona-development']);
+    // No duplicates
+    expect(new Set(result).size).toBe(result.length);
+  });
+
+  it('preserves custom UUIDs that are not in the locked set', () => {
+    const customUuid = '00000000-0000-4000-8000-000000000042';
+    const result = mergeLockedSkillIds([customUuid], ['heuristic-evaluation']);
+    expect(result).toContain(customUuid);
+    expect(result).toContain('heuristic-evaluation');
+  });
+
+  it('empty locked list returns user-selected unchanged', () => {
+    expect(mergeLockedSkillIds(['a', 'b'], [])).toEqual(['a', 'b']);
+  });
+
+  it('empty user-selected list returns locked list', () => {
+    expect(mergeLockedSkillIds([], ['x', 'y'])).toEqual(['x', 'y']);
+  });
+
+  it('both empty → empty', () => {
+    expect(mergeLockedSkillIds([], [])).toEqual([]);
+  });
+
+  it('preserves ordering: user-selected first, then new locked entries', () => {
+    const result = mergeLockedSkillIds(['alpha', 'beta'], ['gamma', 'alpha']);
+    // `alpha` was already in user-selected → stays in its original position.
+    // `gamma` is new → appended after user-selected.
+    expect(result).toEqual(['alpha', 'beta', 'gamma']);
   });
 });

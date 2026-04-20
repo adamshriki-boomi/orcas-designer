@@ -5,7 +5,7 @@ import { CustomSkillAdder } from "@/components/skills/custom-skill-adder";
 import { SharedMemoriesPicker } from "@/components/memories/shared-memories-picker";
 import type { BuiltInSkill } from "@/lib/built-in-skills";
 import type { SharedSkill, CustomSkill, SharedMemory, CustomMemory } from "@/lib/types";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useSharedMemories } from "@/hooks/use-shared-memories";
 import { generateId } from "@/lib/id";
 import { toast } from "@/components/ui/sonner";
@@ -53,6 +53,19 @@ export function StepSkillsMemories({
   const [uploadName, setUploadName] = useState("");
   const [uploadContent, setUploadContent] = useState("");
   const [saveToShared, setSaveToShared] = useState(false);
+
+  // Memoize the visible-memory filter so SharedMemoriesPicker gets a stable array
+  // reference and isn't forced to recompute / remount children on unrelated renders.
+  const visibleSharedMemories = useMemo(
+    () =>
+      sharedMemories.filter(
+        (m) =>
+          !m.isBuiltIn ||
+          lockedMemoryIds.includes(m.id) ||
+          selectedSharedMemoryIds.includes(m.id),
+      ),
+    [sharedMemories, lockedMemoryIds, selectedSharedMemoryIds],
+  );
 
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -143,12 +156,7 @@ export function StepSkillsMemories({
         <section className="space-y-3">
           <h3 className="text-sm font-medium">Shared Memories</h3>
           <SharedMemoriesPicker
-            sharedMemories={sharedMemories.filter(
-              (m) =>
-                !m.isBuiltIn ||
-                lockedMemoryIds.includes(m.id) ||
-                selectedSharedMemoryIds.includes(m.id)
-            )}
+            sharedMemories={visibleSharedMemories}
             selectedIds={selectedSharedMemoryIds}
             onChange={onSharedMemoriesChange}
             lockedIds={lockedMemoryIds}

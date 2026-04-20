@@ -1,6 +1,29 @@
 import type { ResearcherProject } from './researcher-types';
 
 /**
+ * Merge user-selected skill IDs with the method-derived locked IDs into the
+ * final `selectedSharedSkillIds` that gets persisted on a research project.
+ *
+ * Used by the Researcher wizard on save. Pulled out as a pure function so it
+ * can be tested without spinning up the full wizard, and so any future
+ * dedup/ordering rules are expressed in one place.
+ *
+ * Guarantees:
+ *   - No duplicates (Set-based dedup).
+ *   - Custom skill UUIDs coming from the user's picker are preserved.
+ *   - Locked IDs (which equal selectedMethodIds by design) are always present
+ *     in the output so the Edge Function's synthesis step sees them.
+ *   - Ordering: user-selected IDs first (their interaction order), then any
+ *     locked IDs not already present.
+ */
+export function mergeLockedSkillIds(
+  userSelectedIds: readonly string[],
+  lockedIds: readonly string[],
+): string[] {
+  return Array.from(new Set([...userSelectedIds, ...lockedIds]));
+}
+
+/**
  * Convert a ResearcherProject to a Supabase row (snake_case, JSONB packing).
  * Only includes defined fields — safe for both insert and partial update.
  */

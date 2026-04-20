@@ -8,7 +8,7 @@ import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_ID
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase';
 import { generateId } from '@/lib/id';
-import { researcherProjectToRow } from '@/lib/researcher-utils';
+import { mergeLockedSkillIds, researcherProjectToRow } from '@/lib/researcher-utils';
 import {
   RESEARCHER_WIZARD_STEPS,
   RESEARCHER_STEP_GROUPS,
@@ -17,6 +17,10 @@ import {
 } from '@/lib/researcher-constants';
 import { BUILT_IN_COMPANY_CONTEXT } from '@/lib/constants';
 import { BUILT_IN_SKILLS } from '@/lib/built-in-skills';
+
+// The set of built-in skills the Researcher wizard actually shows is always the
+// UX Research category — compute once at module load instead of every render.
+const UX_RESEARCH_BUILT_IN_SKILLS = BUILT_IN_SKILLS.filter((s) => s.category === 'UX Research');
 import { isFieldFilled } from '@/lib/validators';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
@@ -239,14 +243,15 @@ function WizardContent() {
   }, [formData]);
 
   const lockedSkillIds = formData.selectedMethodIds;
-  const uxResearchBuiltInSkills = BUILT_IN_SKILLS.filter((s) => s.category === 'UX Research');
+  const uxResearchBuiltInSkills = UX_RESEARCH_BUILT_IN_SKILLS;
 
   const handleSave = async () => {
     try {
       const id = generateId();
       const name = formData.name || 'Untitled Research';
-      const finalSelectedSkillIds = Array.from(
-        new Set([...formData.selectedSharedSkillIds, ...lockedSkillIds])
+      const finalSelectedSkillIds = mergeLockedSkillIds(
+        formData.selectedSharedSkillIds,
+        lockedSkillIds,
       );
       const framingDocument = buildFramingDocument(
         formData.researchType,

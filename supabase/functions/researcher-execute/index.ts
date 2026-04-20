@@ -690,6 +690,10 @@ async function runOneMethod(
       const thinkingBlock = message.content.find(
         (block: Anthropic.ContentBlock) => block.type === "thinking"
       );
+      // Opus 4.7 adaptive thinking rolls thinking tokens into `output_tokens` and does
+      // NOT expose a separate `thinking_tokens` usage field — so this resolves to 0 in
+      // practice. We keep the field on MethodResult for backward compatibility with the
+      // UI and so older runs' tokens still render. Revisit if/when the SDK exposes it.
       const thinkingTokens = thinkingBlock && "thinking" in thinkingBlock
         ? (message.usage as { thinking_tokens?: number })?.thinking_tokens ?? 0
         : 0;
@@ -753,12 +757,17 @@ async function runSynthesisAndComplete(
   selectedMethodIds: string[],
 ): Promise<void> {
   const projectId = project.id as string;
+  const jobId = project.job_id as string;
   const successfulResults = Object.values(methodResults).filter((r) => !r.error);
 
   let executiveSummary = "";
   let processBook = "";
 
-  const alreadyHasSynthesis = (project.executive_summary as string | null) && (project.executive_summary as string).length > 0;
+  // `.trim()` guard: an empty string or a whitespace-only blob in executive_summary
+  // (e.g. from an interrupted prior run) should NOT be treated as already-synthesized —
+  // the user deserves a real summary, not a placeholder masquerading as one.
+  const existingSummary = project.executive_summary as string | null;
+  const alreadyHasSynthesis = !!(existingSummary && existingSummary.trim().length > 0);
 
   if (!alreadyHasSynthesis && successfulResults.length > 0) {
     try {
@@ -848,7 +857,12 @@ async function runSynthesisAndComplete(
     processBook = (project.process_book as string | null) ?? "";
   }
 
-  await supabase
+  // Race guard: in the rare case a second invocation with the same jobId ran
+  // synthesis in parallel (or the user restarted the project while we were
+  // calling Claude), `.eq('job_id', jobId)` atomically skips the write if the
+  // job has since been superseded. `.select('id')` lets us detect that case
+  // and log it so the Opus call wasn't wasted silently.
+  const { data: updated, error: updateErr } = await supabase
     .from("researcher_projects")
     .update({
       status: "completed",
@@ -862,7 +876,17 @@ async function runSynthesisAndComplete(
         totalMethods: selectedMethodIds.length,
       },
     })
-    .eq("id", projectId);
+    .eq("id", projectId)
+    .eq("job_id", jobId)
+    .select("id");
+
+  if (updateErr) {
+    console.error(`[${projectId}] Failed to mark project completed:`, updateErr);
+    throw updateErr;
+  }
+  if (!updated || updated.length === 0) {
+    console.warn(`[${projectId}] Completion write skipped — job_id no longer matches (stale invocation). Synthesis output discarded.`);
+  }
 }
 
 async function fireSelfInvocation(projectId: string, jobId: string): Promise<void> {

@@ -12,8 +12,10 @@ export interface BuiltInSkill {
 }
 
 // Framework guidance per method — same text used by the Researcher Edge Function's getFrameworkGuidance.
-// Kept in sync with supabase/functions/researcher-execute/index.ts (Task 21 refactors Edge Function to share this shape).
-const FRAMEWORK_GUIDANCE: Record<string, string> = {
+// Kept in sync with supabase/functions/researcher-execute/index.ts. The parity test in
+// `built-in-skills.test.ts` reads the Edge Function source at test time and asserts every
+// entry in this map appears byte-for-byte in the Edge Function file, so drift will fail CI.
+export const FRAMEWORK_GUIDANCE: Record<string, string> = {
   'heuristic-evaluation': `Apply Jakob Nielsen's 10 Usability Heuristics:
 1. Visibility of system status
 2. Match between system and the real world

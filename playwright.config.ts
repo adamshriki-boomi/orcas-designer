@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `PORT=${PORT} npm run dev`,
+    command: `PORT=${PORT} NEXT_DIST_DIR=.next-e2e npm run dev`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
@@ -37,6 +37,7 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_SUPABASE_URL: 'https://e2e-mock.supabase.co',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'e2e-mock-anon-key',
+      NEXT_DIST_DIR: '.next-e2e',
     },
   },
 });

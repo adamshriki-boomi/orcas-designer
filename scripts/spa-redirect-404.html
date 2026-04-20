@@ -5,28 +5,34 @@
     <title>Redirecting...</title>
     <script>
       // SPA redirect for GitHub Pages with static export.
-      // Dynamic routes like /prompt-generator/[id] only have a pre-rendered
+      // Dynamic routes like /<section>/[id] only have a pre-rendered
       // "placeholder" page, so we redirect to that page with the real ID
-      // as a query param.
+      // as a query param. Every section listed here MUST have a matching
+      // src/app/<section>/[id]/page.tsx route — the spa-redirect test
+      // fails if a dynamic route exists without coverage here.
       var basePath = '/orcas-designer';
+      var dynamicSections = ['prompt-generator', 'ux-writer', 'researcher'];
       var path = window.location.pathname;
-      if (path.startsWith(basePath)) {
+      if (path.indexOf(basePath) === 0) {
         path = path.slice(basePath.length);
       }
-      var promptMatch = path.match(/^\/prompt-generator\/([^\/]+)$/);
-      if (promptMatch && promptMatch[1] !== 'new' && promptMatch[1] !== 'placeholder') {
-        window.location.replace(
-          basePath + '/prompt-generator/placeholder?_id=' + encodeURIComponent(promptMatch[1])
-        );
-      } else if ((function() {
-        var uxMatch = path.match(/^\/ux-writer\/([^\/]+)$/);
-        return uxMatch && uxMatch[1] !== 'new' && uxMatch[1] !== 'placeholder';
-      })()) {
-        var uxId = path.match(/^\/ux-writer\/([^\/]+)$/)[1];
-        window.location.replace(
-          basePath + '/ux-writer/placeholder?_id=' + encodeURIComponent(uxId)
-        );
-      } else {
+      var segments = path.split('/').filter(Boolean);
+      var matched = false;
+      if (segments.length === 2) {
+        var section = segments[0];
+        var id = segments[1];
+        if (
+          dynamicSections.indexOf(section) !== -1 &&
+          id !== 'new' &&
+          id !== 'placeholder'
+        ) {
+          window.location.replace(
+            basePath + '/' + section + '/placeholder?_id=' + encodeURIComponent(id)
+          );
+          matched = true;
+        }
+      }
+      if (!matched) {
         var redirect = path + window.location.search + window.location.hash;
         window.location.replace(
           basePath + '/?redirect=' + encodeURIComponent(redirect)

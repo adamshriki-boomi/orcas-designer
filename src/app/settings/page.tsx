@@ -146,7 +146,7 @@ export default function SettingsPage() {
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold mb-1">AI Configuration</h2>
             <p className="text-sm text-muted-foreground mb-3">
-              Your Claude API key is used by the UX Writer to generate copy suggestions.
+              Your Claude API key powers every AI feature in the app — including the UX Writer and Researcher. One key, used everywhere.
             </p>
             {hasApiKey ? (
               <div className="flex items-center justify-between">

@@ -1,8 +1,8 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { FlaskConical, BotMessageSquare, PenLine, FileText } from 'lucide-react';
+import { SpaLink } from '@/components/ui/spa-link';
 import type { ResearcherProject } from '@/lib/researcher-types';
 import type { ActivityItem } from '@/lib/dashboard-metrics';
 import {
@@ -69,7 +69,7 @@ function ActiveJobRow({ job }: { job: ResearcherProject }) {
   const statusColor = RESEARCH_STATUS_COLOR[job.status];
   const current = job.progress?.currentMethod;
   return (
-    <Link
+    <SpaLink
       href={`/researcher/${job.id}`}
       className="block rounded-xl border border-border/50 bg-muted/30 p-3 transition-colors hover:bg-muted cursor-pointer"
       data-testid={`active-job-${job.id}`}
@@ -101,7 +101,7 @@ function ActiveJobRow({ job }: { job: ResearcherProject }) {
       <p className="text-xs text-muted-foreground mt-1 tabular-nums" data-testid={`progress-${job.id}`}>
         {pct}% · {job.progress?.completedMethods.length ?? 0} of {job.progress?.totalMethods ?? 0} methods
       </p>
-    </Link>
+    </SpaLink>
   );
 }
 
@@ -120,7 +120,7 @@ function RecentDraftsPanel({ items, now }: { items: ActivityItem[]; now?: Date }
         <ul className="space-y-2" role="list">
           {items.map((item) => (
             <li key={item.id}>
-              <Link
+              <SpaLink
                 href={item.href}
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted cursor-pointer"
               >
@@ -136,7 +136,7 @@ function RecentDraftsPanel({ items, now }: { items: ActivityItem[]; now?: Date }
                     {item.badgeLabel}
                   </ExBadge>
                 )}
-              </Link>
+              </SpaLink>
             </li>
           ))}
         </ul>

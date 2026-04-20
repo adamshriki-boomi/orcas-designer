@@ -102,6 +102,51 @@ test.describe('Dashboard', () => {
       await expect(page.getByRole('group', { name: 'Completed research' })).toContainText('1');
     });
 
+    test('links to dynamic routes include the basePath (no Next.js Link prefetch)', async ({ page }) => {
+      // Regression guard for prod 404s: Next.js <Link> renders href WITHOUT the
+      // basePath in the DOM attribute and prefetches on hover/idle. With static
+      // export on GitHub Pages those prefetches 404. SpaLink renders a plain
+      // <a> with the full basePath-prefixed href. Every dynamic-route link on
+      // the dashboard must start with `/orcas-designer/`.
+      await gotoApp(page);
+      await expect(page.getByTestId('activity-feed')).toBeVisible();
+      const hrefs = await page.$$eval(
+        'a[href*="/researcher/"], a[href*="/prompt-generator/"], a[href*="/ux-writer/"]',
+        (anchors) => anchors.map((a) => a.getAttribute('href') ?? '')
+      );
+      expect(hrefs.length).toBeGreaterThan(0);
+      for (const href of hrefs) {
+        const isDynamic = /\/(researcher|prompt-generator|ux-writer)\/(?!new$)[^/?#]+/.test(href);
+        if (isDynamic) {
+          expect(href, `dynamic-route link "${href}" must start with /orcas-designer/`).toMatch(
+            /^\/orcas-designer\//
+          );
+        }
+      }
+    });
+
+    test('dashboard does not trigger 404 responses for dynamic routes', async ({ page }) => {
+      // Captures the prod symptom directly: while loading the dashboard, no
+      // GET or HEAD to /researcher/:id / /prompt-generator/:id / /ux-writer/:id
+      // should resolve with a 404. If this fails, a Next.js <Link> has slipped
+      // in and is prefetching the dynamic route.
+      const badResponses: string[] = [];
+      page.on('response', (res) => {
+        const url = res.url();
+        const status = res.status();
+        const matchesDynamic = /\/(researcher|prompt-generator|ux-writer)\/(?!new\b|placeholder\b)[^/?#]+$/.test(
+          new URL(url).pathname
+        );
+        if (matchesDynamic && status === 404) {
+          badResponses.push(`${res.request().method()} ${url} -> ${status}`);
+        }
+      });
+      await gotoApp(page);
+      await expect(page.getByTestId('activity-feed')).toBeVisible();
+      await page.waitForTimeout(1000);
+      expect(badResponses, 'dynamic routes must not 404 during dashboard load').toEqual([]);
+    });
+
     test('no console errors on initial dashboard load', async ({ page }) => {
       const errors: string[] = [];
       page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));

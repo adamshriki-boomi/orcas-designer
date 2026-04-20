@@ -25,8 +25,8 @@ vi.mock('next/dynamic', () => ({
   },
 }));
 
-vi.mock('next/link', () => ({
-  default: ({ children, href, ...rest }: { children: React.ReactNode; href: string }) => (
+vi.mock('@/components/ui/spa-link', () => ({
+  SpaLink: ({ children, href, ...rest }: { children: React.ReactNode; href: string }) => (
     <a href={href} {...rest}>
       {children}
     </a>

@@ -1,10 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { FlaskConical, BotMessageSquare, PenLine } from 'lucide-react';
 import type { ActivityItem } from '@/lib/dashboard-metrics';
 import { relativeTimeLabel } from '@/lib/dashboard-metrics';
+import { SpaLink } from '@/components/ui/spa-link';
 
 const ExBadge = dynamic(
   () => import('@boomi/exosphere').then((m) => ({ default: m.ExBadge })),
@@ -42,7 +42,7 @@ export function ActivityFeed({ items, now, limit }: ActivityFeedProps) {
         <ol className="divide-y divide-border/50" role="list">
           {visible.map((item) => (
             <li key={item.id}>
-              <Link
+              <SpaLink
                 href={item.href}
                 className="flex items-center gap-3 py-2.5 transition-colors hover:bg-muted/40 rounded-lg cursor-pointer"
                 data-testid={`activity-${item.id}`}
@@ -61,7 +61,7 @@ export function ActivityFeed({ items, now, limit }: ActivityFeedProps) {
                     {item.badgeLabel}
                   </ExBadge>
                 )}
-              </Link>
+              </SpaLink>
             </li>
           ))}
         </ol>

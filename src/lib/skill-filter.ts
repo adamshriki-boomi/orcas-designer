@@ -1,7 +1,7 @@
 import type { Prompt } from './types';
 import type { MandatorySkill } from './constants';
 import { MANDATORY_SKILLS } from './constants';
-import { isFigmaUrl } from './prompt-sections/url-utils';
+import { isFigmaUrl } from './url-utils';
 
 export function getActiveSkillsForPrompt(project: Prompt): MandatorySkill[] {
   const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);

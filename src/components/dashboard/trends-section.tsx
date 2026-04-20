@@ -14,7 +14,6 @@ const ExEmptyState = dynamic(
 );
 
 export interface TrendsSectionProps {
-  interactionLevels: ChartDatum[];
   researchByStatus: ChartDatum[];
   promptsOverTime: ChartDatum[];
   researchOverTime: ChartDatum[];
@@ -27,7 +26,6 @@ export interface TrendsSectionProps {
 export function TrendsSection(props: TrendsSectionProps) {
   return (
     <section aria-label="Trends and top items" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <ChartCard title="Prompts by interaction level" data={props.interactionLevels} type="donut" />
       <ChartCard title="Research projects by status" data={props.researchByStatus} type="donut" />
       <ChartCard title="Prompts over time" data={props.promptsOverTime} type="line" alwaysShow />
       <ChartCard title="Research jobs over time" data={props.researchOverTime} type="line" alwaysShow />

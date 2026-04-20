@@ -29,7 +29,6 @@ import { MANDATORY_SKILLS } from '@/lib/constants';
 import { getActiveSkillsForPrompt } from '@/lib/skill-filter';
 import {
   bucketByMonth,
-  countPromptsByInteractionLevel,
   countResearchByStatus,
   countResearchMethodUsage,
   countSharedMemoryUsage,
@@ -179,7 +178,6 @@ export default function DashboardPage() {
     );
 
     return {
-      interactionLevels: countPromptsByInteractionLevel(prompts),
       researchByStatus: countResearchByStatus(research),
       promptsOverTime: bucketByMonth(prompts.map((p) => p.createdAt)),
       researchOverTime: bucketByMonth(

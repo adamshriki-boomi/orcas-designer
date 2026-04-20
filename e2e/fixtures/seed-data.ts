@@ -29,6 +29,7 @@ export const TEST_SESSION = {
 
 export type SeedData = {
   prompts: Array<Record<string, unknown>>;
+  prompt_versions: Array<Record<string, unknown>>;
   researcher_projects: Array<Record<string, unknown>>;
   ux_writer_analyses: Array<Record<string, unknown>>;
   shared_skills: Array<Record<string, unknown>>;
@@ -40,11 +41,20 @@ export type SeedData = {
 export function emptySeed(): SeedData {
   return {
     prompts: [],
+    prompt_versions: [],
     researcher_projects: [],
     ux_writer_analyses: [],
     shared_skills: [],
     shared_memories: [],
-    user_settings: [],
+    user_settings: [
+      {
+        id: 'settings-1',
+        user_id: TEST_USER.id,
+        claude_api_key: 'sk-ant-test-fake-key',
+        created_at: '2026-01-01T00:00:00.000Z',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     profiles: [
       {
         id: TEST_USER.id,
@@ -119,8 +129,6 @@ export function populatedSeed(): SeedData {
       user_id: TEST_USER.id,
       name: 'Checkout redesign',
       data: emptyPromptData(),
-      output_type: 'static-only',
-      interaction_level: 'static',
       accessibility_level: 'wcag-aa',
       browser_compatibility: ['chrome'],
       prompt_mode: 'comprehensive',
@@ -141,8 +149,6 @@ export function populatedSeed(): SeedData {
       user_id: TEST_USER.id,
       name: 'Landing page rebuild',
       data: emptyPromptData(),
-      output_type: 'static-and-interactive',
-      interaction_level: 'click-through',
       accessibility_level: 'none',
       browser_compatibility: ['chrome', 'firefox'],
       prompt_mode: 'comprehensive',
@@ -157,6 +163,46 @@ export function populatedSeed(): SeedData {
       custom_memories: [],
       created_at: iso(20),
       updated_at: iso(18),
+    },
+  ];
+
+  // Prompt-1 has two completed AI-authored versions + one legacy template v1.
+  seed.prompt_versions = [
+    {
+      id: 'version-legacy-1',
+      prompt_id: 'prompt-1',
+      user_id: TEST_USER.id,
+      version_number: 1,
+      status: 'completed',
+      content: '# Legacy template output for Checkout',
+      wizard_snapshot: {},
+      context_snapshot: null,
+      model: 'legacy-template',
+      input_tokens: null,
+      output_tokens: null,
+      thinking_enabled: false,
+      label: 'Legacy (template)',
+      error_message: null,
+      created_at: iso(5),
+      completed_at: iso(5),
+    },
+    {
+      id: 'version-ai-1',
+      prompt_id: 'prompt-1',
+      user_id: TEST_USER.id,
+      version_number: 2,
+      status: 'completed',
+      content: '# Claude Code Brief — Checkout redesign\n\n<context>\n...\n</context>',
+      wizard_snapshot: { Feature: 'Streamlined checkout' },
+      context_snapshot: {},
+      model: 'claude-opus-4-7',
+      input_tokens: 2100,
+      output_tokens: 12400,
+      thinking_enabled: true,
+      label: null,
+      error_message: null,
+      created_at: iso(1),
+      completed_at: iso(1),
     },
   ];
 

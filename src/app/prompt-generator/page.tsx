@@ -16,7 +16,7 @@ export default function ProjectsPage() {
     <FadeIn>
       <Header
         title="Prompt Generator"
-        description="Your prompt configurations"
+        description="Generate Claude Code briefs with the lo-fi → prototype → hi-fi progression"
         action={
           <Link href="/prompt-generator/new" className={buttonVariants()}>
             <PlusCircle />

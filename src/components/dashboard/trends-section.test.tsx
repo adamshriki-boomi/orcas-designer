@@ -20,7 +20,6 @@ vi.mock('next/dynamic', () => ({
 
 function empty() {
   return {
-    interactionLevels: [],
     researchByStatus: [],
     promptsOverTime: [],
     researchOverTime: [],
@@ -32,20 +31,17 @@ function empty() {
 }
 
 describe('TrendsSection', () => {
-  it('renders all 8 chart cards', () => {
+  it('renders all 7 chart cards', () => {
     const { container } = render(<TrendsSection {...empty()} />);
     const cards = container.querySelectorAll('[data-testid^="chart-"]');
-    // 8 chart cards, some may have empty-state children with their own testid
     const cardTestIds = Array.from(cards)
       .map((c) => c.getAttribute('data-testid') ?? '')
       .filter((t) => !t.startsWith('chart-empty-'));
-    expect(cardTestIds).toHaveLength(8);
+    expect(cardTestIds).toHaveLength(7);
   });
 
   it('renders empty state for donut/bar charts without data', () => {
     render(<TrendsSection {...empty()} />);
-    // Donut and bar charts should show empty state, not ex-chart
-    expect(screen.getByTestId('chart-empty-prompts-by-interaction-level')).toBeInTheDocument();
     expect(screen.getByTestId('chart-empty-research-projects-by-status')).toBeInTheDocument();
     expect(screen.getByTestId('chart-empty-top-skills-by-usage')).toBeInTheDocument();
     expect(screen.getByTestId('chart-empty-top-memories-by-usage')).toBeInTheDocument();
@@ -74,11 +70,11 @@ describe('TrendsSection', () => {
     expect(lineChart).toBeDefined();
   });
 
-  it('uses donut-chart type for interaction-level chart', () => {
+  it('uses donut-chart type for research-status chart', () => {
     render(
       <TrendsSection
         {...empty()}
-        interactionLevels={[{ x: 'Static', y: 4, z: 'Static' }]}
+        researchByStatus={[{ x: 'Completed', y: 4, z: 'Completed' }]}
       />
     );
     const charts = screen.getAllByTestId('ex-chart');

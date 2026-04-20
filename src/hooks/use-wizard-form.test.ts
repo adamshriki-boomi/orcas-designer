@@ -11,8 +11,6 @@ describe('useWizardForm', () => {
 
     expect(defaults.name).toBe('New Prompt')
     expect(defaults.id).toBe('')
-    expect(defaults.outputType).toBe('static-only')
-    expect(defaults.interactionLevel).toBe('static')
     expect(defaults.outputDirectory).toBe('./output/')
     expect(defaults.promptMode).toBe('comprehensive')
     expect(defaults.accessibilityLevel).toBe('none')
@@ -26,12 +24,19 @@ describe('useWizardForm', () => {
     expect(defaults.regenerationCount).toBe(0)
   })
 
+  it('initial state does NOT include outputType or interactionLevel (removed)', () => {
+    const { result } = renderHook(() => useWizardForm())
+    const defaults = result.current.formData as unknown as Record<string, unknown>
+    expect(defaults.outputType).toBeUndefined()
+    expect(defaults.interactionLevel).toBeUndefined()
+  })
+
   it('accepts a custom initialProject parameter', () => {
-    const custom = createTestPrompt({ name: 'Custom Project', interactionLevel: 'full-prototype' })
+    const custom = createTestPrompt({ name: 'Custom Project', accessibilityLevel: 'wcag-aa' })
     const { result } = renderHook(() => useWizardForm(custom))
 
     expect(result.current.formData.name).toBe('Custom Project')
-    expect(result.current.formData.interactionLevel).toBe('full-prototype')
+    expect(result.current.formData.accessibilityLevel).toBe('wcag-aa')
     expect(result.current.formData.id).toBe('test-id')
   })
 
@@ -98,26 +103,6 @@ describe('useWizardForm', () => {
     expect(result.current.formData.currentImplementation).toEqual(implData)
     expect(result.current.formData.currentImplementation.implementationMode).toBe('redesign')
     expect(result.current.formData.currentImplementation.figmaLinks).toHaveLength(1)
-  })
-
-  it('setOutputType updates outputType', () => {
-    const { result } = renderHook(() => useWizardForm())
-
-    act(() => {
-      result.current.setOutputType('static-and-interactive')
-    })
-
-    expect(result.current.formData.outputType).toBe('static-and-interactive')
-  })
-
-  it('setInteractionLevel updates interactionLevel', () => {
-    const { result } = renderHook(() => useWizardForm())
-
-    act(() => {
-      result.current.setInteractionLevel('click-through')
-    })
-
-    expect(result.current.formData.interactionLevel).toBe('click-through')
   })
 
   it('setOutputDirectory updates outputDirectory', () => {
@@ -256,7 +241,6 @@ describe('useWizardForm', () => {
     const { result } = renderHook(() => useWizardForm())
     const project = createTestPrompt({
       name: 'Loaded Project',
-      interactionLevel: 'full-prototype',
       accessibilityLevel: 'wcag-aaa',
       promptMode: 'lite',
     })
@@ -266,7 +250,6 @@ describe('useWizardForm', () => {
     })
 
     expect(result.current.formData.name).toBe('Loaded Project')
-    expect(result.current.formData.interactionLevel).toBe('full-prototype')
     expect(result.current.formData.accessibilityLevel).toBe('wcag-aaa')
     expect(result.current.formData.promptMode).toBe('lite')
     expect(result.current.formData.id).toBe('test-id')
@@ -279,9 +262,6 @@ describe('useWizardForm', () => {
       result.current.setName('Updated Project')
     })
     act(() => {
-      result.current.setInteractionLevel('full-prototype')
-    })
-    act(() => {
       result.current.setAccessibilityLevel('wcag-aa')
     })
     act(() => {
@@ -289,7 +269,6 @@ describe('useWizardForm', () => {
     })
 
     expect(result.current.formData.name).toBe('Updated Project')
-    expect(result.current.formData.interactionLevel).toBe('full-prototype')
     expect(result.current.formData.accessibilityLevel).toBe('wcag-aa')
     expect(result.current.formData.browserCompatibility).toEqual(['chrome', 'edge'])
     // unchanged fields remain at defaults

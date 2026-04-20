@@ -113,17 +113,17 @@ function StatusChip({ icon: Icon, label, active = false }: { icon: React.Element
 }
 
 export const PromptCard = memo(function PromptCard({ project }: PromptCardProps) {
-  const { completion, filledCount, relativeTime, hasFigma, skillCount, memoryCount, interactionLevel, outputLabel, OutputIcon } = useMemo(() => {
+  const { completion, filledCount, relativeTime, hasFigma, skillCount, memoryCount, outputLabel, OutputIcon, hasGeneratedPrompt } = useMemo(() => {
     const comp = getCompletionPercent(project);
     const filled = getFilledCount(project);
     const time = getRelativeTime(project.updatedAt);
     const figma = project.figmaFileLink.urlValue.trim().length > 0;
     const skills = MANDATORY_SKILLS.length + (project.selectedSharedSkillIds?.length ?? 0) + (project.customSkills?.length ?? 0);
     const memories = (project.selectedSharedMemoryIds?.length ?? 0) + (project.customMemories?.length ?? 0);
-    const interaction = project.interactionLevel ?? 'static';
-    const label = interaction === 'full-prototype' ? 'Full Prototype' : interaction === 'click-through' ? 'Click-through' : 'Static';
-    const icon = interaction === 'static' ? Image : Play;
-    return { completion: comp, filledCount: filled, relativeTime: time, hasFigma: figma, skillCount: skills, memoryCount: memories, interactionLevel: interaction, outputLabel: label, OutputIcon: icon };
+    const hasOutput = !!(project.generatedPrompt && project.generatedPrompt.length > 0);
+    const label = hasOutput ? 'Generated' : 'Draft';
+    const icon = hasOutput ? Play : Image;
+    return { completion: comp, filledCount: filled, relativeTime: time, hasFigma: figma, skillCount: skills, memoryCount: memories, outputLabel: label, OutputIcon: icon, hasGeneratedPrompt: hasOutput };
   }, [project]);
 
   return (
@@ -147,7 +147,7 @@ export const PromptCard = memo(function PromptCard({ project }: PromptCardProps)
         <CardContent>
           <div className="flex flex-wrap gap-1.5 mb-3">
             <StatusChip icon={LinkIcon} label="Figma" active={hasFigma} />
-            <StatusChip icon={OutputIcon} label={outputLabel} active={!!interactionLevel} />
+            <StatusChip icon={OutputIcon} label={outputLabel} active={hasGeneratedPrompt} />
             <StatusChip icon={Wand2} label={`${skillCount} skills`} active={skillCount > 0} />
             <StatusChip icon={Brain} label={`${memoryCount} mem`} active={memoryCount > 0} />
           </div>

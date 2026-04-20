@@ -49,12 +49,10 @@ describe('emptyPrompt', () => {
     expect(project.name).toBe('My Project')
   })
 
-  it('defaults outputType to static-only', () => {
-    expect(emptyPrompt('p-1', 'Test').outputType).toBe('static-only')
-  })
-
-  it('defaults interactionLevel to static', () => {
-    expect(emptyPrompt('p-1', 'Test').interactionLevel).toBe('static')
+  it('no longer includes outputType or interactionLevel (removed in AI redesign)', () => {
+    const project = emptyPrompt('p-1', 'Test') as unknown as Record<string, unknown>
+    expect(project.outputType).toBeUndefined()
+    expect(project.interactionLevel).toBeUndefined()
   })
 
   it('includes built-in-company-context in selectedSharedMemoryIds', () => {

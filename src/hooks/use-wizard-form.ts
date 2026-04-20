@@ -5,8 +5,6 @@ import type {
   Prompt,
   FormFieldData,
   CurrentImplementationData,
-  OutputType,
-  InteractionLevel,
   AccessibilityLevel,
   BrowserTarget,
   PromptMode,
@@ -34,8 +32,6 @@ type WizardAction =
   | { type: 'SET_NAME'; payload: string }
   | { type: 'SET_FIELD'; payload: { field: FormFieldKey; data: FormFieldData } }
   | { type: 'SET_CURRENT_IMPL'; payload: CurrentImplementationData }
-  | { type: 'SET_OUTPUT_TYPE'; payload: OutputType }
-  | { type: 'SET_INTERACTION_LEVEL'; payload: InteractionLevel }
   | { type: 'SET_OUTPUT_DIRECTORY'; payload: string }
   | { type: 'SET_PROMPT_MODE'; payload: PromptMode }
   | { type: 'SET_ACCESSIBILITY_LEVEL'; payload: AccessibilityLevel }
@@ -56,10 +52,6 @@ function wizardReducer(state: Prompt, action: WizardAction): Prompt {
       return { ...state, [action.payload.field]: action.payload.data };
     case 'SET_CURRENT_IMPL':
       return { ...state, currentImplementation: action.payload };
-    case 'SET_OUTPUT_TYPE':
-      return { ...state, outputType: action.payload };
-    case 'SET_INTERACTION_LEVEL':
-      return { ...state, interactionLevel: action.payload };
     case 'SET_OUTPUT_DIRECTORY':
       return { ...state, outputDirectory: action.payload };
     case 'SET_PROMPT_MODE':
@@ -103,14 +95,6 @@ export function useWizardForm(initialProject?: Prompt) {
 
   const setCurrentImpl = useCallback((data: CurrentImplementationData) => {
     dispatch({ type: 'SET_CURRENT_IMPL', payload: data });
-  }, []);
-
-  const setOutputType = useCallback((outputType: OutputType) => {
-    dispatch({ type: 'SET_OUTPUT_TYPE', payload: outputType });
-  }, []);
-
-  const setInteractionLevel = useCallback((level: InteractionLevel) => {
-    dispatch({ type: 'SET_INTERACTION_LEVEL', payload: level });
   }, []);
 
   const setOutputDirectory = useCallback((dir: string) => {
@@ -162,8 +146,6 @@ export function useWizardForm(initialProject?: Prompt) {
     setName,
     setField,
     setCurrentImpl,
-    setOutputType,
-    setInteractionLevel,
     setOutputDirectory,
     setPromptMode,
     setAccessibilityLevel,

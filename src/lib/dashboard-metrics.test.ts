@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   bucketByMonth,
   countResearchByStatus,
-  countPromptsByInteractionLevel,
   topN,
   countResearchMethodUsage,
   countSharedSkillUsage,
@@ -112,20 +111,6 @@ describe('countResearchByStatus', () => {
     ];
     const result = countResearchByStatus(projects);
     expect(result.map((r) => r.x)).toEqual(['Draft', 'Completed', 'Failed']);
-  });
-});
-
-describe('countPromptsByInteractionLevel', () => {
-  it('buckets prompts by interactionLevel and filters empty', () => {
-    const prompts = [
-      createTestPrompt({ id: 'a', interactionLevel: 'static' }),
-      createTestPrompt({ id: 'b', interactionLevel: 'static' }),
-      createTestPrompt({ id: 'c', interactionLevel: 'full-prototype' }),
-    ];
-    const result = countPromptsByInteractionLevel(prompts);
-    expect(result).toContainEqual({ x: 'Static Mockups', y: 2, z: 'Static Mockups' });
-    expect(result).toContainEqual({ x: 'Full Prototype', y: 1, z: 'Full Prototype' });
-    expect(result.find((r) => r.x === 'Click-through')).toBeUndefined();
   });
 });
 

@@ -1,42 +1,38 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw, BookOpen, FileText, Wrench, Settings, Brain, ExternalLink, Plus, Trash2, Upload } from 'lucide-react';
+import {
+  ArrowLeft,
+  RefreshCw,
+  Copy,
+  Check,
+  AlertCircle,
+  Pencil,
+  Trash2,
+  Loader2,
+} from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { usePrompt } from '@/hooks/use-prompt';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
-import { useSharedMemories, PRODUCT_CONTEXT_MEMORY_IDS, COMPANY_CONTEXT_MEMORY_ID, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS } from '@/hooks/use-shared-memories';
-import { usePromptGenerator } from '@/hooks/use-prompt-generator';
+import { useSharedMemories } from '@/hooks/use-shared-memories';
+import {
+  usePromptVersions,
+  useGenerateVersion,
+  useUpdateVersionLabel,
+  useDeleteVersion,
+} from '@/hooks/use-prompt-versions';
+import { useUserSettings } from '@/hooks/use-user-settings';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { FadeIn } from '@/components/ui/motion';
-import { PromptHeader } from '@/components/prompt-detail/prompt-header';
-import { FieldsGrid } from '@/components/prompt-detail/fields-grid';
-import { PromptPreview } from '@/components/prompt-detail/prompt-preview';
-import { EditFieldDrawer, type ContextMemory } from '@/components/prompt-detail/edit-field-drawer';
-import { SkillCard } from '@/components/skills/skill-card';
-import { CustomSkillAdder } from '@/components/skills/custom-skill-adder';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerClose,
-} from '@/components/ui/drawer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,95 +43,62 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { createClient } from '@/lib/supabase';
-import { getActiveSkillsForPrompt } from '@/lib/skill-filter';
-import { generateId } from '@/lib/id';
+import { PromptRenderer } from '@/components/prompt/prompt-renderer';
+import { buildPromptGenerationPayload } from '@/lib/prompt-payload-builder';
+import {
+  getLatestCompleted,
+  hasRunningVersion,
+  totalTokens,
+  formatTokens,
+  elapsedSeconds,
+  versionLabel,
+  statusText,
+} from '@/lib/prompt-version-utils';
 import { cn } from '@/lib/utils';
-import type { FormFieldData, InteractionLevel, ImplementationMode, CustomMemory, SharedSkill, CustomSkill, SharedMemory } from '@/lib/types';
-import type { MandatorySkill } from '@/lib/constants';
-
-const FIELD_LABELS: Record<string, string> = {
-  companyInfo: 'Company Info',
-  productInfo: 'Product Info',
-  featureInfo: 'Feature Info',
-  uxResearch: 'UX Research',
-  uxWriting: 'UX Writing',
-  figmaFileLink: 'Figma File',
-  designSystemStorybook: 'Storybook',
-  designSystemNpm: 'NPM Package',
-  designSystemFigma: 'Design System Figma',
-  prototypeSketches: 'Prototypes & Sketches',
-};
-
-const INTERACTION_LEVELS: { value: InteractionLevel; label: string; description: string }[] = [
-  { value: 'static', label: 'Static Mockups', description: 'High-fidelity static HTML pages with no interactivity' },
-  { value: 'click-through', label: 'Click-through Flows', description: 'Static pages with basic page-to-page navigation' },
-  { value: 'full-prototype', label: 'Full Prototype', description: 'Interactive prototype with animations and micro-interactions' },
-];
-
-const IMPLEMENTATION_MODES: { value: ImplementationMode; label: string; description: string }[] = [
-  { value: 'add-on-top', label: 'Add on Top', description: 'Build new elements on top of the existing implementation' },
-  { value: 'redesign', label: 'Redesign', description: 'Create a fresh design from scratch using current implementation as reference' },
-];
+import type { PromptVersion } from '@/lib/types';
 
 interface PromptDetailClientProps {
   id: string;
 }
 
 export default function PromptDetailClient({ id }: PromptDetailClientProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const [actualId] = useState(() => {
-    const queryId = searchParams.get('_id');
-    return queryId && id === 'placeholder' ? queryId : id;
-  });
-
-  useEffect(() => {
-    if (searchParams.get('_id')) {
-      window.history.replaceState(null, '', `${process.env.NEXT_PUBLIC_BASE_PATH}/prompt-generator/${actualId}`);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const { project, isLoading, updatePrompt } = usePrompt(actualId);
+  const { project, isLoading: promptLoading } = usePrompt(id);
   const { sharedSkills } = useSharedSkills();
   const { sharedMemories } = useSharedMemories();
-  const { prompt } = usePromptGenerator(project, sharedSkills, sharedMemories);
+  const {
+    versions,
+    isLoading: versionsLoading,
+    refresh: refreshVersions,
+  } = usePromptVersions(project?.id ?? null);
+  const { generate, isStarting, error: generateError } = useGenerateVersion();
+  const { updateLabel } = useUpdateVersionLabel();
+  const { deleteVersion } = useDeleteVersion();
+  const { hasApiKey, loading: settingsLoading } = useUserSettings();
   const { copied, copy } = useCopyToClipboard();
 
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [editInteractionOpen, setEditInteractionOpen] = useState(false);
-  const [editImplModeOpen, setEditImplModeOpen] = useState(false);
-  const [draftInteraction, setDraftInteraction] = useState<InteractionLevel>('static');
-  const [draftImplMode, setDraftImplMode] = useState<ImplementationMode>('add-on-top');
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [regenOpen, setRegenOpen] = useState(false);
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null);
+  const [labelDraft, setLabelDraft] = useState('');
 
-  // View drawer state for skills & memories
-  const [viewSkillDrawer, setViewSkillDrawer] = useState<{ open: boolean; skill: MandatorySkill | SharedSkill | CustomSkill | null }>({ open: false, skill: null });
-  const [viewMemoryDrawer, setViewMemoryDrawer] = useState<{ open: boolean; memory: SharedMemory | CustomMemory | null }>({ open: false, memory: null });
+  const latestCompleted = useMemo(() => getLatestCompleted(versions), [versions]);
+  const isGenerating = hasRunningVersion(versions);
 
-  // Custom memory form state
-  const [showMemoryForm, setShowMemoryForm] = useState(false);
-  const [memoryName, setMemoryName] = useState('');
-  const [memoryContent, setMemoryContent] = useState('');
-  const memoryFileRef = useRef<HTMLInputElement>(null);
+  const selectedVersion: PromptVersion | null = useMemo(() => {
+    if (selectedVersionId) {
+      return versions.find((v) => v.id === selectedVersionId) ?? null;
+    }
+    const running = versions.find((v) => v.status === 'running');
+    return running ?? latestCompleted;
+  }, [selectedVersionId, versions, latestCompleted]);
 
-  if (isLoading) {
+  if (promptLoading || versionsLoading || settingsLoading) {
     return (
       <>
-        <Header title="" />
+        <Header title="Prompt" description="Loading..." />
         <PageContainer>
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="h-8 w-48 animate-pulse rounded-lg bg-muted" />
-              <div className="h-4 w-72 animate-pulse rounded bg-muted" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-24 animate-pulse rounded-2xl bg-muted" />
-              ))}
-            </div>
+          <div className="grid place-items-center min-h-[40vh]">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
         </PageContainer>
       </>
@@ -145,625 +108,418 @@ export default function PromptDetailClient({ id }: PromptDetailClientProps) {
   if (!project) {
     return (
       <>
-        <Header title="Not Found" />
+        <Header title="Prompt not found" description="This prompt doesn't exist or you don't have access." />
         <PageContainer>
-          <div className="py-12 text-center">
-            <p className="text-muted-foreground mb-4">Prompt not found.</p>
-            <Link href="/prompt-generator" className={buttonVariants({ variant: 'outline' })}>
-              <ArrowLeft className="size-4" />
-              Back to Prompt Generator
-            </Link>
-          </div>
+          <Link
+            href="/prompt-generator"
+            className={cn(buttonVariants({ variant: 'outline' }), 'cursor-pointer')}
+          >
+            <ArrowLeft className="size-4" />
+            Back to Prompt Generator
+          </Link>
         </PageContainer>
       </>
     );
   }
 
-  const handleRename = async (name: string) => {
+  async function handleRegenerate() {
+    if (!project) return;
+    setRegenOpen(false);
     try {
-      await updatePrompt({ name });
-      toast.success('Prompt renamed');
-    } catch {
-      toast.error('Unable to rename prompt');
+      const { wizardSnapshot, contextSnapshot } = buildPromptGenerationPayload(
+        project,
+        sharedSkills,
+        sharedMemories,
+      );
+      await generate(project.id, wizardSnapshot, contextSnapshot);
+      toast.success('Generating with Claude Opus 4.7...');
+      await refreshVersions();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Generation failed';
+      toast.error(message);
     }
-  };
-
-  const handleRegeneratePrompt = async () => {
-    try {
-      await updatePrompt({
-        generatedPrompt: prompt,
-        regenerationCount: (project.regenerationCount ?? 0) + 1,
-      });
-      toast.success('Prompt regenerated');
-    } catch {
-      toast.error('Unable to regenerate prompt');
-    }
-  };
-
-  const handleSaveField = async (fieldKey: string, data: FormFieldData) => {
-    try {
-      await updatePrompt({ [fieldKey]: data });
-      toast.success('Field updated');
-    } catch {
-      toast.error('Unable to update field');
-    }
-  };
-
-  const handleCopyPrompt = async () => {
-    try {
-      const promptToUse = project.generatedPrompt || prompt;
-      await copy(promptToUse);
-    } catch {
-      toast.error('Unable to copy prompt');
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      const supabase = createClient();
-      await supabase.from('prompts').delete().eq('id', actualId);
-      setDeleteOpen(false);
-      router.push('/prompt-generator');
-      toast.success('Prompt deleted');
-    } catch {
-      toast.error('Unable to delete prompt');
-    }
-  };
-
-  const handleSaveInteractionLevel = async () => {
-    try {
-      await updatePrompt({ interactionLevel: draftInteraction });
-      setEditInteractionOpen(false);
-      toast.success('Interaction level updated');
-    } catch {
-      toast.error('Unable to update interaction level');
-    }
-  };
-
-  const handleSaveImplMode = async () => {
-    try {
-      await updatePrompt({
-        currentImplementation: { ...project.currentImplementation, implementationMode: draftImplMode },
-      });
-      setEditImplModeOpen(false);
-      toast.success('Implementation mode updated');
-    } catch {
-      toast.error('Unable to update implementation mode');
-    }
-  };
-
-  const handleAddCustomMemory = () => {
-    if (!memoryName.trim() || !memoryContent.trim()) return;
-    const newMemory: CustomMemory = {
-      id: generateId(),
-      name: memoryName.trim(),
-      content: memoryContent,
-    };
-    updatePrompt({ customMemories: [...project.customMemories, newMemory] });
-    setMemoryName('');
-    setMemoryContent('');
-    setShowMemoryForm(false);
-    if (memoryFileRef.current) memoryFileRef.current.value = '';
-    toast.success('Custom memory added');
-  };
-
-  const handleRemoveCustomMemory = (memoryId: string) => {
-    updatePrompt({ customMemories: project.customMemories.filter((m) => m.id !== memoryId) });
-    toast.success('Custom memory removed');
-  };
-
-  const handleMemoryFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setMemoryContent(event.target?.result as string);
-      if (!memoryName) setMemoryName(file.name.replace(/\.md$/, ''));
-    };
-    reader.readAsText(file);
-  };
-
-  const selectedSharedSkills = sharedSkills.filter((s) =>
-    project.selectedSharedSkillIds.includes(s.id)
-  );
-
-  const selectedSharedMemories = sharedMemories.filter((m) =>
-    (project.selectedSharedMemoryIds ?? []).includes(m.id)
-  );
-
-  const activeBuiltInSkills = project ? getActiveSkillsForPrompt(project) : [];
-
-  const editingFieldData = editingField
-    ? (project[editingField as keyof typeof project] as FormFieldData)
-    : null;
-
-  function getContextMemories(fieldKey: string): ContextMemory[] {
-    if (fieldKey === 'companyInfo') {
-      const mem = sharedMemories.find((m) => m.id === COMPANY_CONTEXT_MEMORY_ID);
-      return mem ? [{ memory: mem, locked: true }] : [];
-    }
-    if (fieldKey === 'productInfo') {
-      return sharedMemories
-        .filter((m) => PRODUCT_CONTEXT_MEMORY_IDS.includes(m.id))
-        .map((memory) => ({ memory, locked: false }));
-    }
-    if (fieldKey === 'designSystemStorybook') {
-      return sharedMemories
-        .filter((m) => DESIGN_SYSTEM_MEMORY_IDS.includes(m.id))
-        .map((memory) => ({ memory, locked: false }));
-    }
-    if (fieldKey === 'uxWriting') {
-      return sharedMemories
-        .filter((m) => UX_WRITING_MEMORY_IDS.includes(m.id))
-        .map((memory) => ({ memory, locked: false }));
-    }
-    return [];
   }
 
-  function getSkillRepo(skill: MandatorySkill | SharedSkill | CustomSkill): string | null {
-    if ('repoUrl' in skill) return skill.repoUrl;
-    if ('urlValue' in skill && skill.type === 'url' && skill.urlValue) return skill.urlValue;
-    return null;
+  async function handleCopy(content: string) {
+    try {
+      await copy(content);
+      toast.success('Copied to clipboard');
+    } catch {
+      toast.error('Unable to copy');
+    }
   }
+
+  async function handleSaveLabel(versionId: string) {
+    try {
+      await updateLabel(versionId, labelDraft);
+      toast.success('Label saved');
+      setEditingLabelId(null);
+      await refreshVersions();
+    } catch {
+      toast.error('Unable to save label');
+    }
+  }
+
+  async function handleDelete(versionId: string) {
+    if (!confirm('Delete this version? This cannot be undone.')) return;
+    try {
+      await deleteVersion(versionId);
+      toast.success('Version deleted');
+      if (selectedVersionId === versionId) setSelectedVersionId(null);
+      await refreshVersions();
+    } catch {
+      toast.error('Unable to delete version');
+    }
+  }
+
+  const regenDisabled = !hasApiKey || isStarting || isGenerating;
+  const regenTooltip = !hasApiKey
+    ? 'Add your Claude API key in Settings'
+    : isGenerating
+      ? 'A generation is already running'
+      : undefined;
 
   return (
     <>
-      <FadeIn>
-        <Header title={project.name} />
-        <Breadcrumbs items={[
+      <Header
+        title={project.name || 'Untitled prompt'}
+        description={`${versions.length} version${versions.length === 1 ? '' : 's'}`}
+      />
+      <Breadcrumbs
+        items={[
           { label: 'Prompt Generator', href: '/prompt-generator' },
-          { label: project.name },
-        ]} />
-        <PageContainer>
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="overview">
-                <BookOpen className="size-3.5" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="prompt">
-                <FileText className="size-3.5" />
-                Prompt
-              </TabsTrigger>
-              <TabsTrigger value="skills">
-                <Wrench className="size-3.5" />
-                Skills & Memories
-              </TabsTrigger>
-              <TabsTrigger value="settings">
-                <Settings className="size-3.5" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
+          { label: project.name || 'Untitled' },
+        ]}
+      />
+      <PageContainer wide>
+        <FadeIn>
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <Link
+              href="/prompt-generator"
+              className={cn(buttonVariants({ variant: 'outline' }), 'cursor-pointer')}
+            >
+              <ArrowLeft className="size-4" />
+              Back
+            </Link>
+            <div className="flex items-center gap-2">
+              {!hasApiKey && (
+                <Link
+                  href="/settings"
+                  className={cn(buttonVariants({ variant: 'outline' }), 'cursor-pointer')}
+                >
+                  Add Claude API key
+                </Link>
+              )}
+              <Button
+                onClick={() => setRegenOpen(true)}
+                disabled={regenDisabled}
+                title={regenTooltip}
+                className="cursor-pointer"
+              >
+                <RefreshCw className={cn('size-4', isStarting && 'animate-spin')} />
+                {isGenerating ? 'Generating...' : isStarting ? 'Starting...' : 'Regenerate'}
+              </Button>
+            </div>
+          </div>
 
-            {/* ===== Overview Tab ===== */}
-            <TabsContent value="overview">
-              <div className="space-y-6">
-                <PromptHeader project={project} onRename={handleRename} />
-                <FieldsGrid
-                  project={project}
-                  onEditField={(fieldKey) => setEditingField(fieldKey)}
-                  onEditInteractionLevel={() => {
-                    setDraftInteraction(project.interactionLevel);
-                    setEditInteractionOpen(true);
-                  }}
-                  onEditImplementationMode={() => {
-                    setDraftImplMode(project.currentImplementation.implementationMode);
-                    setEditImplModeOpen(true);
-                  }}
-                  sharedMemories={sharedMemories}
-                />
-              </div>
-            </TabsContent>
+          {generateError && (
+            <div className="rounded-xl border border-destructive/50 bg-destructive/5 p-4 mb-6 flex items-start gap-3">
+              <AlertCircle className="size-5 text-destructive mt-0.5 shrink-0" />
+              <p className="text-sm text-destructive">{generateError}</p>
+            </div>
+          )}
 
-            {/* ===== Prompt Tab ===== */}
-            <TabsContent value="prompt">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Prompt</h2>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={handleRegeneratePrompt}>
-                      <RefreshCw className="size-3.5" />
-                      Regenerate
-                    </Button>
-                  </div>
+          {versions.length === 0 ? (
+            <EmptyState onRegenerate={() => setRegenOpen(true)} hasApiKey={hasApiKey} />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+              <aside className="space-y-2" aria-label="Version history">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                  Versions
+                </p>
+                <div className="space-y-1">
+                  {versions.map((v) => (
+                    <VersionTab
+                      key={v.id}
+                      version={v}
+                      isSelected={selectedVersion?.id === v.id}
+                      onSelect={() => setSelectedVersionId(v.id)}
+                    />
+                  ))}
                 </div>
-                <PromptPreview
-                  prompt={project.generatedPrompt || prompt}
-                  onCopy={handleCopyPrompt}
-                  copied={copied}
-                />
-              </div>
-            </TabsContent>
+              </aside>
 
-            {/* ===== Skills & Memories Tab ===== */}
-            <TabsContent value="skills">
-              <div className="space-y-8">
-                {/* Built-in Skills */}
-                <section>
-                  <h3 className="text-base font-medium mb-3">Built-in Skills</h3>
-                  {activeBuiltInSkills.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {activeBuiltInSkills.map((skill) => (
-                        <SkillCard
-                          key={skill.name}
-                          skill={skill}
-                          locked
-                          onView={() => setViewSkillDrawer({ open: true, skill })}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No built-in skills active for this prompt configuration.</p>
-                  )}
-                </section>
-
-                {/* Shared Skills */}
-                <section>
-                  <h3 className="text-base font-medium mb-3">Shared Skills</h3>
-                  {selectedSharedSkills.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {selectedSharedSkills.map((skill) => (
-                        <SkillCard
-                          key={skill.id}
-                          skill={skill}
-                          onView={() => setViewSkillDrawer({ open: true, skill })}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No shared skills selected.</p>
-                  )}
-                </section>
-
-                {/* Custom Skills */}
-                <section>
-                  <h3 className="text-base font-medium mb-3">Custom Skills</h3>
-                  <CustomSkillAdder
-                    skills={project.customSkills}
-                    onChange={(skills) => updatePrompt({ customSkills: skills })}
+              <section className="space-y-4 min-w-0">
+                {selectedVersion ? (
+                  <VersionPanel
+                    version={selectedVersion}
+                    onCopy={() => handleCopy(selectedVersion.content ?? '')}
+                    copied={copied}
+                    onEditLabel={() => {
+                      setEditingLabelId(selectedVersion.id);
+                      setLabelDraft(selectedVersion.label ?? '');
+                    }}
+                    onDelete={() => handleDelete(selectedVersion.id)}
+                    onRetry={() => setRegenOpen(true)}
+                    canRetry={selectedVersion.status === 'failed' && !regenDisabled}
+                    editingLabel={editingLabelId === selectedVersion.id}
+                    labelDraft={labelDraft}
+                    onLabelDraftChange={setLabelDraft}
+                    onSaveLabel={() => handleSaveLabel(selectedVersion.id)}
+                    onCancelLabel={() => setEditingLabelId(null)}
                   />
-                </section>
+                ) : (
+                  <Card>
+                    <CardContent>No version selected.</CardContent>
+                  </Card>
+                )}
+              </section>
+            </div>
+          )}
+        </FadeIn>
+      </PageContainer>
 
-                {/* Shared Memories */}
-                <section>
-                  <h3 className="text-base font-medium mb-3 flex items-center gap-2">
-                    <Brain className="size-4" />
-                    Shared Memories
-                  </h3>
-                  {selectedSharedMemories.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {selectedSharedMemories.map((memory) => (
-                        <Card
-                          key={memory.id}
-                          size="sm"
-                          className="cursor-pointer transition-all duration-150 hover:shadow-card-hover hover:scale-[1.01]"
-                          onClick={() => setViewMemoryDrawer({ open: true, memory })}
-                        >
-                          <CardHeader>
-                            <CardTitle className="text-sm flex items-center gap-2">
-                              <Brain className="size-3.5 text-muted-foreground" />
-                              {memory.name}
-                              {memory.isBuiltIn && <Badge variant="secondary">Built-in</Badge>}
-                            </CardTitle>
-                          </CardHeader>
-                          {memory.description && (
-                            <CardContent>
-                              <p className="text-sm text-muted-foreground line-clamp-2">{memory.description}</p>
-                            </CardContent>
-                          )}
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No shared memories selected.</p>
-                  )}
-                </section>
-
-                {/* Custom Memories */}
-                <section>
-                  <h3 className="text-base font-medium mb-3 flex items-center gap-2">
-                    <Brain className="size-4" />
-                    Custom Memories
-                  </h3>
-                  {project.customMemories.length > 0 && (
-                    <div className="grid gap-2 mb-3">
-                      {project.customMemories.map((memory) => (
-                        <Card key={memory.id} size="sm">
-                          <CardContent className="flex items-center justify-between">
-                            <span
-                              className="text-sm font-medium cursor-pointer hover:underline"
-                              onClick={() => setViewMemoryDrawer({ open: true, memory })}
-                            >
-                              {memory.name}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon-xs"
-                              onClick={() => handleRemoveCustomMemory(memory.id)}
-                            >
-                              <Trash2 className="text-destructive" />
-                              <span className="sr-only">Remove</span>
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-
-                  {showMemoryForm ? (
-                    <Card size="sm">
-                      <CardContent className="space-y-3">
-                        <div className="space-y-1.5">
-                          <Label htmlFor="custom-memory-file">Upload .md file</Label>
-                          <Input
-                            id="custom-memory-file"
-                            ref={memoryFileRef}
-                            type="file"
-                            accept=".md,.markdown,.txt"
-                            onChange={handleMemoryFileUpload}
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label>Name</Label>
-                          <Input
-                            placeholder="Memory name"
-                            value={memoryName}
-                            onChange={(e) => setMemoryName(e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label>Content</Label>
-                          <Textarea
-                            placeholder="Paste markdown content or upload a file..."
-                            value={memoryContent}
-                            onChange={(e) => setMemoryContent(e.target.value)}
-                            rows={6}
-                            className="font-mono text-xs"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={handleAddCustomMemory}
-                            disabled={!memoryName.trim() || !memoryContent.trim()}
-                          >
-                            <Upload className="size-4" />
-                            Add Memory
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => { setShowMemoryForm(false); setMemoryName(''); setMemoryContent(''); }}>
-                            Cancel
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={() => setShowMemoryForm(true)}>
-                      <Plus />
-                      Add Custom Memory
-                    </Button>
-                  )}
-                </section>
-              </div>
-            </TabsContent>
-
-            {/* ===== Settings Tab ===== */}
-            <TabsContent value="settings">
-              <div className="space-y-6">
-                <div className="rounded-lg border border-destructive/20 p-6">
-                  <h3 className="text-base font-medium text-destructive mb-2">Danger Zone</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Once you delete a prompt, there is no going back. All prompt data will be permanently removed.
-                  </p>
-                  <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-                    <Trash2 className="size-3.5" />
-                    Delete Prompt
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </PageContainer>
-      </FadeIn>
-
-      {/* ===== Delete Confirmation ===== */}
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialog open={regenOpen} onOpenChange={setRegenOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete prompt?</AlertDialogTitle>
+            <AlertDialogTitle>Regenerate with Claude Opus 4.7?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. The prompt and all its data will be permanently deleted.
+              {latestCompleted ? (
+                <>
+                  Last version used ~{formatTokens(latestCompleted.outputTokens)} output tokens and took{' '}
+                  {elapsedSeconds(latestCompleted)}s. A new generation starts from your current wizard answers.
+                </>
+              ) : (
+                'A new generation takes 30–90 seconds and runs against your Claude API key.'
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRegenerate} className="cursor-pointer">
+              Regenerate
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </>
+  );
+}
 
-      {/* ===== Edit Field Drawer ===== */}
-      {editingField && editingFieldData && (
-        <EditFieldDrawer
-          open={!!editingField}
-          onOpenChange={(open) => {
-            if (!open) setEditingField(null);
-          }}
-          fieldKey={editingField}
-          label={FIELD_LABELS[editingField] ?? editingField}
-          data={editingFieldData}
-          onSave={(data) => {
-            handleSaveField(editingField, data);
-            setEditingField(null);
-          }}
-          contextMemories={getContextMemories(editingField)}
-          selectedMemoryIds={project.selectedSharedMemoryIds ?? []}
-          onSelectedMemoryIdsChange={(ids) => updatePrompt({ selectedSharedMemoryIds: ids })}
-        />
+function EmptyState({
+  onRegenerate,
+  hasApiKey,
+}: {
+  onRegenerate: () => void;
+  hasApiKey: boolean;
+}) {
+  return (
+    <Card>
+      <CardContent className="py-12 text-center space-y-4">
+        <p className="text-lg font-semibold">No generations yet</p>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">
+          This prompt hasn&apos;t been generated. Click below to have Claude Opus 4.7 author a
+          Claude Code brief from your wizard answers.
+        </p>
+        <Button onClick={onRegenerate} disabled={!hasApiKey} className="cursor-pointer">
+          <RefreshCw className="size-4" />
+          Generate now
+        </Button>
+        {!hasApiKey && (
+          <p className="text-xs text-muted-foreground">
+            <Link href="/settings" className="underline">
+              Add your Claude API key in Settings
+            </Link>{' '}
+            first.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function VersionTab({
+  version,
+  isSelected,
+  onSelect,
+}: {
+  version: PromptVersion;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  const status = version.status;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-current={isSelected ? 'true' : undefined}
+      className={cn(
+        'w-full text-left rounded-lg border px-3 py-2 transition-all cursor-pointer',
+        isSelected
+          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+          : 'border-border hover:bg-muted/50',
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium truncate">{versionLabel(version)}</span>
+        <StatusBadge status={status} />
+      </div>
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+        <span>{new Date(version.createdAt).toLocaleString()}</span>
+        {status === 'completed' && version.outputTokens !== null && (
+          <span>· {formatTokens(version.outputTokens)} out</span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function StatusBadge({ status }: { status: PromptVersion['status'] }) {
+  if (status === 'running') {
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <Loader2 className="size-3 animate-spin" />
+        Running
+      </Badge>
+    );
+  }
+  if (status === 'failed') return <Badge variant="destructive">Failed</Badge>;
+  return <Badge variant="secondary">Done</Badge>;
+}
+
+function VersionPanel({
+  version,
+  onCopy,
+  copied,
+  onEditLabel,
+  onDelete,
+  onRetry,
+  canRetry,
+  editingLabel,
+  labelDraft,
+  onLabelDraftChange,
+  onSaveLabel,
+  onCancelLabel,
+}: {
+  version: PromptVersion;
+  onCopy: () => void;
+  copied: boolean;
+  onEditLabel: () => void;
+  onDelete: () => void;
+  onRetry: () => void;
+  canRetry: boolean;
+  editingLabel: boolean;
+  labelDraft: string;
+  onLabelDraftChange: (v: string) => void;
+  onSaveLabel: () => void;
+  onCancelLabel: () => void;
+}) {
+  return (
+    <>
+      <Card>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {editingLabel ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={labelDraft}
+                    onChange={(e) => onLabelDraftChange(e.target.value)}
+                    placeholder={`v${version.versionNumber}`}
+                    className="w-64"
+                  />
+                  <Button size="sm" onClick={onSaveLabel} className="cursor-pointer">
+                    Save
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={onCancelLabel} className="cursor-pointer">
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-base font-semibold">{versionLabel(version)}</h2>
+                  <Button size="icon" variant="ghost" onClick={onEditLabel} className="cursor-pointer">
+                    <Pencil className="size-3.5" />
+                  </Button>
+                </>
+              )}
+              <Badge variant="secondary">{statusText(version.status)}</Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              {version.status === 'completed' && version.content && (
+                <Button variant="outline" size="sm" onClick={onCopy} className="cursor-pointer">
+                  {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                  {copied ? 'Copied' : 'Copy'}
+                </Button>
+              )}
+              {version.status === 'failed' && canRetry && (
+                <Button variant="outline" size="sm" onClick={onRetry} className="cursor-pointer">
+                  <RefreshCw className="size-3.5" />
+                  Retry
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={onDelete} className="cursor-pointer">
+                <Trash2 className="size-3.5 text-muted-foreground" />
+              </Button>
+            </div>
+          </div>
+          <Metadata version={version} />
+        </CardContent>
+      </Card>
+
+      {version.status === 'running' && (
+        <Card>
+          <CardContent className="py-10 text-center space-y-3">
+            <Loader2 className="size-8 animate-spin mx-auto text-muted-foreground" />
+            <p className="text-sm font-medium">Generating your brief with Claude Opus 4.7</p>
+            <p className="text-xs text-muted-foreground">
+              This usually takes 30–90 seconds. This page refreshes automatically.
+            </p>
+          </CardContent>
+        </Card>
       )}
 
-      {/* ===== Edit Interaction Level Drawer ===== */}
-      <Drawer open={editInteractionOpen} onOpenChange={setEditInteractionOpen}>
-        <DrawerContent width="25">
-          <DrawerHeader>
-            <DrawerTitle>Edit Interaction Level</DrawerTitle>
-            <DrawerDescription>Choose the level of interactivity for the prototype output.</DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 py-2 space-y-2">
-            {INTERACTION_LEVELS.map((level) => (
-              <Card
-                key={level.value}
-                size="sm"
-                className={cn(
-                  'cursor-pointer transition-all duration-150 hover:shadow-card-hover',
-                  draftInteraction === level.value && 'ring-2 ring-primary'
-                )}
-                onClick={() => setDraftInteraction(level.value)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDraftInteraction(level.value); } }}
-              >
-                <CardHeader>
-                  <CardTitle className="text-sm">{level.label}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">{level.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+      {version.status === 'failed' && (
+        <div className="rounded-xl border border-destructive/50 bg-destructive/5 p-4 flex items-start gap-3">
+          <AlertCircle className="size-5 text-destructive mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-destructive">Generation failed</p>
+            <p className="text-sm text-destructive/80 mt-1">{version.errorMessage ?? 'Unknown error'}</p>
           </div>
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DrawerClose>
-            <Button onClick={handleSaveInteractionLevel}>Save</Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+        </div>
+      )}
 
-      {/* ===== Edit Implementation Mode Drawer ===== */}
-      <Drawer open={editImplModeOpen} onOpenChange={setEditImplModeOpen}>
-        <DrawerContent width="25">
-          <DrawerHeader>
-            <DrawerTitle>Edit Implementation Mode</DrawerTitle>
-            <DrawerDescription>Choose how to build relative to the existing implementation.</DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 py-2 space-y-2">
-            {IMPLEMENTATION_MODES.map((mode) => (
-              <Card
-                key={mode.value}
-                size="sm"
-                className={cn(
-                  'cursor-pointer transition-all duration-150 hover:shadow-card-hover',
-                  draftImplMode === mode.value && 'ring-2 ring-primary'
-                )}
-                onClick={() => setDraftImplMode(mode.value)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDraftImplMode(mode.value); } }}
-              >
-                <CardHeader>
-                  <CardTitle className="text-sm">{mode.label}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">{mode.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DrawerClose>
-            <Button onClick={handleSaveImplMode}>Save</Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-
-      {/* ===== View Skill Drawer ===== */}
-      <Drawer open={viewSkillDrawer.open} onOpenChange={(open) => { if (!open) setViewSkillDrawer({ open: false, skill: null }); }}>
-        <DrawerContent width="25">
-          <DrawerHeader>
-            <DrawerTitle>{viewSkillDrawer.skill?.name ?? 'Skill'}</DrawerTitle>
-          </DrawerHeader>
-          {viewSkillDrawer.skill && (
-            <div className="px-4 py-2 space-y-4">
-              {'description' in viewSkillDrawer.skill && viewSkillDrawer.skill.description && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
-                  <p className="text-sm">{viewSkillDrawer.skill.description}</p>
-                </div>
-              )}
-              {'invocation' in viewSkillDrawer.skill && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Invocation</p>
-                  <code className="text-sm bg-muted px-2 py-1 rounded">{viewSkillDrawer.skill.invocation}</code>
-                </div>
-              )}
-              {'category' in viewSkillDrawer.skill && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Category</p>
-                  <Badge variant="secondary">{viewSkillDrawer.skill.category}</Badge>
-                </div>
-              )}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">GitHub Repository</p>
-                {(() => {
-                  const repo = getSkillRepo(viewSkillDrawer.skill);
-                  return repo ? (
-                    <a href={repo} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
-                      {repo}
-                      <ExternalLink className="size-3" />
-                    </a>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">None</span>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button variant="outline">Close</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-
-      {/* ===== View Memory Drawer ===== */}
-      <Drawer open={viewMemoryDrawer.open} onOpenChange={(open) => { if (!open) setViewMemoryDrawer({ open: false, memory: null }); }}>
-        <DrawerContent width="25">
-          <DrawerHeader>
-            <DrawerTitle>{viewMemoryDrawer.memory?.name ?? 'Memory'}</DrawerTitle>
-          </DrawerHeader>
-          {viewMemoryDrawer.memory && (
-            <div className="px-4 py-2 space-y-4">
-              {'description' in viewMemoryDrawer.memory && viewMemoryDrawer.memory.description && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
-                  <p className="text-sm">{viewMemoryDrawer.memory.description}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">GitHub Repository</p>
-                <span className="text-sm text-muted-foreground">None</span>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">Content</p>
-                <ScrollArea className="h-64 rounded-lg border">
-                  <pre className="whitespace-pre-wrap p-4 text-xs font-mono text-muted-foreground">
-                    {viewMemoryDrawer.memory.content}
-                  </pre>
-                </ScrollArea>
-              </div>
-            </div>
-          )}
-          <DrawerFooter>
-            <DrawerClose asChild>
-              <Button variant="outline">Close</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+      {version.status === 'completed' && version.content && (
+        <Card>
+          <CardContent>
+            <ScrollArea className="max-h-[70vh]">
+              <PromptRenderer prompt={version.content} />
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
     </>
+  );
+}
+
+function Metadata({ version }: { version: PromptVersion }) {
+  const rows: Array<[string, string]> = [
+    ['Model', version.model],
+    ['Thinking', version.thinkingEnabled ? 'Adaptive' : 'Disabled'],
+    ['Input tokens', formatTokens(version.inputTokens)],
+    ['Output tokens', formatTokens(version.outputTokens)],
+    ['Total tokens', formatTokens(totalTokens(version))],
+    ['Elapsed', elapsedSeconds(version) !== null ? `${elapsedSeconds(version)}s` : '—'],
+    ['Created', new Date(version.createdAt).toLocaleString()],
+  ];
+  return (
+    <dl className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 text-xs">
+      {rows.map(([label, value]) => (
+        <div key={label}>
+          <dt className="text-muted-foreground">{label}</dt>
+          <dd className="font-medium truncate">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

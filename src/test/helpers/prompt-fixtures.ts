@@ -67,8 +67,6 @@ export function createFullPrompt(overrides: Partial<Prompt> = {}): Prompt {
     designSystemNpm: { ...emptyFormField(), inputType: 'text', textValue: '@example/ds' },
     designSystemFigma: { ...emptyFormField(), urlValue: 'https://www.figma.com/design/ds/DS' },
     prototypeSketches: { ...emptyFormField(), urlValue: 'https://prototype.example.com' },
-    outputType: 'static-and-interactive',
-    interactionLevel: 'full-prototype',
     accessibilityLevel: 'wcag-aa',
     browserCompatibility: ['chrome', 'firefox', 'safari'],
     designDirection: {

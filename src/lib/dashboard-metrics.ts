@@ -85,16 +85,6 @@ export function countResearchByStatus(projects: ResearcherProject[]): ChartDatum
     }));
 }
 
-export function countPromptsByInteractionLevel(prompts: Prompt[]): ChartDatum[] {
-  const buckets = {
-    'Static Mockups': prompts.filter((p) => p.interactionLevel === 'static').length,
-    'Click-through': prompts.filter((p) => p.interactionLevel === 'click-through').length,
-    'Full Prototype': prompts.filter((p) => p.interactionLevel === 'full-prototype').length,
-  };
-  return Object.entries(buckets)
-    .filter(([, count]) => count > 0)
-    .map(([label, count]) => ({ x: label, y: count, z: label }));
-}
 
 export function topN<T>(
   items: T[],
@@ -157,7 +147,7 @@ function promptActivity(p: Prompt): ActivityItem {
     title: p.name || 'Untitled prompt',
     timestamp: p.updatedAt,
     href: `/prompt-generator/${p.id}`,
-    badgeLabel: p.interactionLevel,
+    badgeLabel: p.generatedPrompt ? 'Generated' : 'Draft',
     badgeColor: 'navy',
   };
 }

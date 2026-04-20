@@ -909,30 +909,22 @@ A hallmark of a mature UX Research team is that engagements never truly end. Res
 export const BUILT_IN_UX_RESEARCH_PROCESS_MEMORY_ID = 'built-in-ux-research-process';
 
 export const WIZARD_STEPS = [
-  { key: 'company-info', label: 'Company Info', required: false },
-  { key: 'product-info', label: 'Product Info', required: true },
-  { key: 'feature-info', label: 'Feature Info', required: true },
-  { key: 'current-impl', label: 'Current Implementation', required: false },
-  { key: 'ux-research', label: 'UX Research', required: false },
-  { key: 'ux-writing', label: 'UX Writing', required: false },
-  { key: 'figma-link', label: 'Figma File', required: false },
-  { key: 'ds-storybook', label: 'Storybook', required: false },
-  { key: 'ds-npm', label: 'NPM Package', required: false },
-  { key: 'ds-figma', label: 'Design System Figma', required: false },
-  { key: 'prototypes', label: 'Prototypes', required: false },
-  { key: 'output-type', label: 'Output Type', required: true },
-  { key: 'advanced-options', label: 'Advanced Options', required: false },
-  { key: 'skills', label: 'Skills', required: false },
-  { key: 'memories', label: 'Memories', required: false },
-  { key: 'review', label: 'Review & Generate', required: false },
+  { key: 'company-product', label: 'Company & Product', required: true },
+  { key: 'feature', label: 'Feature', required: true },
+  { key: 'current-state', label: 'Current State', required: false },
+  { key: 'design-system', label: 'Design System', required: false },
+  { key: 'voice-writing', label: 'Voice & Writing', required: false },
+  { key: 'deliverables', label: 'Deliverables & Constraints', required: false },
+  { key: 'skills-memories', label: 'Skills & Memories', required: false },
+  { key: 'review', label: 'Review & Generate', required: true },
 ] as const;
 
 export const TOTAL_STEPS = WIZARD_STEPS.length;
 
 export const PROMPT_GENERATOR_STEP_GROUPS = [
-  { label: 'Context', range: [0, 5] as const },
-  { label: 'Design Assets', range: [6, 10] as const },
-  { label: 'Configuration', range: [11, 15] as const },
+  { label: 'Context', range: [0, 2] as const },
+  { label: 'Design & Voice', range: [3, 4] as const },
+  { label: 'Configuration', range: [5, 7] as const },
 ];
 
 // Built-in memory IDs — used by prompt section builders (pure functions) and hooks

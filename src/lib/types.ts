@@ -3,11 +3,10 @@ export type SkillId = string;
 export type MemoryId = string;
 export type FieldType = 'url' | 'file' | 'text';
 export type ImplementationMode = 'add-on-top' | 'redesign';
-export type OutputType = 'static-only' | 'static-and-interactive';
-export type InteractionLevel = 'static' | 'click-through' | 'full-prototype';
 export type AccessibilityLevel = 'none' | 'wcag-aa' | 'wcag-aaa';
 export type BrowserTarget = 'chrome' | 'firefox' | 'safari' | 'edge';
 export type PromptMode = 'lite' | 'comprehensive';
+export type PromptVersionStatus = 'running' | 'completed' | 'failed';
 
 export interface DesignDirection {
   primaryColor: string;
@@ -92,8 +91,6 @@ export interface Prompt {
   designSystemNpm: FormFieldData;
   designSystemFigma: FormFieldData;
   prototypeSketches: FormFieldData;
-  outputType: OutputType;
-  interactionLevel: InteractionLevel;
   outputDirectory: string;
   accessibilityLevel: AccessibilityLevel;
   externalResourcesAccessible: boolean;
@@ -106,6 +103,29 @@ export interface Prompt {
   customMemories: CustomMemory[];
   regenerationCount: number;
   generatedPrompt: string;
+}
+
+/**
+ * A single AI-authored generation of a prompt. Multiple versions per Prompt;
+ * history is immutable except for label edits and soft-deletes.
+ */
+export interface PromptVersion {
+  id: string;
+  promptId: PromptId;
+  userId: string;
+  versionNumber: number;
+  status: PromptVersionStatus;
+  content: string | null;
+  wizardSnapshot: Record<string, unknown>;
+  contextSnapshot: Record<string, unknown> | null;
+  model: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  thinkingEnabled: boolean;
+  label: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+  completedAt: string | null;
 }
 
 // ── UX Writer Types ──────────────────────────────────────────────
@@ -168,8 +188,6 @@ export const emptyPrompt = (id: string, name: string): Prompt => ({
   designSystemNpm: { ...emptyFormField(), inputType: 'text' },
   designSystemFigma: emptyFormField(),
   prototypeSketches: emptyFormField(),
-  outputType: 'static-only',
-  interactionLevel: 'static',
   outputDirectory: './output/',
   accessibilityLevel: 'none',
   externalResourcesAccessible: true,

@@ -1,43 +1,42 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWizardForm } from '@/hooks/use-wizard-form';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
-import { useSharedMemories, COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS } from '@/hooks/use-shared-memories';
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import {
+  useSharedMemories,
+  COMPANY_CONTEXT_MEMORY_ID,
+  PRODUCT_CONTEXT_MEMORY_IDS,
+  DESIGN_SYSTEM_MEMORY_IDS,
+  UX_WRITING_MEMORY_IDS,
+} from '@/hooks/use-shared-memories';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
 import { promptToRow } from '@/hooks/use-prompts';
 import { generateId } from '@/lib/id';
-import { generatePrompt } from '@/lib/prompt-generator';
 import { isFieldFilled } from '@/lib/validators';
-import { WIZARD_STEPS, TOTAL_STEPS, PROMPT_GENERATOR_STEP_GROUPS, BUILT_IN_COMPANY_CONTEXT } from '@/lib/constants';
+import {
+  WIZARD_STEPS,
+  PROMPT_GENERATOR_STEP_GROUPS,
+  BUILT_IN_COMPANY_CONTEXT,
+} from '@/lib/constants';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { WizardShell } from '@/components/wizard/wizard-shell';
-import { StepCompanyInfo } from '@/components/wizard/step-company-info';
-import { StepProductInfo } from '@/components/wizard/step-product-info';
+import { StepCompanyProduct } from '@/components/wizard/step-company-product';
 import { StepFeatureInfo } from '@/components/wizard/step-feature-info';
-import { StepCurrentImpl } from '@/components/wizard/step-current-impl';
-import { StepFigmaLink } from '@/components/wizard/step-figma-link';
-import { StepDesignSystemStorybook } from '@/components/wizard/step-design-system-storybook';
-import { StepDesignSystemNpm } from '@/components/wizard/step-design-system-npm';
-import { StepDesignSystemFigma } from '@/components/wizard/step-design-system-figma';
-import { StepUxResearch } from '@/components/wizard/step-ux-research';
-import { StepUxWriting } from '@/components/wizard/step-ux-writing';
-import { StepPrototypes } from '@/components/wizard/step-prototypes';
-import { StepOutputType } from '@/components/wizard/step-output-type';
-import { StepAdvancedOptions } from '@/components/wizard/step-advanced-options';
-import { StepSkills } from '@/components/wizard/step-skills';
-import { StepMemories } from '@/components/wizard/step-memories';
-import { StepReview } from '@/components/wizard/step-review';
+import { StepCurrentState } from '@/components/wizard/step-current-state';
+import { StepDesignSystem } from '@/components/wizard/step-design-system';
+import { StepVoiceWriting } from '@/components/wizard/step-voice-writing';
+import { StepDeliverables } from '@/components/wizard/step-deliverables';
+import { StepSkillsMemories } from '@/components/wizard/step-skills-memories';
+import { StepReviewGenerate } from '@/components/wizard/step-review-generate';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
 import type { FormFieldData } from '@/lib/types';
 import { SectionLoader } from '@/components/ui/loader';
-import { Suspense } from 'react';
 
 function WizardContent() {
   const router = useRouter();
@@ -46,17 +45,13 @@ function WizardContent() {
   const currentStep = Number(searchParams.get('step') ?? '0');
   const { sharedSkills, isLoading: skillsLoading } = useSharedSkills();
   const { sharedMemories, isLoading: memoriesLoading } = useSharedMemories();
-  const { copied, copy } = useCopyToClipboard();
 
   const {
     formData,
     setName,
     setField,
     setCurrentImpl,
-    setOutputType,
-    setInteractionLevel,
     setOutputDirectory,
-    setPromptMode,
     setAccessibilityLevel,
     setBrowserCompat,
     setExternalResources,
@@ -71,165 +66,202 @@ function WizardContent() {
     (step: number) => {
       router.replace(`/prompt-generator/new?step=${step}`);
     },
-    [router]
+    [router],
   );
 
-  const { canProceed, validationMessage } = (() => {
+  const { canProceed, validationMessage } = useMemo(() => {
     const step = WIZARD_STEPS[currentStep];
     if (!step?.required) return { canProceed: true, validationMessage: null };
     switch (currentStep) {
+      case 0: {
+        const ok =
+          isFieldFilled(formData.productInfo) ||
+          isFieldFilled(formData.companyInfo) ||
+          (formData.selectedSharedMemoryIds ?? []).some((id) =>
+            PRODUCT_CONTEXT_MEMORY_IDS.includes(id),
+          );
+        return {
+          canProceed: ok,
+          validationMessage: ok
+            ? null
+            : 'Add company or product context (or select the Rivery Context memory) to continue.',
+        };
+      }
       case 1: {
-        const ok = isFieldFilled(formData.productInfo) || (formData.selectedSharedMemoryIds ?? []).some((id) => PRODUCT_CONTEXT_MEMORY_IDS.includes(id));
-        return { canProceed: ok, validationMessage: ok ? null : 'Add product info or select a product context memory to continue' };
-      }
-      case 2: {
         const ok = isFieldFilled(formData.featureInfo);
-        return { canProceed: ok, validationMessage: ok ? null : 'Add feature details to continue' };
+        return {
+          canProceed: ok,
+          validationMessage: ok ? null : 'Describe the feature to generate a brief.',
+        };
       }
-      case 11: {
-        const ok = !!formData.interactionLevel;
-        return { canProceed: ok, validationMessage: ok ? null : 'Select an interaction level to continue' };
-      }
-      default: return { canProceed: true, validationMessage: null };
+      default:
+        return { canProceed: true, validationMessage: null };
     }
-  })();
+  }, [currentStep, formData]);
 
   const completedSteps = useMemo(() => {
     const set = new Set<number>();
-    set.add(0); // Always completed — "Boomi Context" is locked/always included
-    if (isFieldFilled(formData.productInfo) || (formData.selectedSharedMemoryIds ?? []).some((id) => PRODUCT_CONTEXT_MEMORY_IDS.includes(id))) set.add(1);
-    if (isFieldFilled(formData.featureInfo)) set.add(2);
-    if (isFieldFilled(formData.currentImplementation) || formData.currentImplementation.figmaLinks.length > 0) set.add(3);
-    if (isFieldFilled(formData.uxResearch)) set.add(4);
-    if (isFieldFilled(formData.uxWriting) || (formData.selectedSharedMemoryIds ?? []).some((id) => UX_WRITING_MEMORY_IDS.includes(id))) set.add(5);
-    if (formData.figmaFileLink.urlValue.trim().length > 0) set.add(6);
-    if (isFieldFilled(formData.designSystemStorybook) || (formData.selectedSharedMemoryIds ?? []).some((id) => DESIGN_SYSTEM_MEMORY_IDS.includes(id))) set.add(7);
-    if (isFieldFilled(formData.designSystemNpm)) set.add(8);
-    if (isFieldFilled(formData.designSystemFigma)) set.add(9);
-    if (isFieldFilled(formData.prototypeSketches)) set.add(10);
-    if (formData.interactionLevel) set.add(11);
-    // Advanced options — completed if any non-default value is set
+    // Step 0 (Company & Product) — company is always "on" via built-in memory
+    if (
+      isFieldFilled(formData.productInfo) ||
+      isFieldFilled(formData.companyInfo) ||
+      (formData.selectedSharedMemoryIds ?? []).some((id) =>
+        PRODUCT_CONTEXT_MEMORY_IDS.includes(id),
+      )
+    ) {
+      set.add(0);
+    }
+    if (isFieldFilled(formData.featureInfo)) set.add(1);
+    if (
+      isFieldFilled(formData.currentImplementation) ||
+      formData.currentImplementation.figmaLinks.length > 0 ||
+      isFieldFilled(formData.uxResearch) ||
+      isFieldFilled(formData.prototypeSketches)
+    ) {
+      set.add(2);
+    }
+    if (
+      isFieldFilled(formData.figmaFileLink) ||
+      isFieldFilled(formData.designSystemStorybook) ||
+      isFieldFilled(formData.designSystemNpm) ||
+      isFieldFilled(formData.designSystemFigma) ||
+      (formData.selectedSharedMemoryIds ?? []).some((id) =>
+        DESIGN_SYSTEM_MEMORY_IDS.includes(id),
+      )
+    ) {
+      set.add(3);
+    }
+    if (
+      isFieldFilled(formData.uxWriting) ||
+      (formData.selectedSharedMemoryIds ?? []).some((id) =>
+        UX_WRITING_MEMORY_IDS.includes(id),
+      )
+    ) {
+      set.add(4);
+    }
     if (
       formData.accessibilityLevel !== 'none' ||
       formData.browserCompatibility.length > 1 ||
       !formData.externalResourcesAccessible ||
-      formData.designDirection !== null
-    ) set.add(12);
-    set.add(13); // Always completed — mandatory skills are always included
-    if ((formData.selectedSharedMemoryIds?.length ?? 0) > 0 || (formData.customMemories?.length ?? 0) > 0) set.add(14);
-    if (formData.generatedPrompt) set.add(15);
+      formData.designDirection !== null ||
+      formData.outputDirectory !== './output/'
+    ) {
+      set.add(5);
+    }
+    set.add(6); // Skills & Memories — mandatory skills always included; always "complete"
+    // Step 7 (Review & Generate) is the terminal step; not "completed" until a generation lands
     return set;
   }, [formData]);
 
   const handleSave = async () => {
     try {
       const id = generateId();
-      const projectData = { ...formData, id, name: formData.name || 'Untitled Prompt' };
-      const prompt = generatePrompt(projectData, sharedSkills, sharedMemories);
-      const fullProject = { ...projectData, generatedPrompt: prompt };
-      const row = promptToRow(fullProject, user!.id);
+      const projectData = {
+        ...formData,
+        id,
+        name: formData.name || 'Untitled Prompt',
+      };
+      const row = promptToRow(projectData, user!.id);
       row.id = id;
       row.data = {
-        companyInfo: fullProject.companyInfo,
-        productInfo: fullProject.productInfo,
-        featureInfo: fullProject.featureInfo,
-        currentImplementation: fullProject.currentImplementation,
-        uxResearch: fullProject.uxResearch,
-        uxWriting: fullProject.uxWriting,
-        figmaFileLink: fullProject.figmaFileLink,
-        designSystemStorybook: fullProject.designSystemStorybook,
-        designSystemNpm: fullProject.designSystemNpm,
-        designSystemFigma: fullProject.designSystemFigma,
-        prototypeSketches: fullProject.prototypeSketches,
+        companyInfo: projectData.companyInfo,
+        productInfo: projectData.productInfo,
+        featureInfo: projectData.featureInfo,
+        currentImplementation: projectData.currentImplementation,
+        uxResearch: projectData.uxResearch,
+        uxWriting: projectData.uxWriting,
+        figmaFileLink: projectData.figmaFileLink,
+        designSystemStorybook: projectData.designSystemStorybook,
+        designSystemNpm: projectData.designSystemNpm,
+        designSystemFigma: projectData.designSystemFigma,
+        prototypeSketches: projectData.prototypeSketches,
       };
       const supabase = createClient();
       const { error } = await supabase.from('prompts').insert(row as never);
       if (error) throw error;
-      toast.success('Prompt saved');
+      toast.success('Prompt saved — ready to generate with Opus 4.7');
       router.push(`/prompt-generator/placeholder?_id=${encodeURIComponent(id)}`);
     } catch {
       toast.error('Unable to save prompt');
     }
   };
 
-  const handleCopy = async () => {
-    try {
-      const prompt = generatePrompt(formData, sharedSkills, sharedMemories);
-      await copy(prompt);
-      toast.success('Prompt copied');
-    } catch {
-      toast.error('Unable to copy prompt');
-    }
-  };
-
   const renderStep = () => {
     switch (currentStep) {
-      case 0:
-        return <StepCompanyInfo data={formData.companyInfo} onChange={(d: FormFieldData) => setField('companyInfo', d)} builtInContent={BUILT_IN_COMPANY_CONTEXT} />;
-      case 1: {
-        const productMemories = sharedMemories.filter((m) => PRODUCT_CONTEXT_MEMORY_IDS.includes(m.id));
+      case 0: {
+        const productMemories = sharedMemories.filter((m) =>
+          PRODUCT_CONTEXT_MEMORY_IDS.includes(m.id),
+        );
         return (
-          <StepProductInfo
-            data={formData.productInfo}
-            onChange={(d: FormFieldData) => setField('productInfo', d)}
+          <StepCompanyProduct
+            companyData={formData.companyInfo}
+            onCompanyChange={(d: FormFieldData) => setField('companyInfo', d)}
+            productData={formData.productInfo}
+            onProductChange={(d: FormFieldData) => setField('productInfo', d)}
+            builtInCompanyContent={BUILT_IN_COMPANY_CONTEXT}
             productMemories={productMemories}
             selectedMemoryIds={formData.selectedSharedMemoryIds ?? []}
             onSelectedMemoryIdsChange={setSharedMemories}
           />
         );
       }
-      case 2:
-        return <StepFeatureInfo data={formData.featureInfo} onChange={(d: FormFieldData) => setField('featureInfo', d)} />;
-      case 3:
-        return <StepCurrentImpl data={formData.currentImplementation} onChange={setCurrentImpl} />;
-      case 4:
-        return <StepUxResearch data={formData.uxResearch} onChange={(d: FormFieldData) => setField('uxResearch', d)} />;
-      case 5: {
-        const uxWritingMemories = sharedMemories.filter((m) => UX_WRITING_MEMORY_IDS.includes(m.id));
+      case 1:
         return (
-          <StepUxWriting
-            data={formData.uxWriting}
-            onChange={(d: FormFieldData) => setField('uxWriting', d)}
-            uxWritingMemories={uxWritingMemories}
-            selectedMemoryIds={formData.selectedSharedMemoryIds ?? []}
-            onSelectedMemoryIdsChange={setSharedMemories}
+          <StepFeatureInfo
+            data={formData.featureInfo}
+            onChange={(d: FormFieldData) => setField('featureInfo', d)}
           />
         );
-      }
-      case 6:
-        return <StepFigmaLink data={formData.figmaFileLink} onChange={(d: FormFieldData) => setField('figmaFileLink', d)} />;
-      case 7: {
-        const storybookMemories = sharedMemories.filter((m) => DESIGN_SYSTEM_MEMORY_IDS.includes(m.id));
+      case 2:
         return (
-          <StepDesignSystemStorybook
-            data={formData.designSystemStorybook}
-            onChange={(d: FormFieldData) => setField('designSystemStorybook', d)}
+          <StepCurrentState
+            current={formData.currentImplementation}
+            onCurrentChange={setCurrentImpl}
+            research={formData.uxResearch}
+            onResearchChange={(d: FormFieldData) => setField('uxResearch', d)}
+            prototypes={formData.prototypeSketches}
+            onPrototypesChange={(d: FormFieldData) => setField('prototypeSketches', d)}
+          />
+        );
+      case 3: {
+        const storybookMemories = sharedMemories.filter((m) =>
+          DESIGN_SYSTEM_MEMORY_IDS.includes(m.id),
+        );
+        return (
+          <StepDesignSystem
+            figmaTarget={formData.figmaFileLink}
+            onFigmaTargetChange={(d: FormFieldData) => setField('figmaFileLink', d)}
+            storybook={formData.designSystemStorybook}
+            onStorybookChange={(d: FormFieldData) => setField('designSystemStorybook', d)}
+            npmPackage={formData.designSystemNpm}
+            onNpmPackageChange={(d: FormFieldData) => setField('designSystemNpm', d)}
+            referenceFigma={formData.designSystemFigma}
+            onReferenceFigmaChange={(d: FormFieldData) => setField('designSystemFigma', d)}
             storybookMemories={storybookMemories}
             selectedMemoryIds={formData.selectedSharedMemoryIds ?? []}
             onSelectedMemoryIdsChange={setSharedMemories}
           />
         );
       }
-      case 8:
-        return <StepDesignSystemNpm data={formData.designSystemNpm} onChange={(d: FormFieldData) => setField('designSystemNpm', d)} />;
-      case 9:
-        return <StepDesignSystemFigma data={formData.designSystemFigma} onChange={(d: FormFieldData) => setField('designSystemFigma', d)} />;
-      case 10:
-        return <StepPrototypes data={formData.prototypeSketches} onChange={(d: FormFieldData) => setField('prototypeSketches', d)} />;
-      case 11:
+      case 4: {
+        const voiceMemories = sharedMemories.filter((m) =>
+          UX_WRITING_MEMORY_IDS.includes(m.id),
+        );
         return (
-          <StepOutputType
-            interactionLevel={formData.interactionLevel}
-            onInteractionLevelChange={setInteractionLevel}
-            outputDirectory={formData.outputDirectory}
-            onOutputDirectoryChange={setOutputDirectory}
-            promptMode={formData.promptMode}
-            onPromptModeChange={setPromptMode}
+          <StepVoiceWriting
+            data={formData.uxWriting}
+            onChange={(d: FormFieldData) => setField('uxWriting', d)}
+            voiceMemories={voiceMemories}
+            selectedMemoryIds={formData.selectedSharedMemoryIds ?? []}
+            onSelectedMemoryIdsChange={setSharedMemories}
           />
         );
-      case 12:
+      }
+      case 5:
         return (
-          <StepAdvancedOptions
+          <StepDeliverables
+            outputDirectory={formData.outputDirectory}
+            onOutputDirectoryChange={setOutputDirectory}
             accessibilityLevel={formData.accessibilityLevel}
             onAccessibilityLevelChange={setAccessibilityLevel}
             browserCompatibility={formData.browserCompatibility}
@@ -240,20 +272,15 @@ function WizardContent() {
             onDesignDirectionChange={setDesignDirection}
           />
         );
-      case 13:
+      case 6:
         return (
-          <StepSkills
+          <StepSkillsMemories
             formData={formData}
+            sharedSkills={sharedSkills}
             selectedSharedSkillIds={formData.selectedSharedSkillIds}
             onSharedSkillsChange={setSharedSkills}
             customSkills={formData.customSkills}
             onCustomSkillsChange={setCustomSkills}
-            sharedSkills={sharedSkills}
-          />
-        );
-      case 14:
-        return (
-          <StepMemories
             sharedMemories={sharedMemories}
             selectedSharedMemoryIds={formData.selectedSharedMemoryIds ?? []}
             onSharedMemoriesChange={setSharedMemories}
@@ -262,8 +289,15 @@ function WizardContent() {
             lockedMemoryIds={[COMPANY_CONTEXT_MEMORY_ID]}
           />
         );
-      case 15:
-        return <StepReview formData={formData} sharedSkills={sharedSkills} sharedMemories={sharedMemories} onCopy={handleCopy} copied={copied} />;
+      case 7:
+        return (
+          <StepReviewGenerate
+            formData={formData}
+            sharedSkills={sharedSkills}
+            sharedMemories={sharedMemories}
+            onSave={handleSave}
+          />
+        );
       default:
         return null;
     }
@@ -272,11 +306,13 @@ function WizardContent() {
   if (skillsLoading || memoriesLoading) {
     return (
       <>
-        <Header title="New Prompt" description="Set up your design prompt" />
-        <Breadcrumbs items={[
-          { label: 'Prompt Generator', href: '/prompt-generator' },
-          { label: 'New Prompt' },
-        ]} />
+        <Header title="New Prompt" description="Generate a Claude Code brief with AI" />
+        <Breadcrumbs
+          items={[
+            { label: 'Prompt Generator', href: '/prompt-generator' },
+            { label: 'New Prompt' },
+          ]}
+        />
         <PageContainer wide>
           <SectionLoader label="Loading prompt data..." />
         </PageContainer>
@@ -286,11 +322,13 @@ function WizardContent() {
 
   return (
     <>
-      <Header title="New Prompt" description="Set up your design prompt" />
-      <Breadcrumbs items={[
-        { label: 'Prompt Generator', href: '/prompt-generator' },
-        { label: 'New Prompt' },
-      ]} />
+      <Header title="New Prompt" description="Generate a Claude Code brief with AI" />
+      <Breadcrumbs
+        items={[
+          { label: 'Prompt Generator', href: '/prompt-generator' },
+          { label: 'New Prompt' },
+        ]}
+      />
       <PageContainer wide>
         <div className="mb-6 max-w-md">
           <Input

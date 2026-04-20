@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       profiles: {
@@ -41,88 +66,71 @@ export type Database = {
         }
         Relationships: []
       }
-      researcher_projects: {
+      prompt_versions: {
         Row: {
-          id: string
-          user_id: string
-          name: string
-          status: string
-          research_type: string
-          config: Json
-          selected_method_ids: string[]
-          selected_shared_skill_ids: string[]
-          custom_skills: Json
-          selected_shared_memory_ids: string[]
-          custom_memories: Json
-          job_id: string | null
-          started_at: string | null
           completed_at: string | null
-          error_message: string | null
-          progress: Json | null
-          framing_document: string | null
-          executive_summary: string | null
-          process_book: string | null
-          method_results: Json | null
-          confluence_page_id: string | null
-          confluence_page_url: string | null
+          content: string | null
+          context_snapshot: Json | null
           created_at: string
-          updated_at: string
+          error_message: string | null
+          id: string
+          input_tokens: number | null
+          label: string | null
+          model: string
+          output_tokens: number | null
+          prompt_id: string
+          status: string
+          thinking_enabled: boolean
+          user_id: string
+          version_number: number
+          wizard_snapshot: Json
         }
         Insert: {
-          id?: string
-          user_id: string
-          name?: string
-          status?: string
-          research_type?: string
-          config?: Json
-          selected_method_ids?: string[]
-          selected_shared_skill_ids?: string[]
-          custom_skills?: Json
-          selected_shared_memory_ids?: string[]
-          custom_memories?: Json
-          job_id?: string | null
-          started_at?: string | null
           completed_at?: string | null
-          error_message?: string | null
-          progress?: Json | null
-          framing_document?: string | null
-          executive_summary?: string | null
-          process_book?: string | null
-          method_results?: Json | null
-          confluence_page_id?: string | null
-          confluence_page_url?: string | null
+          content?: string | null
+          context_snapshot?: Json | null
           created_at?: string
-          updated_at?: string
+          error_message?: string | null
+          id?: string
+          input_tokens?: number | null
+          label?: string | null
+          model?: string
+          output_tokens?: number | null
+          prompt_id: string
+          status?: string
+          thinking_enabled?: boolean
+          user_id: string
+          version_number: number
+          wizard_snapshot: Json
         }
         Update: {
-          id?: string
-          user_id?: string
-          name?: string
-          status?: string
-          research_type?: string
-          config?: Json
-          selected_method_ids?: string[]
-          selected_shared_skill_ids?: string[]
-          custom_skills?: Json
-          selected_shared_memory_ids?: string[]
-          custom_memories?: Json
-          job_id?: string | null
-          started_at?: string | null
           completed_at?: string | null
-          error_message?: string | null
-          progress?: Json | null
-          framing_document?: string | null
-          executive_summary?: string | null
-          process_book?: string | null
-          method_results?: Json | null
-          confluence_page_id?: string | null
-          confluence_page_url?: string | null
+          content?: string | null
+          context_snapshot?: Json | null
           created_at?: string
-          updated_at?: string
+          error_message?: string | null
+          id?: string
+          input_tokens?: number | null
+          label?: string | null
+          model?: string
+          output_tokens?: number | null
+          prompt_id?: string
+          status?: string
+          thinking_enabled?: boolean
+          user_id?: string
+          version_number?: number
+          wizard_snapshot?: Json
         }
         Relationships: [
           {
-            foreignKeyName: "researcher_projects_user_id_fkey"
+            foreignKeyName: "prompt_versions_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_versions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -200,6 +208,95 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "prompts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      researcher_projects: {
+        Row: {
+          completed_at: string | null
+          config: Json
+          confluence_page_id: string | null
+          confluence_page_url: string | null
+          created_at: string
+          custom_memories: Json
+          custom_skills: Json
+          error_message: string | null
+          executive_summary: string | null
+          framing_document: string | null
+          id: string
+          job_id: string | null
+          method_results: Json | null
+          name: string
+          process_book: string | null
+          progress: Json | null
+          research_type: string
+          selected_method_ids: string[]
+          selected_shared_memory_ids: string[]
+          selected_shared_skill_ids: string[]
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          config?: Json
+          confluence_page_id?: string | null
+          confluence_page_url?: string | null
+          created_at?: string
+          custom_memories?: Json
+          custom_skills?: Json
+          error_message?: string | null
+          executive_summary?: string | null
+          framing_document?: string | null
+          id: string
+          job_id?: string | null
+          method_results?: Json | null
+          name: string
+          process_book?: string | null
+          progress?: Json | null
+          research_type?: string
+          selected_method_ids?: string[]
+          selected_shared_memory_ids?: string[]
+          selected_shared_skill_ids?: string[]
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          config?: Json
+          confluence_page_id?: string | null
+          confluence_page_url?: string | null
+          created_at?: string
+          custom_memories?: Json
+          custom_skills?: Json
+          error_message?: string | null
+          executive_summary?: string | null
+          framing_document?: string | null
+          id?: string
+          job_id?: string | null
+          method_results?: Json | null
+          name?: string
+          process_book?: string | null
+          progress?: Json | null
+          research_type?: string
+          selected_method_ids?: string[]
+          selected_shared_memory_ids?: string[]
+          selected_shared_skill_ids?: string[]
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "researcher_projects_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -304,9 +401,9 @@ export type Database = {
       user_settings: {
         Row: {
           claude_api_key: string
+          confluence_api_token: string
           confluence_base_url: string
           confluence_email: string
-          confluence_api_token: string
           created_at: string
           id: string
           updated_at: string
@@ -314,9 +411,9 @@ export type Database = {
         }
         Insert: {
           claude_api_key?: string
+          confluence_api_token?: string
           confluence_base_url?: string
           confluence_email?: string
-          confluence_api_token?: string
           created_at?: string
           id?: string
           updated_at?: string
@@ -324,9 +421,9 @@ export type Database = {
         }
         Update: {
           claude_api_key?: string
+          confluence_api_token?: string
           confluence_base_url?: string
           confluence_email?: string
-          confluence_api_token?: string
           created_at?: string
           id?: string
           updated_at?: string
@@ -396,7 +493,7 @@ export type Database = {
     Functions: {
       upsert_built_in_memory: {
         Args: {
-          p_category?: string | null
+          p_category?: string
           p_content: string
           p_description: string
           p_file_name: string
@@ -534,6 +631,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

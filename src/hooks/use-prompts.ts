@@ -25,8 +25,6 @@ export function toPrompt(row: Record<string, unknown>): Prompt {
     designSystemNpm: data.designSystemNpm as Prompt['designSystemNpm'],
     designSystemFigma: data.designSystemFigma as Prompt['designSystemFigma'],
     prototypeSketches: data.prototypeSketches as Prompt['prototypeSketches'],
-    outputType: row.output_type as Prompt['outputType'],
-    interactionLevel: row.interaction_level as Prompt['interactionLevel'],
     outputDirectory: row.output_directory as string,
     accessibilityLevel: row.accessibility_level as Prompt['accessibilityLevel'],
     externalResourcesAccessible: row.external_resources_accessible as boolean,
@@ -47,8 +45,6 @@ export function promptToRow(project: Partial<Prompt>, userId?: string) {
   if (userId !== undefined) row.user_id = userId;
   if (project.id !== undefined) row.id = project.id;
   if (project.name !== undefined) row.name = project.name;
-  if (project.outputType !== undefined) row.output_type = project.outputType;
-  if (project.interactionLevel !== undefined) row.interaction_level = project.interactionLevel;
   if (project.outputDirectory !== undefined) row.output_directory = project.outputDirectory;
   if (project.accessibilityLevel !== undefined) row.accessibility_level = project.accessibilityLevel;
   if (project.externalResourcesAccessible !== undefined) row.external_resources_accessible = project.externalResourcesAccessible;

@@ -383,6 +383,9 @@ verify_jwt = false
 [functions.researcher-publish-confluence]
 verify_jwt = false
 
+[functions.ux-writer-analyze]
+verify_jwt = false
+
 # Server-to-server functions: called only by other Edge Functions with the
 # service-role key. Keep verify_jwt = false for consistency (service role
 # already provides auth).

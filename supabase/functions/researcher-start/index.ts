@@ -29,18 +29,25 @@ Deno.serve(async (req: Request) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Verify the user is authenticated
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    // Validate the JWT against GoTrue directly. Using supabase.auth.getUser() fails with
+    // sb_publishable_* anon keys — the SDK's getUser() path relies on an internal session
+    // that's never populated when the JWT arrives via the global Authorization header.
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const authResp = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/user`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: Deno.env.get("SUPABASE_ANON_KEY")!,
+      },
+    });
 
-    if (authError || !user) {
+    if (!authResp.ok) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const user = (await authResp.json()) as { id: string };
 
     // Parse request body
     const body = await req.json();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { SharedSkill, FileAttachment } from '@/lib/types';
 import type { MandatorySkill } from '@/lib/constants';
 import { MANDATORY_SKILLS } from '@/lib/constants';
@@ -37,7 +37,17 @@ import { TagBadge } from '@/components/ui/tag-badge';
 import { SkillCard } from './skill-card';
 import { BUILT_IN_SKILLS, type BuiltInSkill } from '@/lib/built-in-skills';
 import { groupByCategory, orderedCategories } from '@/lib/category-grouping';
-import { Plus, Link, FileText, Wand2, ExternalLink } from 'lucide-react';
+import { Plus, Link, FileText, Wand2, ExternalLink, SearchX } from 'lucide-react';
+
+function matchesQuery(q: string, ...fields: Array<string | string[] | null | undefined>): boolean {
+  if (!q) return true;
+  const needle = q.toLowerCase();
+  return fields.some((f) => {
+    if (!f) return false;
+    if (Array.isArray(f)) return f.some((s) => s.toLowerCase().includes(needle));
+    return f.toLowerCase().includes(needle);
+  });
+}
 
 const SKILL_CATEGORY_ORDER = ['UX Research', 'Design', 'Superpowers', 'Figma', 'Atlassian', 'Claude Management', 'Meta'];
 
@@ -65,6 +75,25 @@ export function SharedSkillManager() {
 
   const mgr = useManagerState<SkillFormState>(emptyFormState);
   const [viewingSkill, setViewingSkill] = useState<MandatorySkill | BuiltInSkill | SharedSkill | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const q = searchQuery.trim();
+
+  const filteredMandatory = useMemo(
+    () => MANDATORY_SKILLS.filter((s) => matchesQuery(q, s.name, s.description, s.category)),
+    [q],
+  );
+  const filteredBuiltIn = useMemo(
+    () => BUILT_IN_SKILLS.filter((s) => matchesQuery(q, s.name, s.description, s.category, s.tags)),
+    [q],
+  );
+  const filteredShared = useMemo(
+    () => sharedSkills.filter((s) => matchesQuery(q, s.name, s.description, s.urlValue)),
+    [q, sharedSkills],
+  );
+
+  const hasAnyResults =
+    filteredMandatory.length > 0 || filteredBuiltIn.length > 0 || filteredShared.length > 0;
 
   function openEditDialog(skill: SharedSkill) {
     mgr.openEdit(skill.id, {
@@ -156,53 +185,86 @@ export function SharedSkillManager() {
     return 'invocation' in skill;
   }
 
+  const builtInShown = filteredMandatory.length > 0 || filteredBuiltIn.length > 0;
+
   return (
     <div className="space-y-10">
-      {/* Built-in Skills */}
-      <div className="space-y-5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-            <Wand2 className="size-4 text-primary" />
-          </div>
-          <div>
-            <h2 className="font-heading text-base font-semibold">Built-in Skills</h2>
-            <p className="text-xs text-muted-foreground">{MANDATORY_SKILLS.length + BUILT_IN_SKILLS.length} skills included by default</p>
-          </div>
-        </div>
-        {(() => {
-          const all: Array<MandatorySkill | BuiltInSkill> = [...MANDATORY_SKILLS, ...BUILT_IN_SKILLS];
-          const groups = groupByCategory(all);
-          const categoryNames = orderedCategories(Array.from(groups.keys()), SKILL_CATEGORY_ORDER);
-          return (
-            <div className="space-y-6">
-              {categoryNames.map((category) => {
-                const skills = groups.get(category) ?? [];
-                return (
-                  <section key={category}>
-                    <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                      {category}
-                    </h3>
-                    <StaggerContainer className="grid gap-2 sm:grid-cols-2">
-                      {skills.map((skill) => (
-                        <StaggerItem key={skill.name}>
-                          <SkillCard
-                            skill={skill}
-                            locked
-                            onView={() => openViewDialog(skill)}
-                          />
-                        </StaggerItem>
-                      ))}
-                    </StaggerContainer>
-                  </section>
-                );
-              })}
-            </div>
-          );
-        })()}
+      {/* Search */}
+      <div className="max-w-md">
+        <Input
+          type="search"
+          size="large"
+          placeholder="Search skills by name, description, or tag..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          leadingIcon="Search"
+          clearable
+        />
       </div>
 
+      {!hasAnyResults && q && !isLoading ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-muted-foreground/20 py-12 text-center">
+          <div className="mb-3 rounded-full bg-muted p-3">
+            <SearchX className="size-5 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground mb-1">No skills match &ldquo;{q}&rdquo;</p>
+          <p className="text-xs text-muted-foreground/70 max-w-xs">
+            Try a different search term or clear the filter.
+          </p>
+        </div>
+      ) : (
+        <>
+      {/* Built-in Skills */}
+      {builtInShown && (
+        <div className="space-y-5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+              <Wand2 className="size-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-heading text-base font-semibold">Built-in Skills</h2>
+              <p className="text-xs text-muted-foreground">
+                {q
+                  ? `${filteredMandatory.length + filteredBuiltIn.length} match${filteredMandatory.length + filteredBuiltIn.length !== 1 ? 'es' : ''}`
+                  : `${MANDATORY_SKILLS.length + BUILT_IN_SKILLS.length} skills included by default`}
+              </p>
+            </div>
+          </div>
+          {(() => {
+            const all: Array<MandatorySkill | BuiltInSkill> = [...filteredMandatory, ...filteredBuiltIn];
+            const groups = groupByCategory(all);
+            const categoryNames = orderedCategories(Array.from(groups.keys()), SKILL_CATEGORY_ORDER);
+            return (
+              <div className="space-y-6">
+                {categoryNames.map((category) => {
+                  const skills = groups.get(category) ?? [];
+                  return (
+                    <section key={category}>
+                      <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        {category}
+                      </h3>
+                      <StaggerContainer className="grid gap-2 sm:grid-cols-2">
+                        {skills.map((skill) => (
+                          <StaggerItem key={skill.name}>
+                            <SkillCard
+                              skill={skill}
+                              locked
+                              onView={() => openViewDialog(skill)}
+                            />
+                          </StaggerItem>
+                        ))}
+                      </StaggerContainer>
+                    </section>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Divider */}
-      <div className="h-px gradient-border" />
+      {builtInShown && <div className="h-px gradient-border" />}
 
       {/* Custom Shared Skills */}
       <div className="space-y-5">
@@ -214,7 +276,11 @@ export function SharedSkillManager() {
             <div>
               <h2 className="font-heading text-base font-semibold">Custom Shared Skills</h2>
               <p className="text-xs text-muted-foreground">
-                {sharedSkills.length === 0 ? 'Create skills to reuse across prompts' : `${sharedSkills.length} custom skill${sharedSkills.length !== 1 ? 's' : ''}`}
+                {q
+                  ? `${filteredShared.length} match${filteredShared.length !== 1 ? 'es' : ''}`
+                  : sharedSkills.length === 0
+                    ? 'Create skills to reuse across prompts'
+                    : `${sharedSkills.length} custom skill${sharedSkills.length !== 1 ? 's' : ''}`}
               </p>
             </div>
           </div>
@@ -236,9 +302,11 @@ export function SharedSkillManager() {
               Add skills as URLs or files to share them across all your prompts.
             </p>
           </div>
+        ) : filteredShared.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No custom skills match your search.</p>
         ) : (
           <StaggerContainer className="grid gap-2 sm:grid-cols-2">
-            {sharedSkills.map((skill) => (
+            {filteredShared.map((skill) => (
               <StaggerItem key={skill.id}>
                 <SkillCard
                   skill={skill}
@@ -251,6 +319,8 @@ export function SharedSkillManager() {
           </StaggerContainer>
         )}
       </div>
+        </>
+      )}
 
       {/* Add / Edit Drawer */}
       <Drawer open={mgr.dialogOpen} onOpenChange={(open) => { if (!open) mgr.closeDialog(); }} direction="right">

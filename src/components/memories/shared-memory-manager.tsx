@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { SharedMemory } from '@/lib/types';
 import { useSharedMemories } from '@/hooks/use-shared-memories';
 import { useManagerState } from '@/hooks/use-manager-state';
@@ -33,8 +33,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion';
 import { SectionLoader } from '@/components/ui/loader';
 import { MemoryCard } from './memory-card';
-import { Plus, Brain } from 'lucide-react';
+import { Plus, Brain, SearchX } from 'lucide-react';
 import { groupByCategory, orderedCategories } from '@/lib/category-grouping';
+
+function matchesQuery(q: string, ...fields: Array<string | string[] | null | undefined>): boolean {
+  if (!q) return true;
+  const needle = q.toLowerCase();
+  return fields.some((f) => {
+    if (!f) return false;
+    if (Array.isArray(f)) return f.some((s) => s.toLowerCase().includes(needle));
+    return f.toLowerCase().includes(needle);
+  });
+}
 
 const MEMORY_CATEGORY_ORDER = ['UX Research', 'Company', 'Product', 'Design System', 'Writing'];
 
@@ -58,6 +68,7 @@ export function SharedMemoryManager() {
 
   const mgr = useManagerState<MemoryFormState>(emptyFormState);
   const [viewingMemory, setViewingMemory] = useState<SharedMemory | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   function openEditDialog(memory: SharedMemory) {
     mgr.openEdit(memory.id, {
@@ -148,8 +159,21 @@ export function SharedMemoryManager() {
 
   const isFormValid = mgr.form.name.trim() !== '' && mgr.form.content.trim() !== '';
 
-  const builtInMemories = sharedMemories.filter((m) => m.isBuiltIn);
-  const customMemories = sharedMemories.filter((m) => !m.isBuiltIn);
+  const q = searchQuery.trim();
+
+  const builtInMemories = useMemo(() => sharedMemories.filter((m) => m.isBuiltIn), [sharedMemories]);
+  const customMemories = useMemo(() => sharedMemories.filter((m) => !m.isBuiltIn), [sharedMemories]);
+
+  const filteredBuiltIn = useMemo(
+    () => builtInMemories.filter((m) => matchesQuery(q, m.name, m.description, m.content, m.category, m.tags)),
+    [q, builtInMemories],
+  );
+  const filteredCustom = useMemo(
+    () => customMemories.filter((m) => matchesQuery(q, m.name, m.description, m.content)),
+    [q, customMemories],
+  );
+
+  const hasAnyResults = filteredBuiltIn.length > 0 || filteredCustom.length > 0;
 
   if (isLoading) {
     return <SectionLoader label="Loading memories..." />;
@@ -157,9 +181,34 @@ export function SharedMemoryManager() {
 
   return (
     <div className="space-y-10">
+      {/* Search */}
+      <div className="max-w-md">
+        <Input
+          type="search"
+          size="large"
+          placeholder="Search memories by name, description, or content..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          leadingIcon="Search"
+          clearable
+        />
+      </div>
+
+      {!hasAnyResults && q ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-muted-foreground/20 py-12 text-center">
+          <div className="mb-3 rounded-full bg-muted p-3">
+            <SearchX className="size-5 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground mb-1">No memories match &ldquo;{q}&rdquo;</p>
+          <p className="text-xs text-muted-foreground/70 max-w-xs">
+            Try a different search term or clear the filter.
+          </p>
+        </div>
+      ) : (
+        <>
       {/* Built-in Memories */}
-      {builtInMemories.length > 0 && (() => {
-        const groups = groupByCategory(builtInMemories);
+      {filteredBuiltIn.length > 0 && (() => {
+        const groups = groupByCategory(filteredBuiltIn);
         const categoryNames = orderedCategories(Array.from(groups.keys()), MEMORY_CATEGORY_ORDER);
 
         return (
@@ -171,7 +220,9 @@ export function SharedMemoryManager() {
               <div>
                 <h2 className="font-heading text-base font-semibold">Built-in Memories</h2>
                 <p className="text-xs text-muted-foreground">
-                  {builtInMemories.length} context file{builtInMemories.length !== 1 ? 's' : ''} included by default
+                  {q
+                    ? `${filteredBuiltIn.length} match${filteredBuiltIn.length !== 1 ? 'es' : ''}`
+                    : `${builtInMemories.length} context file${builtInMemories.length !== 1 ? 's' : ''} included by default`}
                 </p>
               </div>
             </div>
@@ -199,7 +250,7 @@ export function SharedMemoryManager() {
       })()}
 
       {/* Divider */}
-      {builtInMemories.length > 0 && <div className="h-px gradient-border" />}
+      {filteredBuiltIn.length > 0 && <div className="h-px gradient-border" />}
 
       {/* Custom Shared Memories */}
       <div className="space-y-5">
@@ -211,7 +262,11 @@ export function SharedMemoryManager() {
             <div>
               <h2 className="font-heading text-base font-semibold">Custom Shared Memories</h2>
               <p className="text-xs text-muted-foreground">
-                {customMemories.length === 0 ? 'Add context files to share across prompts' : `${customMemories.length} custom memor${customMemories.length !== 1 ? 'ies' : 'y'}`}
+                {q
+                  ? `${filteredCustom.length} match${filteredCustom.length !== 1 ? 'es' : ''}`
+                  : customMemories.length === 0
+                    ? 'Add context files to share across prompts'
+                    : `${customMemories.length} custom memor${customMemories.length !== 1 ? 'ies' : 'y'}`}
               </p>
             </div>
           </div>
@@ -231,9 +286,11 @@ export function SharedMemoryManager() {
               Upload markdown files or paste content to create shared context across all your prompts.
             </p>
           </div>
+        ) : filteredCustom.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No custom memories match your search.</p>
         ) : (
           <StaggerContainer className="grid gap-2 sm:grid-cols-2">
-            {customMemories.map((memory) => (
+            {filteredCustom.map((memory) => (
               <StaggerItem key={memory.id}>
                 <MemoryCard
                   memory={memory}
@@ -246,6 +303,8 @@ export function SharedMemoryManager() {
           </StaggerContainer>
         )}
       </div>
+        </>
+      )}
 
       {/* Add / Edit Drawer */}
       <Drawer open={mgr.dialogOpen} onOpenChange={(open) => { if (!open) mgr.closeDialog(); }} direction="right">

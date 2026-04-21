@@ -20,11 +20,16 @@ const ExLeftmenubarDivider = dynamic(
   { ssr: false }
 );
 
-const navItems: { href: string; label: string; icon: React.ElementType }[] = [
+type NavItem = { href: string; label: string; icon: React.ElementType };
+
+const primaryNavItems: NavItem[] = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/prompt-generator', label: 'Prompt Generator', icon: BotMessageSquare },
   { href: '/ux-writer', label: 'UX Writer', icon: PenLine },
   { href: '/researcher', label: 'Researcher', icon: FlaskConical },
+];
+
+const sharedNavItems: NavItem[] = [
   { href: '/skills', label: 'Shared Skills', icon: Zap },
   { href: '/memories', label: 'Shared Memories', icon: BookOpen },
 ];
@@ -64,12 +69,34 @@ export function LeftSidebar() {
 
         <ExLeftmenubarDivider />
 
-        {/* Nav Links */}
-        {navItems.map((item) => {
+        {/* Primary Nav Links */}
+        {primaryNavItems.map((item) => {
           const isActive =
             item.href === '/'
               ? pathname === '/'
               : pathname === item.href || pathname.startsWith(item.href + '/');
+          const Icon = item.icon;
+
+          return (
+            <ExLeftmenubarLink
+              key={item.href}
+              label={item.label}
+              selected={isActive}
+              tooltipText={item.label}
+              onItemSelection={() => router.push(item.href)}
+            >
+              <span slot="icon" className="flex items-center justify-center">
+                <Icon className="size-[18px]" />
+              </span>
+            </ExLeftmenubarLink>
+          );
+        })}
+
+        <ExLeftmenubarDivider />
+
+        {/* Shared Resources */}
+        {sharedNavItems.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           const Icon = item.icon;
 
           return (

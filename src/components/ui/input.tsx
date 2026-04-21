@@ -10,12 +10,15 @@ const ExInputLazy = dynamic(
   { ssr: false }
 )
 
-interface InputProps extends React.ComponentProps<"input"> {
+interface InputProps extends Omit<React.ComponentProps<"input">, "size"> {
   label?: string
+  leadingIcon?: string
+  clearable?: boolean
+  size?: "medium" | "large"
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  function Input({ className, type, placeholder, value, onChange, disabled, id, name, label, ...props }, ref) {
+  function Input({ className, type, placeholder, value, onChange, disabled, id, name, label, size, leadingIcon, clearable, ...props }, ref) {
     // File inputs must use native <input> — ExInput doesn't support file type,
     // and consumers need ref access for .value = '' and .click()
     if (type === "file") {
@@ -49,13 +52,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         onInput={(e: Event) => {
           if (onChange) {
             const host = e.target as HTMLElement
-            // Pierce shadow DOM to find the native input, or use the host's value property
-            const nativeInput = host.shadowRoot?.querySelector?.("input")
-            const val = nativeInput?.value ?? (host as HTMLInputElement).value ?? ""
+            // The ExInput Lit property is the source of truth — on clear/typing it's
+            // set BEFORE Lit re-renders the shadow DOM, so the inner <input> can be
+            // stale. Fall back to the native input only if the host value is missing.
+            const hostVal = (host as HTMLInputElement).value
+            const nativeVal = host.shadowRoot?.querySelector?.("input")?.value
+            const val = typeof hostVal === "string" ? hostVal : nativeVal ?? ""
             onChange({ target: { value: val } } as unknown as React.ChangeEvent<HTMLInputElement>)
           }
         }}
         className={cn(className)}
+        {...({ ...(size ? { size } : {}), ...(leadingIcon ? { leadingIcon } : {}), ...(clearable ? { clearable } : {}) } as Record<string, unknown>)}
         {...(props as Record<string, unknown>)}
       />
     )

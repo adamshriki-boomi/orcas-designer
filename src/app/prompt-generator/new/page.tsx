@@ -7,10 +7,12 @@ import { useSharedSkills } from '@/hooks/use-shared-skills';
 import {
   useSharedMemories,
   PRODUCT_CONTEXT_MEMORY_IDS,
-  DESIGN_SYSTEM_MEMORY_IDS,
   UX_WRITING_MEMORY_IDS,
 } from '@/hooks/use-shared-memories';
-import { BUILT_IN_COMPANY_CONTEXT_MEMORY_ID } from '@/lib/constants';
+import {
+  BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
+  BUILT_IN_UX_WRITING_MEMORY_ID,
+} from '@/lib/constants';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
 import { promptToRow } from '@/hooks/use-prompts';
@@ -127,18 +129,9 @@ function WizardContent() {
     ) {
       set.add(2);
     }
-    // Step 3 (Design System)
-    if (
-      isFieldFilled(formData.figmaFileLink) ||
-      isFieldFilled(formData.designSystemStorybook) ||
-      isFieldFilled(formData.designSystemNpm) ||
-      isFieldFilled(formData.designSystemFigma) ||
-      (formData.selectedSharedMemoryIds ?? []).some((id) =>
-        DESIGN_SYSTEM_MEMORY_IDS.includes(id),
-      )
-    ) {
-      set.add(3);
-    }
+    // Step 3 (Design System) — Exosphere is always attached, so the step is
+    // always "complete". Additional fields are optional extras.
+    set.add(3);
     // Step 4 (Voice & Writing)
     if (
       isFieldFilled(formData.uxWriting) ||
@@ -231,10 +224,7 @@ function WizardContent() {
             onPrototypesChange={(d: FormFieldData) => setField('prototypeSketches', d)}
           />
         );
-      case 3: {
-        const storybookMemories = sharedMemories.filter((m) =>
-          DESIGN_SYSTEM_MEMORY_IDS.includes(m.id),
-        );
+      case 3:
         return (
           <StepDesignSystem
             figmaTarget={formData.figmaFileLink}
@@ -245,12 +235,8 @@ function WizardContent() {
             onNpmPackageChange={(d: FormFieldData) => setField('designSystemNpm', d)}
             referenceFigma={formData.designSystemFigma}
             onReferenceFigmaChange={(d: FormFieldData) => setField('designSystemFigma', d)}
-            storybookMemories={storybookMemories}
-            selectedMemoryIds={formData.selectedSharedMemoryIds ?? []}
-            onSelectedMemoryIdsChange={setSharedMemories}
           />
         );
-      }
       case 4: {
         const voiceMemories = sharedMemories.filter((m) =>
           UX_WRITING_MEMORY_IDS.includes(m.id),
@@ -262,6 +248,7 @@ function WizardContent() {
             voiceMemories={voiceMemories}
             selectedMemoryIds={formData.selectedSharedMemoryIds ?? []}
             onSelectedMemoryIdsChange={setSharedMemories}
+            lockedMemoryIds={[BUILT_IN_UX_WRITING_MEMORY_ID]}
           />
         );
       }
@@ -286,7 +273,7 @@ function WizardContent() {
             onSharedMemoriesChange={setSharedMemories}
             customMemories={formData.customMemories ?? []}
             onCustomMemoriesChange={setCustomMemories}
-            lockedMemoryIds={[BUILT_IN_COMPANY_CONTEXT_MEMORY_ID]}
+            lockedMemoryIds={[BUILT_IN_COMPANY_CONTEXT_MEMORY_ID, BUILT_IN_UX_WRITING_MEMORY_ID]}
           />
         );
       case 7:

@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Brain } from "lucide-react";
+import { ChevronDown, ChevronUp, Brain, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FormFieldData, SharedMemory } from "@/lib/types";
 
@@ -19,12 +19,12 @@ interface StepVoiceWritingProps {
   voiceMemories: SharedMemory[];
   selectedMemoryIds: string[];
   onSelectedMemoryIdsChange: (ids: string[]) => void;
+  lockedMemoryIds?: string[];
 }
 
 /**
- * Voice & Writing step. Replaces the UX Writing step. Surfaces the UX Writing
- * and AI Voice built-in memories so the AI has concrete guidance about tone,
- * not just an abstract "be clear" instruction.
+ * Voice & Writing step. UX Writing Guidelines is locked (always attached).
+ * AI Voice is opt-in. Extra custom guidelines can be added below.
  */
 export function StepVoiceWriting({
   data,
@@ -32,10 +32,12 @@ export function StepVoiceWriting({
   voiceMemories,
   selectedMemoryIds,
   onSelectedMemoryIdsChange,
+  lockedMemoryIds = [],
 }: StepVoiceWritingProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   function toggleMemory(id: string) {
+    if (lockedMemoryIds.includes(id)) return;
     if (selectedMemoryIds.includes(id)) {
       onSelectedMemoryIdsChange(selectedMemoryIds.filter((mid) => mid !== id));
     } else {
@@ -46,7 +48,7 @@ export function StepVoiceWriting({
   return (
     <WizardStep
       title="Voice & Writing"
-      description="Tone, voice, and microcopy rules. Built-in memories cover most projects; add specifics below."
+      description="Boomi's UX Writing Guidelines are always attached. Enable AI Voice for AI-surface features, and add any custom voice notes below."
     >
       <div className="space-y-6">
         {voiceMemories.length > 0 && (
@@ -54,24 +56,34 @@ export function StepVoiceWriting({
             <Label>Voice memories</Label>
             <div className="grid gap-2">
               {voiceMemories.map((memory) => {
+                const isLocked = lockedMemoryIds.includes(memory.id);
                 const isSelected = selectedMemoryIds.includes(memory.id);
                 const isExpanded = expandedId === memory.id;
                 return (
                   <Card
                     key={memory.id}
                     size="sm"
-                    className={cn("transition-all duration-150", isSelected && "ring-2 ring-primary")}
+                    className={cn(
+                      "transition-all duration-150",
+                      (isSelected || isLocked) && "ring-2 ring-primary",
+                    )}
                   >
                     <CardHeader>
                       <div className="flex items-center gap-2">
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleMemory(memory.id)}
-                        />
+                        {isLocked ? (
+                          <Lock className="size-4 shrink-0 text-muted-foreground" />
+                        ) : (
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleMemory(memory.id)}
+                          />
+                        )}
                         <CardTitle className="flex items-center gap-2">
                           <Brain className="size-3.5 text-muted-foreground" />
                           {memory.name}
-                          <Badge variant="secondary">Built-in</Badge>
+                          <Badge variant="secondary">
+                            {isLocked ? "Always included" : "Built-in"}
+                          </Badge>
                         </CardTitle>
                       </div>
                       <div className="col-start-2 row-span-2 row-start-1 self-start justify-self-end">

@@ -206,7 +206,7 @@ export const emptyPrompt = (id: string, name: string): Prompt => ({
   promptMode: 'comprehensive',
   selectedSharedSkillIds: [],
   customSkills: [],
-  selectedSharedMemoryIds: ['built-in-company-context'],
+  selectedSharedMemoryIds: ['built-in-company-context', 'built-in-ux-writing'],
   customMemories: [],
   regenerationCount: 0,
   generatedPrompt: '',

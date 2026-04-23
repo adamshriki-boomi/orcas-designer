@@ -1,17 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { UrlOrFileField } from "@/components/fields/url-or-file-field";
 import { WizardStep } from "./wizard-step";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Brain } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { FormFieldData, SharedMemory } from "@/lib/types";
+import { Lock, Package } from "lucide-react";
+import type { FormFieldData } from "@/lib/types";
 
 interface StepDesignSystemProps {
   figmaTarget: FormFieldData;
@@ -22,15 +16,13 @@ interface StepDesignSystemProps {
   onNpmPackageChange: (data: FormFieldData) => void;
   referenceFigma: FormFieldData;
   onReferenceFigmaChange: (data: FormFieldData) => void;
-  storybookMemories: SharedMemory[];
-  selectedMemoryIds: string[];
-  onSelectedMemoryIdsChange: (ids: string[]) => void;
 }
 
 /**
- * Merged "Design System" step. Covers the four previously-separate design
- * system fields (Figma destination, Storybook, npm, reference Figma) plus the
- * built-in Exosphere Storybook memory so users can opt in with one click.
+ * Design System step. Exosphere is always attached via the `/exosphere`
+ * MANDATORY_SKILL — surfaced as a locked card so users can see it. The four
+ * freeform fields (Figma destination, Storybook, npm package, reference
+ * Figma) are all optional extras.
  */
 export function StepDesignSystem({
   figmaTarget,
@@ -41,93 +33,45 @@ export function StepDesignSystem({
   onNpmPackageChange,
   referenceFigma,
   onReferenceFigmaChange,
-  storybookMemories,
-  selectedMemoryIds,
-  onSelectedMemoryIdsChange,
 }: StepDesignSystemProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  function toggleMemory(id: string) {
-    if (selectedMemoryIds.includes(id)) {
-      onSelectedMemoryIdsChange(selectedMemoryIds.filter((mid) => mid !== id));
-    } else {
-      onSelectedMemoryIdsChange([...selectedMemoryIds, id]);
-    }
-  }
-
   return (
     <WizardStep
       title="Design System"
-      description="Tell Claude Code where the design system lives so hi-fi mockups use the right components."
+      description="Boomi's Exosphere design system is always attached as a Claude Code skill. Add extra design-system context below if you need to."
     >
       <div className="space-y-8">
-        {storybookMemories.length > 0 && (
-          <section className="space-y-2">
-            <Label>Design system memories</Label>
-            <div className="grid gap-2">
-              {storybookMemories.map((memory) => {
-                const isSelected = selectedMemoryIds.includes(memory.id);
-                const isExpanded = expandedId === memory.id;
-                return (
-                  <Card
-                    key={memory.id}
-                    size="sm"
-                    className={cn("transition-all duration-150", isSelected && "ring-2 ring-primary")}
-                  >
-                    <CardHeader>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleMemory(memory.id)}
-                        />
-                        <CardTitle className="flex items-center gap-2">
-                          <Brain className="size-3.5 text-muted-foreground" />
-                          {memory.name}
-                          <Badge variant="secondary">Built-in</Badge>
-                        </CardTitle>
-                      </div>
-                      <div className="col-start-2 row-span-2 row-start-1 self-start justify-self-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setExpandedId(isExpanded ? null : memory.id)}
-                          className="cursor-pointer"
-                        >
-                          {isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                          {isExpanded ? "Collapse" : "Preview"}
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    {memory.description && (
-                      <CardContent className="pt-0">
-                        <p className="text-xs text-muted-foreground">{memory.description}</p>
-                      </CardContent>
-                    )}
-                    {isExpanded && (
-                      <CardContent className="pt-0">
-                        <ScrollArea className="h-48 rounded-lg border">
-                          <pre className="whitespace-pre-wrap p-4 text-xs font-mono text-muted-foreground">
-                            {memory.content}
-                          </pre>
-                        </ScrollArea>
-                      </CardContent>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-        )}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold">Design system</h3>
+          <Card size="sm" className="ring-2 ring-primary">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Lock className="size-4 shrink-0 text-muted-foreground" />
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="size-3.5 text-muted-foreground" />
+                  Exosphere
+                  <Badge variant="secondary">Always included</Badge>
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-xs text-muted-foreground">
+                Official Boomi Exosphere Claude skill — 80 indexed components, design tokens,
+                patterns, and content guidelines. Claude Code invokes it directly on any
+                Ex* identifier or <code className="text-[0.65rem]">@boomi/exosphere</code> import.
+              </p>
+            </CardContent>
+          </Card>
+        </section>
 
         <section className="space-y-2">
           <UrlOrFileField
             data={storybook}
             onChange={onStorybookChange}
-            label="Storybook URL"
-            urlPlaceholder="https://storybook.example.com"
+            label="Storybook URL (optional)"
+            urlPlaceholder="https://exosphere.boomi.com/"
           />
           <p className="text-xs text-muted-foreground">
-            Claude will browse Storybook to discover the real component API before coding.
+            Point Claude at a specific Storybook if it's not the default Exosphere site.
           </p>
         </section>
 
@@ -135,7 +79,7 @@ export function StepDesignSystem({
           <UrlOrFileField
             data={npmPackage}
             onChange={onNpmPackageChange}
-            label="NPM package"
+            label="NPM package (optional)"
             urlPlaceholder="@boomi/exosphere"
             showTextOption
           />
@@ -145,7 +89,7 @@ export function StepDesignSystem({
           <UrlOrFileField
             data={referenceFigma}
             onChange={onReferenceFigmaChange}
-            label="Reference Figma (read-only)"
+            label="Reference Figma (read-only, optional)"
             urlPlaceholder="https://www.figma.com/design/..."
           />
         </section>

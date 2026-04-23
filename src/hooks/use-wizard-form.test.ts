@@ -15,7 +15,7 @@ describe('useWizardForm', () => {
     expect(defaults.designProducts).toEqual({ products: ['wireframe'], figmaDestinationUrl: '' })
     expect(defaults.selectedSharedSkillIds).toEqual([])
     expect(defaults.customSkills).toEqual([])
-    expect(defaults.selectedSharedMemoryIds).toEqual(['built-in-company-context'])
+    expect(defaults.selectedSharedMemoryIds).toEqual(['built-in-company-context', 'built-in-ux-writing'])
     expect(defaults.customMemories).toEqual([])
     expect(defaults.regenerationCount).toBe(0)
   })

@@ -48,73 +48,73 @@
 }
 
 :root {
-  /* Token bridge: map app tokens to Exosphere semantic tokens */
-  --background: var(--exo-color-body, #f5f5f5);
-  --foreground: var(--exo-color-font, #1a1a2e);
-  --card: var(--exo-color-background, #ffffff);
-  --card-foreground: var(--exo-color-font, #1a1a2e);
-  --popover: var(--exo-color-background, #ffffff);
-  --popover-foreground: var(--exo-color-font, #1a1a2e);
-  --primary: var(--exo-color-background-action, #4262ff);
-  --primary-foreground: var(--exo-color-font-inverse, #ffffff);
-  --secondary: var(--exo-color-background-secondary, #f0f1f3);
-  --secondary-foreground: var(--exo-color-font, #1a1a2e);
-  --muted: var(--exo-color-background-secondary, #f0f1f3);
-  --muted-foreground: var(--exo-color-font-secondary, #6b7280);
-  --accent: var(--exo-color-background-highlight, #e8f0fe);
-  --accent-foreground: var(--exo-color-font, #1a1a2e);
-  --destructive: var(--exo-color-background-danger-strong, #dc2626);
-  --border: var(--exo-color-border, #e2e4e9);
-  --input: var(--exo-color-border, #e2e4e9);
-  --ring: var(--exo-color-border-action, #4262ff);
-  --chart-1: var(--exo-color-background-action, #4262ff);
-  --chart-2: var(--exo-color-background-success-strong, #16a34a);
-  --chart-3: var(--exo-color-background-warning-strong, #f59e0b);
-  --chart-4: var(--exo-color-background-info-strong, #0ea5e9);
-  --chart-5: var(--exo-color-background-danger-strong, #dc2626);
-  --radius: var(--exo-radius-standard, 0.5rem);
-  --sidebar: var(--exo-color-page, #ffffff);
-  --sidebar-foreground: var(--exo-color-font, #1a1a2e);
-  --sidebar-primary: var(--exo-color-background-action, #4262ff);
-  --sidebar-primary-foreground: var(--exo-color-font-inverse, #ffffff);
-  --sidebar-accent: var(--exo-color-background-secondary, #f0f1f3);
-  --sidebar-accent-foreground: var(--exo-color-font, #1a1a2e);
-  --sidebar-border: var(--exo-color-border, #e2e4e9);
-  --sidebar-ring: var(--exo-color-border-action, #4262ff);
+  /* Token bridge: app vars point at Exosphere semantic tokens (no fallbacks — @boomi/exosphere/dist/styles.css is imported above and must load for the app to function). */
+  --background: var(--exo-color-body);
+  --foreground: var(--exo-color-font);
+  --card: var(--exo-color-background);
+  --card-foreground: var(--exo-color-font);
+  --popover: var(--exo-color-background);
+  --popover-foreground: var(--exo-color-font);
+  --primary: var(--exo-color-background-action);
+  --primary-foreground: var(--exo-color-font-inverse);
+  --secondary: var(--exo-color-background-secondary);
+  --secondary-foreground: var(--exo-color-font);
+  --muted: var(--exo-color-background-secondary);
+  --muted-foreground: var(--exo-color-font-secondary);
+  --accent: var(--exo-color-background-highlight);
+  --accent-foreground: var(--exo-color-font);
+  --destructive: var(--exo-color-background-danger-strong);
+  --border: var(--exo-color-border);
+  --input: var(--exo-color-border);
+  --ring: var(--exo-color-border-action);
+  --chart-1: var(--exo-color-background-action);
+  --chart-2: var(--exo-color-background-success-strong);
+  --chart-3: var(--exo-color-background-warning-strong);
+  --chart-4: var(--exo-color-background-info-strong);
+  --chart-5: var(--exo-color-background-danger-strong);
+  --radius: var(--exo-radius-standard);
+  --sidebar: var(--exo-color-page);
+  --sidebar-foreground: var(--exo-color-font);
+  --sidebar-primary: var(--exo-color-background-action);
+  --sidebar-primary-foreground: var(--exo-color-font-inverse);
+  --sidebar-accent: var(--exo-color-background-secondary);
+  --sidebar-accent-foreground: var(--exo-color-font);
+  --sidebar-border: var(--exo-color-border);
+  --sidebar-ring: var(--exo-color-border-action);
 }
 
 .ex-theme-dark {
-  --background: var(--exo-color-body, #1f1f1f);
-  --foreground: var(--exo-color-font, #f3f4f6);
-  --card: var(--exo-color-background, #2e2e2e);
-  --card-foreground: var(--exo-color-font, #f3f4f6);
-  --popover: var(--exo-color-background, #2e2e2e);
-  --popover-foreground: var(--exo-color-font, #f3f4f6);
-  --primary: var(--exo-color-background-action, #6b8aff);
-  --primary-foreground: var(--exo-color-font-inverse, #ffffff);
-  --secondary: var(--exo-color-background-secondary, #374151);
-  --secondary-foreground: var(--exo-color-font, #e5e7eb);
-  --muted: var(--exo-color-background-secondary, #374151);
-  --muted-foreground: var(--exo-color-font-secondary, #9ca3af);
-  --accent: var(--exo-color-background-highlight, #1e3a5f);
-  --accent-foreground: var(--exo-color-font, #f3f4f6);
-  --destructive: var(--exo-color-background-danger-strong, #ef4444);
-  --border: var(--exo-color-border, rgba(255, 255, 255, 0.1));
-  --input: var(--exo-color-border, rgba(255, 255, 255, 0.15));
-  --ring: var(--exo-color-border-action, #6b8aff);
-  --chart-1: #6b8aff;
-  --chart-2: #4ade80;
-  --chart-3: #fbbf24;
-  --chart-4: #38bdf8;
-  --chart-5: #f87171;
-  --sidebar: var(--exo-color-page, #1a1a1a);
-  --sidebar-foreground: var(--exo-color-font, #f3f4f6);
-  --sidebar-primary: var(--exo-color-background-action, #6b8aff);
-  --sidebar-primary-foreground: var(--exo-color-font-inverse, #ffffff);
-  --sidebar-accent: var(--exo-color-background-secondary, #374151);
-  --sidebar-accent-foreground: var(--exo-color-font, #e5e7eb);
-  --sidebar-border: var(--exo-color-border, rgba(255, 255, 255, 0.1));
-  --sidebar-ring: var(--exo-color-border-action, #6b8aff);
+  --background: var(--exo-color-body);
+  --foreground: var(--exo-color-font);
+  --card: var(--exo-color-background);
+  --card-foreground: var(--exo-color-font);
+  --popover: var(--exo-color-background);
+  --popover-foreground: var(--exo-color-font);
+  --primary: var(--exo-color-background-action);
+  --primary-foreground: var(--exo-color-font-inverse);
+  --secondary: var(--exo-color-background-secondary);
+  --secondary-foreground: var(--exo-color-font);
+  --muted: var(--exo-color-background-secondary);
+  --muted-foreground: var(--exo-color-font-secondary);
+  --accent: var(--exo-color-background-highlight);
+  --accent-foreground: var(--exo-color-font);
+  --destructive: var(--exo-color-background-danger-strong);
+  --border: var(--exo-color-border);
+  --input: var(--exo-color-border);
+  --ring: var(--exo-color-border-action);
+  --chart-1: var(--exo-color-background-action);
+  --chart-2: var(--exo-color-background-success-strong);
+  --chart-3: var(--exo-color-background-warning-strong);
+  --chart-4: var(--exo-color-background-info-strong);
+  --chart-5: var(--exo-color-background-danger-strong);
+  --sidebar: var(--exo-color-page);
+  --sidebar-foreground: var(--exo-color-font);
+  --sidebar-primary: var(--exo-color-background-action);
+  --sidebar-primary-foreground: var(--exo-color-font-inverse);
+  --sidebar-accent: var(--exo-color-background-secondary);
+  --sidebar-accent-foreground: var(--exo-color-font);
+  --sidebar-border: var(--exo-color-border);
+  --sidebar-ring: var(--exo-color-border-action);
 }
 
 /* Override Exosphere's body { background-color: var(--exo-color-background) } */
@@ -133,20 +133,12 @@ body {
   }
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @layer utilities {
-  .animate-fade-in {
-    animation: fade-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-  }
   .font-heading {
     font-family: var(--font-heading), var(--exo-font-brand), ui-sans-serif, system-ui, sans-serif;
   }
   .gradient-primary {
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    background: linear-gradient(135deg, var(--primary), var(--accent));
   }
   .gradient-accent {
     background: linear-gradient(135deg, var(--primary), var(--accent));
@@ -156,18 +148,13 @@ body {
   }
   .shadow-card {
     box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 2px 8px rgba(0, 0, 0, 0.06);
+      0 1px 2px var(--exo-color-shadow-weak),
+      0 2px 8px var(--exo-color-shadow-moderate);
   }
   .shadow-card-hover {
     box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.06),
-      0 8px 24px rgba(0, 0, 0, 0.10);
-  }
-  .shadow-elevated {
-    box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.08),
-      0 16px 48px rgba(0, 0, 0, 0.12);
+      0 2px 4px var(--exo-color-shadow-moderate),
+      0 8px 24px var(--exo-color-shadow-strong);
   }
 }
 

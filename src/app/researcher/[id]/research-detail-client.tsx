@@ -150,7 +150,7 @@ function MethodResultSection({ result, defaultExpanded }: { result: MethodResult
               {!result.error && method?.mode && (
                 <span
                   className={cn(
-                    'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wider',
                     method.mode === 'analytical'
                       ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
                       : 'bg-primary/10 text-primary',

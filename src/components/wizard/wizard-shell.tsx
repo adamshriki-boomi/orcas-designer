@@ -68,7 +68,7 @@ export function WizardShell({
 
               return (
                 <div key={group.label}>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2 pl-9">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 pl-9">
                     {group.label}
                   </p>
                   <div className="space-y-0.5">
@@ -95,7 +95,7 @@ export function WizardShell({
                           {/* Step indicator circle */}
                           <span
                             className={cn(
-                              "flex size-[30px] shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                              "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
                               isActive
                                 ? "bg-white/20 text-primary-foreground"
                                 : isCompleted
@@ -154,7 +154,7 @@ export function WizardShell({
             exit={{ opacity: 0, y: directionRef.current * -16 }}
             transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <div className="min-h-[300px]">{children}</div>
+            <div className="min-h-80">{children}</div>
           </motion.div>
         </AnimatePresence>
 

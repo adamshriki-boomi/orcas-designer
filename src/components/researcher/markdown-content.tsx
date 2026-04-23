@@ -25,7 +25,7 @@ export function MarkdownContent({ children, className, compact = false }: Markdo
     <div
       className={cn(
         'text-foreground max-w-none',
-        compact ? 'text-sm leading-relaxed' : 'text-[15px] leading-[1.7]',
+        compact ? 'text-sm leading-relaxed' : 'text-base leading-7',
         className,
       )}
     >

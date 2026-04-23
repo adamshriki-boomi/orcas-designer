@@ -41,7 +41,7 @@ export function LeftSidebar() {
 
   return (
     <aside
-      className="sticky top-0 self-start h-screen shrink-0 z-40 relative bg-[var(--exo-color-background,#1a1a2e)] border-r border-[var(--exo-color-border,#2a2a3e)]"
+      className="sticky top-0 self-start h-screen shrink-0 z-40 relative bg-[var(--exo-color-background)] border-r border-[var(--exo-color-border)]"
       style={{ width: SIDEBAR_WIDTH }}
     >
       <ExLeftmenubarAdjustable
@@ -86,7 +86,7 @@ export function LeftSidebar() {
               onItemSelection={() => router.push(item.href)}
             >
               <span slot="icon" className="flex items-center justify-center">
-                <Icon className="size-[18px]" />
+                <Icon className="size-[1.125rem]" />
               </span>
             </ExLeftmenubarLink>
           );
@@ -108,7 +108,7 @@ export function LeftSidebar() {
               onItemSelection={() => router.push(item.href)}
             >
               <span slot="icon" className="flex items-center justify-center">
-                <Icon className="size-[18px]" />
+                <Icon className="size-[1.125rem]" />
               </span>
             </ExLeftmenubarLink>
           );
@@ -122,7 +122,7 @@ export function LeftSidebar() {
           onItemSelection={() => router.push('/settings')}
         >
           <span slot="icon" className="flex items-center justify-center">
-            <SettingsIcon className="size-[18px]" />
+            <SettingsIcon className="size-[1.125rem]" />
           </span>
         </ExLeftmenubarLink>
 

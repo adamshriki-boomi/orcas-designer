@@ -9,8 +9,9 @@ export function ExosphereProvider({ children }: { children: React.ReactNode }) {
     import('@boomi/exosphere').then((m) => {
       if (typeof m.default === 'function') m.default()
     })
-    // Load icon registry (populates window[Symbol.for("$$EXOSPHERE_ICON$$")])
-    import('@boomi/exosphere/dist/components/icon/icons/index.js')
+    // Icon registry — the canonical public entry point (per exosphere skill).
+    // Missing this → every icon renders as a silent empty box.
+    import('@boomi/exosphere/dist/icon.js')
   }, [])
 
   return (

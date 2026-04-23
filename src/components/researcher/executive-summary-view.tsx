@@ -370,7 +370,7 @@ function ActionItemCard({ item, rank }: { item: ActionItem; rank: number }) {
             <div className="flex flex-wrap items-center gap-1.5 mb-2">
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider',
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wider',
                   p.bg,
                   p.text,
                 )}
@@ -379,7 +379,7 @@ function ActionItemCard({ item, rank }: { item: ActionItem; rank: number }) {
               </span>
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium',
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
                   impactStyles(item.impact),
                 )}
               >
@@ -387,7 +387,7 @@ function ActionItemCard({ item, rank }: { item: ActionItem; rank: number }) {
                 {item.impact} impact
               </span>
             </div>
-            <h3 className="font-heading text-[15px] font-semibold leading-snug tracking-tight text-foreground">
+            <h3 className="font-heading text-base font-semibold leading-snug tracking-tight text-foreground">
               {item.title}
             </h3>
 

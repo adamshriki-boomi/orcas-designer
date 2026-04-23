@@ -16,7 +16,7 @@ export function PromptRenderer({ prompt }: PromptRendererProps) {
   }
 
   return (
-    <ScrollArea className="h-[600px] w-full rounded-md border">
+    <ScrollArea className="h-[37.5rem] w-full rounded-md border">
       <pre className="p-4 text-sm font-mono whitespace-pre-wrap break-words text-foreground">
         {prompt}
       </pre>

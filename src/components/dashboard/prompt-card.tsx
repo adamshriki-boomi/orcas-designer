@@ -140,7 +140,7 @@ export const PromptCard = memo(function PromptCard({ project }: PromptCardProps)
             </div>
             <div className="relative flex items-center justify-center">
               <ProgressRing percent={completion} />
-              <span className="absolute text-[10px] font-semibold tabular-nums">{completion}%</span>
+              <span className="absolute text-xs font-semibold tabular-nums">{completion}%</span>
             </div>
           </div>
         </CardHeader>

@@ -9,7 +9,7 @@ interface TagBadgeProps {
 export function TagBadge({ tag }: TagBadgeProps) {
   const isBoomiKnowledge = tag === 'Boomi Knowledge';
   return (
-    <Badge variant={isBoomiKnowledge ? 'secondary' : 'outline'} className="text-[10px] font-medium">
+    <Badge variant={isBoomiKnowledge ? 'secondary' : 'outline'} className="text-xs font-medium">
       {tag}
     </Badge>
   );

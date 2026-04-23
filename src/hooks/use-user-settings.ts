@@ -76,8 +76,11 @@ export function useUserSettings() {
   }, [user]);
 
   const saveApiKey = useCallback(async (apiKey: string) => {
-    await upsertSettings({ claude_api_key: apiKey });
-    setSettings((prev) => prev ? { ...prev, claudeApiKey: apiKey } : prev);
+    // Trim to defend against stray whitespace from copy-paste — Anthropic's
+    // bearer-token check rejects any non-exact match with a 401.
+    const trimmed = apiKey.trim();
+    await upsertSettings({ claude_api_key: trimmed });
+    setSettings((prev) => prev ? { ...prev, claudeApiKey: trimmed } : prev);
   }, [upsertSettings]);
 
   const deleteApiKey = useCallback(async () => {

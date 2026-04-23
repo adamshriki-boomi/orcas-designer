@@ -8,6 +8,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+/** Pull the innermost human-readable message out of an Anthropic SDK error.
+ * The SDK's `.message` is a verbose "401 {...json...}" string; the parsed
+ * `.error.error.message` is the short version (e.g. "invalid x-api-key",
+ * "credit balance is too low", "model not available on your plan"). */
+function extractAnthropicDetail(error: Anthropic.APIError): string {
+  const body = (error as { error?: { error?: { message?: string } } }).error;
+  return body?.error?.message ?? "";
+}
+
 const UX_WRITING_GUIDELINES = `# Boomi UX Writing Guidelines
 
 > Source: Boomi Product Content — Content Design: UX Writing & Content Strategy
@@ -483,10 +492,12 @@ Deno.serve(async (req: Request) => {
   } catch (error: unknown) {
     // Handle specific error types
     if (error instanceof Anthropic.AuthenticationError) {
+      const detail = extractAnthropicDetail(error);
+      const message = detail
+        ? `Claude rejected the API key (${detail}). Please check your key in Settings.`
+        : "Invalid Claude API key. Please check your key in Settings.";
       return new Response(
-        JSON.stringify({
-          error: "Invalid Claude API key. Please check your key in Settings.",
-        }),
+        JSON.stringify({ error: message }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

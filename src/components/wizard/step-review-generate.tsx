@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, AlertCircle, Save, KeyRound, Lock } from 'lucide-react';
 import { WizardStep } from './wizard-step';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { buildPromptGenerationPayload } from '@/lib/prompt-payload-builder';
@@ -16,7 +17,6 @@ import { promptToRow } from '@/hooks/use-prompts';
 import { useGenerateVersion } from '@/hooks/use-prompt-versions';
 import { generateId } from '@/lib/id';
 import { toast } from '@/components/ui/sonner';
-import { cn } from '@/lib/utils';
 import type { Prompt, SharedSkill, SharedMemory, DesignProduct } from '@/lib/types';
 
 interface StepReviewGenerateProps {
@@ -40,9 +40,25 @@ export function StepReviewGenerate({
 }: StepReviewGenerateProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const { loading: settingsLoading, hasApiKey } = useUserSettings();
+  const { loading: settingsLoading, hasApiKey, saveApiKey } = useUserSettings();
   const { generate, isStarting } = useGenerateVersion();
   const [error, setError] = useState<string | null>(null);
+  const [inlineApiKey, setInlineApiKey] = useState('');
+  const [savingInlineKey, setSavingInlineKey] = useState(false);
+
+  async function handleSaveInlineKey() {
+    if (!inlineApiKey.trim()) return;
+    setSavingInlineKey(true);
+    try {
+      await saveApiKey(inlineApiKey);
+      setInlineApiKey('');
+      toast.success('API key saved');
+    } catch {
+      toast.error('Unable to save API key');
+    } finally {
+      setSavingInlineKey(false);
+    }
+  }
 
   const mandatorySkills = getActiveSkillsForPrompt(formData);
   const selectedSharedSkills = formData.selectedSharedSkillIds
@@ -228,17 +244,32 @@ export function StepReviewGenerate({
           <div className="rounded-xl border border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/20 p-4">
             <div className="flex items-start gap-3">
               <KeyRound className="size-5 text-amber-600 mt-0.5 shrink-0" />
-              <div className="flex-1 space-y-2">
-                <h3 className="text-sm font-semibold">Claude API key required</h3>
-                <p className="text-xs text-muted-foreground">
-                  The Prompt Generator calls Claude Opus 4.7 with your own API key. Add your key in Settings to generate.
-                </p>
-                <a
-                  href={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ''}/settings`}
-                  className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'cursor-pointer')}
-                >
-                  Open Settings
-                </a>
+              <div className="flex-1 space-y-3">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold">Claude API key required</h3>
+                  <p className="text-xs text-muted-foreground">
+                    The Prompt Generator calls Claude Opus 4.7 with your own API key. Paste it here to save and keep going — no need to leave the wizard.
+                  </p>
+                </div>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <Input
+                      type="password"
+                      placeholder="sk-ant-..."
+                      value={inlineApiKey}
+                      onChange={(e) => setInlineApiKey(e.target.value)}
+                      disabled={savingInlineKey}
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveInlineKey}
+                    disabled={!inlineApiKey.trim() || savingInlineKey}
+                    className="cursor-pointer"
+                  >
+                    {savingInlineKey ? 'Saving...' : 'Save key'}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

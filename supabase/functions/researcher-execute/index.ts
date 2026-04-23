@@ -128,6 +128,15 @@ const BUILT_IN_RESEARCH_METHODS: ResearchMethodDef[] = [
   },
 ];
 
+/** Pull the innermost human-readable message out of an Anthropic SDK error.
+ * The SDK's `.message` is a verbose "401 {...json...}" string; the parsed
+ * `.error.error.message` is the short version (e.g. "invalid x-api-key",
+ * "credit balance is too low", "model not available on your plan"). */
+function extractAnthropicDetail(error: Anthropic.APIError): string {
+  const body = (error as { error?: { error?: { message?: string } } }).error;
+  return body?.error?.message ?? "";
+}
+
 function getMethodById(id: string): ResearchMethodDef | undefined {
   return BUILT_IN_RESEARCH_METHODS.find((m) => m.id === id);
 }
@@ -711,7 +720,11 @@ async function runOneMethod(
 
       // Auth error is terminal — mark the whole project failed
       if (methodError instanceof Anthropic.AuthenticationError) {
-        await markFailed(supabase, projectId, "Invalid Claude API key. Please check your key in Settings.");
+        const detail = extractAnthropicDetail(methodError);
+        const message = detail
+          ? `Claude rejected the API key (${detail}). Please check your key in Settings.`
+          : "Invalid Claude API key. Please check your key in Settings.";
+        await markFailed(supabase, projectId, message);
         throw methodError; // propagate so processNextStep's catch marks failed (redundant but safe)
       }
 

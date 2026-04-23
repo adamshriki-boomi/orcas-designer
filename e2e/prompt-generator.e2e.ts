@@ -1,4 +1,4 @@
-import { test, expect, populatedSeed, gotoApp } from './fixtures/test-base';
+import { test, expect, emptySeed, populatedSeed, gotoApp } from './fixtures/test-base';
 
 test.describe('Prompt Generator — list and wizard', () => {
   test.use({ seedData: populatedSeed() });
@@ -113,5 +113,31 @@ test.describe('Prompt Generator — detail & versions', () => {
     const dialog = page.getByRole('dialog', { name: /Regenerate with Claude Opus 4.7/i });
     await expect(dialog).toBeVisible();
     await expect(page.getByText(/Last version used/i)).toBeVisible();
+  });
+});
+
+test.describe('Prompt Generator — review step, no API key', () => {
+  // Seed without any user_settings row so hasApiKey=false and the inline
+  // API-key prompt renders on step 7 (Review & Generate).
+  test.use({ seedData: { ...emptySeed(), user_settings: [] } });
+
+  test('review step shows inline API-key input instead of a Settings link', async ({ page }) => {
+    await gotoApp(page, 'prompt-generator/new?step=7');
+    // Wizard is client-rendered — give hydration a beat.
+    await page.waitForTimeout(500);
+
+    // Banner header is visible.
+    await expect(page.getByRole('heading', { name: /Claude API key required/i })).toBeVisible();
+
+    // Critical regression guard: the old "Open Settings" anchor (which did a
+    // full-page nav and blew away wizard form state) must NOT be present.
+    await expect(page.getByRole('link', { name: /Open Settings/i })).toHaveCount(0);
+
+    // New inline flow: a password input + "Save key" button live in the banner.
+    await expect(page.getByPlaceholder('sk-ant-...')).toBeVisible();
+    const saveButton = page.getByRole('button', { name: /Save key/i });
+    await expect(saveButton).toBeVisible();
+    // Button stays disabled until something is typed.
+    await expect(saveButton).toBeDisabled();
   });
 });

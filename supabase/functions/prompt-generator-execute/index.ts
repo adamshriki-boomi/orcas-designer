@@ -108,6 +108,15 @@ function json(body: unknown, status: number): Response {
   });
 }
 
+/** Pull the innermost human-readable message out of an Anthropic SDK error.
+ * The SDK's `.message` is a verbose "401 {...json...}" string; the parsed
+ * `.error.error.message` is the short version (e.g. "invalid x-api-key",
+ * "credit balance is too low", "model not available on your plan"). */
+function extractAnthropicDetail(error: Anthropic.APIError): string {
+  const body = (error as { error?: { error?: { message?: string } } }).error;
+  return body?.error?.message ?? "";
+}
+
 async function markFailed(
   supabase: ReturnType<typeof createClient>,
   versionId: string,
@@ -288,7 +297,10 @@ Deno.serve(async (req: Request) => {
     let status = 500;
 
     if (error instanceof Anthropic.AuthenticationError) {
-      errorMessage = "Invalid Claude API key. Update your key in Settings.";
+      const detail = extractAnthropicDetail(error);
+      errorMessage = detail
+        ? `Claude rejected the API key (${detail}). Update your key in Settings.`
+        : "Invalid Claude API key. Update your key in Settings.";
       status = 401;
     } else if (error instanceof Anthropic.RateLimitError) {
       errorMessage = "Claude rate limit reached. Try again later.";

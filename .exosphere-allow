@@ -1,9 +1,0 @@
-# Patterns to skip when running the exosphere skill's verify-token-usage.mjs.
-# Matching is substring (line.includes(p)). Keep each entry narrow.
-
-# Box-shadow offsets composed with Exosphere shadow color tokens.
-# Exosphere ships only shadow-COLOR tokens (--exo-color-shadow-weak / -moderate / -strong),
-# not full shadow tokens with offsets. The offsets are inherently px, so we allow
-# any line that uses the shadow color tokens correctly.
-var(--exo-color-shadow-
-

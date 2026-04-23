@@ -136,16 +136,6 @@ describe('useWizardForm', () => {
     expect(result.current.formData.designProducts.products).toHaveLength(2)
   })
 
-  it('setPromptMode updates promptMode', () => {
-    const { result } = renderHook(() => useWizardForm())
-
-    act(() => {
-      result.current.setPromptMode('lite')
-    })
-
-    expect(result.current.formData.promptMode).toBe('lite')
-  })
-
   it('setSharedSkills updates selectedSharedSkillIds', () => {
     const { result } = renderHook(() => useWizardForm())
 

@@ -140,20 +140,13 @@ export type Database = {
       }
       prompts: {
         Row: {
-          accessibility_level: string
-          browser_compatibility: string[]
           created_at: string
           custom_memories: Json
           custom_skills: Json
           data: Json
-          design_direction: Json | null
-          external_resources_accessible: boolean
           generated_prompt: string
           id: string
-          interaction_level: string
           name: string
-          output_directory: string
-          output_type: string
           prompt_mode: string
           regeneration_count: number
           selected_shared_memory_ids: string[]
@@ -162,20 +155,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          accessibility_level?: string
-          browser_compatibility?: string[]
           created_at?: string
           custom_memories?: Json
           custom_skills?: Json
           data?: Json
-          design_direction?: Json | null
-          external_resources_accessible?: boolean
           generated_prompt?: string
           id?: string
-          interaction_level?: string
           name: string
-          output_directory?: string
-          output_type?: string
           prompt_mode?: string
           regeneration_count?: number
           selected_shared_memory_ids?: string[]
@@ -184,20 +170,13 @@ export type Database = {
           user_id: string
         }
         Update: {
-          accessibility_level?: string
-          browser_compatibility?: string[]
           created_at?: string
           custom_memories?: Json
           custom_skills?: Json
           data?: Json
-          design_direction?: Json | null
-          external_resources_accessible?: boolean
           generated_prompt?: string
           id?: string
-          interaction_level?: string
           name?: string
-          output_directory?: string
-          output_type?: string
           prompt_mode?: string
           regeneration_count?: number
           selected_shared_memory_ids?: string[]

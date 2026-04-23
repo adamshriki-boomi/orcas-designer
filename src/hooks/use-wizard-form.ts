@@ -7,7 +7,6 @@ import type {
   CurrentImplementationData,
   FeatureDefinitionData,
   DesignProductsData,
-  PromptMode,
   CustomSkill,
   SkillId,
   MemoryId,
@@ -29,7 +28,6 @@ type WizardAction =
   | { type: 'SET_CURRENT_IMPL'; payload: CurrentImplementationData }
   | { type: 'SET_FEATURE_DEFINITION'; payload: FeatureDefinitionData }
   | { type: 'SET_DESIGN_PRODUCTS'; payload: DesignProductsData }
-  | { type: 'SET_PROMPT_MODE'; payload: PromptMode }
   | { type: 'SET_SHARED_SKILLS'; payload: SkillId[] }
   | { type: 'SET_CUSTOM_SKILLS'; payload: CustomSkill[] }
   | { type: 'SET_SHARED_MEMORIES'; payload: MemoryId[] }
@@ -48,8 +46,6 @@ function wizardReducer(state: Prompt, action: WizardAction): Prompt {
       return { ...state, featureDefinition: action.payload };
     case 'SET_DESIGN_PRODUCTS':
       return { ...state, designProducts: action.payload };
-    case 'SET_PROMPT_MODE':
-      return { ...state, promptMode: action.payload };
     case 'SET_SHARED_SKILLS':
       return { ...state, selectedSharedSkillIds: action.payload };
     case 'SET_CUSTOM_SKILLS':
@@ -91,10 +87,6 @@ export function useWizardForm(initialProject?: Prompt) {
     dispatch({ type: 'SET_DESIGN_PRODUCTS', payload: data });
   }, []);
 
-  const setPromptMode = useCallback((mode: PromptMode) => {
-    dispatch({ type: 'SET_PROMPT_MODE', payload: mode });
-  }, []);
-
   const setSharedSkills = useCallback((ids: SkillId[]) => {
     dispatch({ type: 'SET_SHARED_SKILLS', payload: ids });
   }, []);
@@ -122,7 +114,6 @@ export function useWizardForm(initialProject?: Prompt) {
     setCurrentImpl,
     setFeatureDefinition,
     setDesignProducts,
-    setPromptMode,
     setSharedSkills,
     setCustomSkills,
     setSharedMemories,

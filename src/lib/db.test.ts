@@ -24,7 +24,6 @@ describe('Supabase client operations', () => {
       id: 'proj-retrieve',
       user_id: 'user-1',
       name: 'Retrieve Test',
-      output_type: 'static-only',
       selected_shared_skill_ids: [],
     });
 
@@ -36,7 +35,6 @@ describe('Supabase client operations', () => {
 
     expect(data).toBeDefined();
     expect(data!.name).toBe('Retrieve Test');
-    expect(data!.output_type).toBe('static-only');
     expect(data!.selected_shared_skill_ids).toEqual([]);
   });
 

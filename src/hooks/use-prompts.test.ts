@@ -13,8 +13,6 @@ describe('prompts Supabase operations', () => {
       user_id: 'user-1',
       name: 'New Project',
       data: {},
-      output_type: 'static-only',
-      interaction_level: 'static',
     });
 
     const { data } = await mockClient.from('prompts').select('*');

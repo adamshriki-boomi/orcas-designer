@@ -5,26 +5,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import type { UxAnalysisEntry } from '@/lib/types';
 import { PenLine } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { getRelativeTime } from '@/lib/relative-time';
 
 const ExBadge = dynamic(
   () => import('@boomi/exosphere').then((m) => ({ default: m.ExBadge })),
   { ssr: false },
 );
-
-export function getRelativeTime(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 30) return `${diffDays}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
 
 export const AnalysisCard = memo(function AnalysisCard({ analysis }: { analysis: UxAnalysisEntry }) {
   const { relativeTime, suggestionCount, hasResults } = useMemo(() => ({

@@ -1,4 +1,5 @@
-import { getRelativeTime } from './analysis-card';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { getRelativeTime } from './relative-time';
 
 describe('getRelativeTime', () => {
   beforeEach(() => {

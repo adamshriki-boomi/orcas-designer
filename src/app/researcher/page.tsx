@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { PlusCircle, Search, FlaskConical, Loader2 } from 'lucide-react';
 import { RESEARCH_TYPE_INFO } from '@/lib/researcher-constants';
 import type { ResearcherProject } from '@/lib/researcher-types';
+import { getRelativeTime } from '@/lib/relative-time';
 import dynamic from 'next/dynamic';
 
 const ExBadge = dynamic(
@@ -32,21 +33,6 @@ const STATUS_LABELS: Record<string, string> = {
   completed: 'Completed',
   failed: 'Failed',
 };
-
-function getRelativeTime(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 30) return `${diffDays}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
 
 function ResearchCard({ project }: { project: ResearcherProject }) {
   const relativeTime = getRelativeTime(project.updatedAt);

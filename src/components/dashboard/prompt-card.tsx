@@ -1,169 +1,94 @@
 'use client';
 
-import { useId, useMemo, memo } from 'react';
+import { memo, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Link as LinkIcon, Image, Play, Wand2, Brain } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Prompt } from '@/lib/types';
-import { isFieldFilled } from '@/lib/validators';
-import { PRODUCT_CONTEXT_MEMORY_IDS } from '@/hooks/use-shared-memories';
-import { MANDATORY_SKILLS } from '@/lib/constants';
+import { Wand2, Link as LinkIcon } from 'lucide-react';
+import type { Prompt, DesignProduct } from '@/lib/types';
 import { isValidFigmaUrl } from '@/lib/validators';
+import { getRelativeTime } from '@/lib/relative-time';
 
-interface PromptCardProps {
-  project: Prompt;
+const ExBadge = dynamic(
+  () => import('@boomi/exosphere').then((m) => ({ default: m.ExBadge })),
+  { ssr: false },
+);
+
+const PRODUCT_LABEL: Record<DesignProduct, string> = {
+  wireframe: 'Wireframe',
+  mockup: 'Mockup',
+  'animated-prototype': 'Animated prototype',
+};
+
+function getDescription(project: Prompt): string {
+  const brief = project.featureDefinition.briefDescription.trim();
+  if (brief) return brief;
+  const productText = project.productInfo.textValue.trim();
+  if (productText) return productText;
+  return '';
 }
 
-function getFilledCount(project: Prompt): number {
-  // Company info always filled (locked Boomi Context memory).
-  // Design System always filled (locked Exosphere skill).
-  let count = 2;
-
-  // Product info: field data OR a selected product memory
-  if (
-    isFieldFilled(project.productInfo) ||
-    (project.selectedSharedMemoryIds ?? []).some((id) => PRODUCT_CONTEXT_MEMORY_IDS.includes(id))
-  ) {
-    count++;
-  }
-
-  // Feature definition: has a name
-  if (project.featureDefinition.name.trim().length > 0) count++;
-
-  // Feature information sub-sections
-  const featureFields = [
-    project.featureInfo,
-    project.uxResearch,
-    project.prototypeSketches,
-  ];
-  count += featureFields.filter(isFieldFilled).length;
-
-  // Design products: at least one chosen output (always true for non-empty
-  // form data since emptyPrompt defaults to ['wireframe'])
-  if (project.designProducts.products.length > 0) count++;
-
-  return count;
-}
-
-// Company + Design System (always) + Product + Feature Definition + feature
-// info fields (3) + Design Products = 8 completion slots.
-const TOTAL_FIELDS = 8;
-
-function getCompletionPercent(project: Prompt): number {
-  return Math.round((getFilledCount(project) / TOTAL_FIELDS) * 100);
-}
-
-function getRelativeTime(dateStr: string): string {
-  const now = Date.now();
-  const then = new Date(dateStr).getTime();
-  const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 30) return `${diffDays}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function ProgressRing({ percent }: { percent: number }) {
-  const gradientId = useId();
-  const size = 44;
-  const strokeWidth = 3.5;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-
-  return (
-    <svg width={size} height={size} className="shrink-0 -rotate-90" role="img" aria-label={`${percent}% complete`}>
-      <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--primary)" />
-          <stop offset="100%" stopColor="var(--accent)" />
-        </linearGradient>
-      </defs>
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={strokeWidth}
-        className="text-muted/50"
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={`url(#${gradientId})`}
-        strokeWidth={strokeWidth}
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        className="transition-all duration-500"
-      />
-    </svg>
-  );
-}
-
-function StatusChip({ icon: Icon, label, active = false }: { icon: React.ElementType; label: string; active?: boolean }) {
-  return (
-    <span className={cn(
-      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-      active ? 'bg-accent/15 text-accent-foreground' : 'bg-muted text-muted-foreground'
-    )}>
-      <Icon className="size-3" />
-      {label}
-    </span>
-  );
-}
-
-export const PromptCard = memo(function PromptCard({ project }: PromptCardProps) {
-  const { completion, filledCount, relativeTime, hasFigma, skillCount, memoryCount, outputLabel, OutputIcon, hasGeneratedPrompt } = useMemo(() => {
-    const comp = getCompletionPercent(project);
-    const filled = getFilledCount(project);
-    const time = getRelativeTime(project.updatedAt);
-    const figma =
-      isValidFigmaUrl(project.designProducts.figmaDestinationUrl) ||
-      project.currentImplementation.figmaLinks.length > 0;
-    const skills = MANDATORY_SKILLS.length + (project.selectedSharedSkillIds?.length ?? 0) + (project.customSkills?.length ?? 0);
-    const memories = (project.selectedSharedMemoryIds?.length ?? 0) + (project.customMemories?.length ?? 0);
-    const hasOutput = !!(project.generatedPrompt && project.generatedPrompt.length > 0);
-    const label = hasOutput ? 'Generated' : 'Draft';
-    const icon = hasOutput ? Play : Image;
-    return { completion: comp, filledCount: filled, relativeTime: time, hasFigma: figma, skillCount: skills, memoryCount: memories, outputLabel: label, OutputIcon: icon, hasGeneratedPrompt: hasOutput };
+export const PromptCard = memo(function PromptCard({ project }: { project: Prompt }) {
+  const { relativeTime, hasGeneratedPrompt, products, hasFigma, description } = useMemo(() => {
+    return {
+      relativeTime: getRelativeTime(project.updatedAt),
+      hasGeneratedPrompt: project.generatedPrompt.length > 0,
+      products: project.designProducts.products,
+      hasFigma: isValidFigmaUrl(project.designProducts.figmaDestinationUrl),
+      description: getDescription(project),
+    };
   }, [project]);
 
   return (
     <a
       href={`${process.env.NEXT_PUBLIC_BASE_PATH}/prompt-generator/${project.id}`}
-      className="block"
+      className="block h-full"
     >
-      <Card className="group cursor-pointer hover:shadow-card-hover hover:scale-[1.01] transition-all duration-200">
+      <Card className="group h-full cursor-pointer hover:shadow-card-hover hover:scale-[1.01] transition-all duration-200">
         <CardHeader>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="font-heading font-semibold truncate">{project.name}</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">{relativeTime}</p>
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-white shadow-sm">
+              <Wand2 className="size-5" />
             </div>
-            <div className="relative flex items-center justify-center">
-              <ProgressRing percent={completion} />
-              <span className="absolute text-xs font-semibold tabular-nums">{completion}%</span>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="font-heading font-semibold line-clamp-2 break-words">
+                {project.name}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">{relativeTime}</p>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            <StatusChip icon={LinkIcon} label="Figma" active={hasFigma} />
-            <StatusChip icon={OutputIcon} label={outputLabel} active={hasGeneratedPrompt} />
-            <StatusChip icon={Wand2} label={`${skillCount} skills`} active={skillCount > 0} />
-            <StatusChip icon={Brain} label={`${memoryCount} mem`} active={memoryCount > 0} />
-          </div>
-          <p className="text-xs text-muted-foreground">{filledCount} of 8 fields filled</p>
+          <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+            {description || <span className="italic opacity-60">No description</span>}
+          </p>
         </CardContent>
+        <div className="px-4 pb-1 flex items-center gap-2 flex-wrap">
+          {hasGeneratedPrompt ? (
+            <ExBadge color={'green' as never} shape={'round' as never} useTextContent>
+              Generated
+            </ExBadge>
+          ) : (
+            <ExBadge color={'gray' as never} shape={'round' as never} useTextContent>
+              Draft
+            </ExBadge>
+          )}
+          {products.map((product) => (
+            <ExBadge
+              key={product}
+              color={'navy' as never}
+              shape={'squared' as never}
+              useTextContent
+            >
+              {PRODUCT_LABEL[product]}
+            </ExBadge>
+          ))}
+          {hasFigma && (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <LinkIcon className="size-3" />
+              Figma
+            </span>
+          )}
+        </div>
       </Card>
     </a>
   );

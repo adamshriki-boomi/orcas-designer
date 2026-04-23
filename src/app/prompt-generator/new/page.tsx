@@ -9,10 +9,6 @@ import {
   PRODUCT_CONTEXT_MEMORY_IDS,
   UX_WRITING_MEMORY_IDS,
 } from '@/hooks/use-shared-memories';
-import {
-  BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
-  BUILT_IN_UX_WRITING_MEMORY_ID,
-} from '@/lib/constants';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
 import { promptToRow } from '@/hooks/use-prompts';
@@ -22,6 +18,8 @@ import {
   WIZARD_STEPS,
   PROMPT_GENERATOR_STEP_GROUPS,
   BUILT_IN_COMPANY_CONTEXT,
+  BUILT_IN_UX_WRITING_MEMORY_ID,
+  WIZARD_LOCKED_MEMORY_IDS,
 } from '@/lib/constants';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
@@ -157,19 +155,10 @@ function WizardContent() {
         id,
         name: formData.name || 'Untitled Prompt',
       };
+      // promptToRow packs the form data into row.data via its own formFields
+      // constant — don't duplicate that list here.
       const row = promptToRow(projectData, user!.id);
       row.id = id;
-      row.data = {
-        companyInfo: projectData.companyInfo,
-        productInfo: projectData.productInfo,
-        featureDefinition: projectData.featureDefinition,
-        featureInfo: projectData.featureInfo,
-        currentImplementation: projectData.currentImplementation,
-        uxResearch: projectData.uxResearch,
-        uxWriting: projectData.uxWriting,
-        prototypeSketches: projectData.prototypeSketches,
-        designProducts: projectData.designProducts,
-      };
       const supabase = createClient();
       const { error } = await supabase.from('prompts').insert(row as never);
       if (error) throw error;
@@ -258,7 +247,7 @@ function WizardContent() {
             onSharedMemoriesChange={setSharedMemories}
             customMemories={formData.customMemories ?? []}
             onCustomMemoriesChange={setCustomMemories}
-            lockedMemoryIds={[BUILT_IN_COMPANY_CONTEXT_MEMORY_ID, BUILT_IN_UX_WRITING_MEMORY_ID]}
+            lockedMemoryIds={WIZARD_LOCKED_MEMORY_IDS}
           />
         );
       case 7:

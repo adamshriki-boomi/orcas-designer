@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { WizardStep } from './wizard-step';
 import { cn } from '@/lib/utils';
+import { isValidFigmaUrl } from '@/lib/validators';
 import { Check, LayoutGrid, Film, Paintbrush } from 'lucide-react';
 import type { DesignProductsData, DesignProduct } from '@/lib/types';
 
@@ -59,6 +60,8 @@ export function StepDesignProducts({ data, onChange }: StepDesignProductsProps) 
   };
 
   const hasAnyProduct = data.products.length > 0;
+  const figmaUrlTrimmed = data.figmaDestinationUrl.trim();
+  const figmaUrlInvalid = figmaUrlTrimmed.length > 0 && !isValidFigmaUrl(figmaUrlTrimmed);
 
   return (
     <WizardStep
@@ -116,6 +119,7 @@ export function StepDesignProducts({ data, onChange }: StepDesignProductsProps) 
           <Label htmlFor="figma-destination">Figma destination (optional)</Label>
           <p className="text-xs text-muted-foreground">
             If you want the output built directly in Figma, paste the destination file URL here.
+            Only <code className="text-[0.7rem]">figma.com</code> / <code className="text-[0.7rem]">www.figma.com</code> links are accepted.
           </p>
           <Input
             id="figma-destination"
@@ -123,7 +127,13 @@ export function StepDesignProducts({ data, onChange }: StepDesignProductsProps) 
             value={data.figmaDestinationUrl}
             onChange={(e) => update({ figmaDestinationUrl: e.target.value })}
             placeholder="https://www.figma.com/design/..."
+            aria-invalid={figmaUrlInvalid || undefined}
           />
+          {figmaUrlInvalid && (
+            <p className="text-xs text-destructive">
+              Enter a valid Figma URL (must be on figma.com).
+            </p>
+          )}
         </section>
       </div>
     </WizardStep>

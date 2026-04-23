@@ -19,12 +19,12 @@ import {
   BUILT_IN_UX_RESEARCH_PROCESS_MEMORY_ID,
   COMPANY_CONTEXT_MEMORY_ID,
   PRODUCT_CONTEXT_MEMORY_IDS,
-  DESIGN_SYSTEM_MEMORY_IDS,
   UX_WRITING_MEMORY_IDS,
 } from '@/lib/constants';
 
-// Re-export for backward compatibility
-export { COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, DESIGN_SYSTEM_MEMORY_IDS, UX_WRITING_MEMORY_IDS };
+// Re-export for convenience so wizard steps can import these IDs from the
+// same module that owns the fetch hook.
+export { COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, UX_WRITING_MEMORY_IDS };
 
 interface BuiltInMemorySeed {
   id: string;

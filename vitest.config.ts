@@ -19,6 +19,7 @@ export default defineConfig({
         'src/lib/**/*.ts',
         'src/hooks/**/*.ts',
         'src/components/dashboard/**/*.{ts,tsx}',
+        'src/components/wizard/**/*.{ts,tsx}',
       ],
     },
   },

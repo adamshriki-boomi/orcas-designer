@@ -36,6 +36,45 @@ test.describe('Prompt Generator — list and wizard', () => {
       await expect(page.getByRole('button', { name: new RegExp(`Go to step.*${label}`, 'i') })).toBeVisible();
     }
   });
+
+  test('Feature Information step shows Current state only in improvement mode', async ({ page }) => {
+    // Step indexes (0-based in URL): 1 = Feature Definition, 2 = Feature
+    // Information. The "Current state" sub-section on step 2 is conditional
+    // on the mode picked in step 1. Navigate between them via sidebar clicks
+    // (soft navigation) so wizard form state persists.
+    await gotoApp(page, `prompt-generator/new?step=2`);
+    await page.waitForTimeout(500);
+
+    // New mode is the emptyPrompt default — Current state should NOT render.
+    await expect(page.getByRole('heading', { name: /^Current state/i })).toHaveCount(0);
+
+    // Click the step-1 sidebar button (soft nav preserves form state).
+    await page.getByRole('button', { name: /Go to step.*Feature Definition/i }).click();
+    await page.waitForTimeout(200);
+    await page.getByRole('button', { name: /Improvement of existing feature/i }).click();
+
+    // Back to step 2 via sidebar — same wizard instance, state preserved.
+    await page.getByRole('button', { name: /Go to step.*Feature Information/i }).click();
+    await page.waitForTimeout(200);
+
+    await expect(page.getByRole('heading', { name: /^Current state/i })).toBeVisible();
+  });
+
+  test('Design Products step blocks progression until one output is selected', async ({ page }) => {
+    // Step 5 is Design Products. emptyPrompt defaults products=['wireframe'],
+    // so the step starts valid. Deselect wireframe and assert the validation
+    // message appears inline.
+    await gotoApp(page, `prompt-generator/new?step=5`);
+    await page.waitForTimeout(500);
+
+    // Initially valid — no warning text.
+    await expect(page.getByText(/Pick at least one output/i)).toHaveCount(0);
+
+    // Toggle off the default wireframe selection.
+    await page.getByRole('button', { name: /^Wireframe/i }).click();
+
+    await expect(page.getByText(/Pick at least one output/i)).toBeVisible();
+  });
 });
 
 test.describe('Prompt Generator — detail & versions', () => {

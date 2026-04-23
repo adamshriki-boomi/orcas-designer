@@ -8,6 +8,7 @@ import type { Prompt } from '@/lib/types';
 import { isFieldFilled } from '@/lib/validators';
 import { PRODUCT_CONTEXT_MEMORY_IDS } from '@/hooks/use-shared-memories';
 import { MANDATORY_SKILLS } from '@/lib/constants';
+import { isValidFigmaUrl } from '@/lib/validators';
 
 interface PromptCardProps {
   project: Prompt;
@@ -126,7 +127,7 @@ export const PromptCard = memo(function PromptCard({ project }: PromptCardProps)
     const filled = getFilledCount(project);
     const time = getRelativeTime(project.updatedAt);
     const figma =
-      project.designProducts.figmaDestinationUrl.trim().length > 0 ||
+      isValidFigmaUrl(project.designProducts.figmaDestinationUrl) ||
       project.currentImplementation.figmaLinks.length > 0;
     const skills = MANDATORY_SKILLS.length + (project.selectedSharedSkillIds?.length ?? 0) + (project.customSkills?.length ?? 0);
     const memories = (project.selectedSharedMemoryIds?.length ?? 0) + (project.customMemories?.length ?? 0);

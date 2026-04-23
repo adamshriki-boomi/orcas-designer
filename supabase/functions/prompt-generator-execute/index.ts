@@ -71,8 +71,6 @@ The \`/exosphere\` skill is always attached (it's a MANDATORY_SKILL). Instruct C
 - Dialogs/modals for confirmations only (delete, discard). Editing/viewing uses drawers (\`ExSideDrawer\`).
 - Every clickable element gets \`cursor-pointer\`.
 
-If the user supplied a Storybook URL or npm package name, tell Claude Code to invoke \`/exosphere\` and/or browse the Storybook first before coding.
-
 ## Budget & forbidden patterns
 
 - Target length: 2000-4000 words total.

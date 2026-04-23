@@ -123,11 +123,21 @@ export function StepSkillsMemories({
         <section className="space-y-6">
           <h2 className="text-base font-semibold">Skills</h2>
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">Mandatory ({activeSkills.length})</h3>
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-medium">Mandatory ({activeSkills.length})</h3>
+              <p className="text-xs text-muted-foreground">
+                Auto-attached to every brief based on your project shape. You can&apos;t remove these.
+              </p>
+            </div>
             <MandatorySkillsList skills={activeSkills} />
           </div>
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">Shared skills</h3>
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-medium">Shared skills</h3>
+              <p className="text-xs text-muted-foreground">
+                Team-wide skills. Pick any that should inform this brief.
+              </p>
+            </div>
             <SharedSkillsPicker
               sharedSkills={sharedSkills}
               selectedIds={selectedSharedSkillIds}
@@ -135,7 +145,12 @@ export function StepSkillsMemories({
             />
           </div>
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">Custom skills</h3>
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-medium">Custom skills</h3>
+              <p className="text-xs text-muted-foreground">
+                One-off skills attached to this prompt only.
+              </p>
+            </div>
             <CustomSkillAdder skills={customSkills} onChange={onCustomSkillsChange} />
           </div>
         </section>
@@ -213,13 +228,19 @@ export function StepSkillsMemories({
               <div className="grid gap-2">
                 {customMemories.map((memory) => (
                   <Card key={memory.id} size="sm">
-                    <CardContent className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{memory.name}</span>
+                    <CardContent className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <p className="text-sm font-medium truncate">{memory.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {memory.content.slice(0, 140)}
+                          {memory.content.length > 140 ? '…' : ''}
+                        </p>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveCustomMemory(memory.id)}
-                        className="cursor-pointer"
+                        className="cursor-pointer shrink-0"
                       >
                         Remove
                       </Button>

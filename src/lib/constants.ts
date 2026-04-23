@@ -768,12 +768,20 @@ export const BUILT_IN_COMPANY_CONTEXT_MEMORY_ID = 'built-in-company-context';
 export const BUILT_IN_PRODUCT_MEMORY_ID = 'built-in-rivery-context';
 export const COMPANY_CONTEXT_MEMORY_ID = BUILT_IN_COMPANY_CONTEXT_MEMORY_ID;
 export const PRODUCT_CONTEXT_MEMORY_IDS = [BUILT_IN_PRODUCT_MEMORY_ID];
-// Design system guidance now lives in the `exosphere` MANDATORY_SKILL (see
-// MANDATORY_SKILLS above) rather than an embedded memory. This export is
-// kept empty for API stability; consumers that filter memories by this
-// list continue to work (they just match nothing).
-export const DESIGN_SYSTEM_MEMORY_IDS: string[] = [];
+// Design system guidance now lives entirely in the `exosphere` MANDATORY_SKILL
+// (see MANDATORY_SKILLS above); there's no memory-id list for the design
+// system anymore.
 
 export const BUILT_IN_UX_WRITING_MEMORY_ID = 'built-in-ux-writing';
 export const BUILT_IN_AI_VOICE_MEMORY_ID = 'built-in-ai-voice';
 export const UX_WRITING_MEMORY_IDS = [BUILT_IN_UX_WRITING_MEMORY_ID, BUILT_IN_AI_VOICE_MEMORY_ID];
+
+/**
+ * Built-in memories that are always attached to a generated brief and can
+ * never be deselected. Surface this via the `lockedMemoryIds` prop wherever
+ * a memory picker renders — keeps the lock set consistent across every step.
+ */
+export const WIZARD_LOCKED_MEMORY_IDS = [
+  BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
+  BUILT_IN_UX_WRITING_MEMORY_ID,
+];

@@ -9,6 +9,7 @@ import type {
 } from './types';
 import { MANDATORY_SKILLS } from './constants';
 import { getActiveSkillsForPrompt } from './skill-filter';
+import { isValidFigmaUrl } from './validators';
 
 export interface WizardSnapshot {
   'Company & Product': string;
@@ -80,8 +81,12 @@ function designProductsToText(data: DesignProductsData): string {
     ? data.products.map((p) => `- ${PRODUCT_LABELS[p] ?? p}`).join('\n')
     : '- (none selected — defaulting to lo-fi wireframe)';
   parts.push(`Requested outputs:\n${products}`);
-  if (data.figmaDestinationUrl) {
-    parts.push(`Figma destination (write target): ${data.figmaDestinationUrl}`);
+  // Only forward the Figma destination URL to Claude if it passes validation.
+  // Prevents arbitrary-scheme URIs (e.g. javascript:...) from ending up in
+  // the generated brief as a clickable target.
+  const figmaUrl = data.figmaDestinationUrl.trim();
+  if (figmaUrl && isValidFigmaUrl(figmaUrl)) {
+    parts.push(`Figma destination (write target): ${figmaUrl}`);
   }
   return parts.join('\n\n');
 }

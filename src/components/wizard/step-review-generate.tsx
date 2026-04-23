@@ -74,19 +74,10 @@ export function StepReviewGenerate({
         id,
         name: formData.name || 'Untitled Prompt',
       };
+      // promptToRow packs the form data into row.data via its own formFields
+      // constant — don't duplicate that list here.
       const row = promptToRow(projectData, user.id);
       row.id = id;
-      row.data = {
-        companyInfo: projectData.companyInfo,
-        productInfo: projectData.productInfo,
-        featureDefinition: projectData.featureDefinition,
-        featureInfo: projectData.featureInfo,
-        currentImplementation: projectData.currentImplementation,
-        uxResearch: projectData.uxResearch,
-        uxWriting: projectData.uxWriting,
-        prototypeSketches: projectData.prototypeSketches,
-        designProducts: projectData.designProducts,
-      };
       const supabase = createClient();
       const { error: insertError } = await supabase.from('prompts').insert(row as never);
       if (insertError) throw insertError;

@@ -17,7 +17,8 @@ Deno.test("buildUserMessage: includes project header with name and id", () => {
 Deno.test("buildUserMessage: always ends with the Instructions block", () => {
   const out = buildUserMessage(prompt, {}, null);
   assertStringIncludes(out, "# Instructions");
-  assertStringIncludes(out, "three-phase progression");
+  assertStringIncludes(out, "Feature Definition");
+  assertStringIncludes(out, "Design Products");
 });
 
 Deno.test("buildUserMessage: skips null, undefined, and empty-string fields", () => {

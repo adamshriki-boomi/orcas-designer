@@ -45,7 +45,7 @@ export function buildUserMessage(
   }
 
   blocks.push(
-    "# Instructions\nAuthor the Claude Code brief following the three-phase progression and all conventions in the system prompt. Target 2000-4000 words.",
+    "# Instructions\nAuthor the Claude Code brief. Read the Feature Definition and Design Products sections first — they control which phase sections to emit and whether to lead with a current-state analysis. Follow all conventions in the system prompt. Target 2000-4000 words.",
   );
 
   return blocks.join("\n\n");

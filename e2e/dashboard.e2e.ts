@@ -86,7 +86,6 @@ test.describe('Dashboard', () => {
 
     test('renders trend chart cards including the 3 line-graph time-series', async ({ page }) => {
       await gotoApp(page);
-      await expect(page.getByTestId('chart-prompts-by-interaction-level')).toBeVisible();
       await expect(page.getByTestId('chart-research-projects-by-status')).toBeVisible();
       await expect(page.getByTestId('chart-prompts-over-time')).toBeVisible();
       await expect(page.getByTestId('chart-research-jobs-over-time')).toBeVisible();

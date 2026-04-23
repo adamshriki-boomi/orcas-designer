@@ -47,9 +47,11 @@ test.describe('Prompt Generator — detail & versions', () => {
     await page.waitForURL(/\/prompt-generator\/prompt-1/);
     // The AI-authored version content should render (v2 is latest completed)
     await expect(page.getByText(/Claude Code Brief/i)).toBeVisible();
-    // Both versions appear in the sidebar
-    await expect(page.getByText('Legacy (template)')).toBeVisible();
-    await expect(page.getByText('v2')).toBeVisible();
+    // Both versions appear in the sidebar. Scope to the Version history aside
+    // because v2 also appears as the detail-panel heading when it is selected.
+    const versionsAside = page.getByRole('complementary', { name: 'Version history' });
+    await expect(versionsAside.getByText('Legacy (template)')).toBeVisible();
+    await expect(versionsAside.getByText('v2')).toBeVisible();
   });
 
   test('selecting the legacy version swaps the content panel', async ({ page }) => {
@@ -65,7 +67,12 @@ test.describe('Prompt Generator — detail & versions', () => {
     await page.getByText('Checkout redesign').click();
     await page.waitForURL(/\/prompt-generator\/prompt-1/);
     await page.getByRole('button', { name: /^Regenerate$/i }).click();
-    await expect(page.getByRole('alertdialog').getByText(/Regenerate with Claude Opus 4.7/i)).toBeVisible();
-    await expect(page.getByText(/tokens/i)).toBeVisible();
+    // ExDialog renders role="dialog" (not alertdialog) and exposes dialogTitle
+    // as the accessible name rather than a text child. The description is
+    // slotted into <ex-dialog>'s light DOM so it lives outside the shadow-DOM
+    // role="dialog" subtree — assert the unique description text at page level.
+    const dialog = page.getByRole('dialog', { name: /Regenerate with Claude Opus 4.7/i });
+    await expect(dialog).toBeVisible();
+    await expect(page.getByText(/Last version used/i)).toBeVisible();
   });
 });

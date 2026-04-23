@@ -130,6 +130,16 @@ describe('buildPromptGenerationPayload', () => {
       expect(contextSnapshot.mandatorySkills.map((s) => s.name)).toContain('frontend-design');
     });
 
+    it('includes the exosphere skill (replaces the former storybook memory)', () => {
+      const prompt = createTestPrompt();
+      const { contextSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
+      const names = contextSnapshot.mandatorySkills.map((s) => s.name);
+      expect(names).toContain('exosphere');
+      // And the old embedded storybook memory is gone — no memory with that id should appear
+      const memoryIds = contextSnapshot.sharedMemories.map((m) => m.id);
+      expect(memoryIds).not.toContain('built-in-exosphere-storybook');
+    });
+
     it('conditional skills only appear when their condition is met', () => {
       const withoutFigma = buildPromptGenerationPayload(
         createTestPrompt(),

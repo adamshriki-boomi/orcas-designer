@@ -86,7 +86,6 @@ describe('Supabase client operations', () => {
     const builtInIds = [
       'built-in-company-context',
       'built-in-rivery-context',
-      'built-in-exosphere-storybook',
       'built-in-ux-writing',
       'built-in-ai-voice',
     ];

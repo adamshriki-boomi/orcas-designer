@@ -131,17 +131,6 @@ export function createTestSharedMemory(overrides: Partial<SharedMemory> = {}): S
   }
 }
 
-export function createStorybookMemory(): SharedMemory {
-  return createTestSharedMemory({
-    id: 'built-in-exosphere-storybook',
-    name: 'Exosphere Storybook',
-    description: 'Built-in design system reference for @boomi/exosphere',
-    content: '# @boomi/exosphere — Design System Reference\n\n## Component Inventory\n- ExButton\n- ExInput\n- ExCard',
-    fileName: 'exosphere-storybook.md',
-    isBuiltIn: true,
-  })
-}
-
 export function createUxWritingMemory(): SharedMemory {
   return createTestSharedMemory({
     id: 'built-in-ux-writing',
@@ -164,9 +153,3 @@ export function createAiVoiceMemory(): SharedMemory {
   });
 }
 
-export function createPromptWithStorybookMemory(overrides: Partial<Prompt> = {}): Prompt {
-  return createTestPrompt({
-    selectedSharedMemoryIds: ['built-in-exosphere-storybook'],
-    ...overrides,
-  })
-}

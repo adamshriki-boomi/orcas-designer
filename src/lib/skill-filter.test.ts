@@ -26,6 +26,18 @@ describe('getActiveSkillsForPrompt', () => {
     }
   })
 
+  it('always includes the exosphere Design System skill', () => {
+    // The official Boomi Exosphere Claude skill replaces the former embedded
+    // storybook memory and must be attached to every generated brief.
+    const project = createTestPrompt()
+    const result = getActiveSkillsForPrompt(project)
+    const exosphere = result.find(s => s.name === 'exosphere')
+    expect(exosphere).toBeDefined()
+    expect(exosphere?.category).toBe('Design System')
+    expect(exosphere?.includeCondition).toBe('always')
+    expect(exosphere?.repoUrl).toBe('https://github.com/adamshriki-boomi/exosphere-claude-skill')
+  })
+
   it('excludes all never-condition skills for an empty project', () => {
     const project = createTestPrompt()
     const result = getActiveSkillsForPrompt(project)

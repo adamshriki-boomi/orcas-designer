@@ -129,8 +129,8 @@ function WizardContent() {
     ) {
       set.add(2);
     }
-    // Step 3 (Design System) — Exosphere is always attached, so the step is
-    // always "complete". Additional fields are optional extras.
+    // Step 3 (Design System) — Exosphere is always attached; no user input
+    // possible, so the step is always "complete".
     set.add(3);
     // Step 4 (Voice & Writing)
     if (
@@ -167,10 +167,6 @@ function WizardContent() {
         currentImplementation: projectData.currentImplementation,
         uxResearch: projectData.uxResearch,
         uxWriting: projectData.uxWriting,
-        figmaFileLink: projectData.figmaFileLink,
-        designSystemStorybook: projectData.designSystemStorybook,
-        designSystemNpm: projectData.designSystemNpm,
-        designSystemFigma: projectData.designSystemFigma,
         prototypeSketches: projectData.prototypeSketches,
         designProducts: projectData.designProducts,
       };
@@ -225,18 +221,7 @@ function WizardContent() {
           />
         );
       case 3:
-        return (
-          <StepDesignSystem
-            figmaTarget={formData.figmaFileLink}
-            onFigmaTargetChange={(d: FormFieldData) => setField('figmaFileLink', d)}
-            storybook={formData.designSystemStorybook}
-            onStorybookChange={(d: FormFieldData) => setField('designSystemStorybook', d)}
-            npmPackage={formData.designSystemNpm}
-            onNpmPackageChange={(d: FormFieldData) => setField('designSystemNpm', d)}
-            referenceFigma={formData.designSystemFigma}
-            onReferenceFigmaChange={(d: FormFieldData) => setField('designSystemFigma', d)}
-          />
-        );
+        return <StepDesignSystem />;
       case 4: {
         const voiceMemories = sharedMemories.filter((m) =>
           UX_WRITING_MEMORY_IDS.includes(m.id),

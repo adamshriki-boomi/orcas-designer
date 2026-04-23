@@ -92,10 +92,6 @@ export interface Prompt {
   currentImplementation: CurrentImplementationData;
   uxResearch: FormFieldData;
   uxWriting: FormFieldData;
-  figmaFileLink: FormFieldData;
-  designSystemStorybook: FormFieldData;
-  designSystemNpm: FormFieldData;
-  designSystemFigma: FormFieldData;
   prototypeSketches: FormFieldData;
   designProducts: DesignProductsData;
   promptMode: PromptMode;
@@ -197,10 +193,6 @@ export const emptyPrompt = (id: string, name: string): Prompt => ({
   currentImplementation: emptyCurrentImplementation(),
   uxResearch: emptyFormField(),
   uxWriting: emptyFormField(),
-  figmaFileLink: emptyFormField(),
-  designSystemStorybook: emptyFormField(),
-  designSystemNpm: { ...emptyFormField(), inputType: 'text' },
-  designSystemFigma: emptyFormField(),
   prototypeSketches: emptyFormField(),
   designProducts: emptyDesignProducts(),
   promptMode: 'comprehensive',

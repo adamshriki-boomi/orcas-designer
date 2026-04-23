@@ -40,8 +40,7 @@ export function usePrompt(id: string) {
     // Handle the data JSONB column specially — merge with existing
     const formFields = [
       'companyInfo', 'productInfo', 'featureInfo', 'currentImplementation',
-      'uxResearch', 'uxWriting', 'figmaFileLink', 'designSystemStorybook',
-      'designSystemNpm', 'designSystemFigma', 'prototypeSketches',
+      'uxResearch', 'uxWriting', 'prototypeSketches',
     ] as const;
 
     const hasFormUpdates = formFields.some(k => updates[k] !== undefined);
@@ -54,10 +53,6 @@ export function usePrompt(id: string) {
         currentImplementation: project.currentImplementation,
         uxResearch: project.uxResearch,
         uxWriting: project.uxWriting,
-        figmaFileLink: project.figmaFileLink,
-        designSystemStorybook: project.designSystemStorybook,
-        designSystemNpm: project.designSystemNpm,
-        designSystemFigma: project.designSystemFigma,
         prototypeSketches: project.prototypeSketches,
       };
       for (const key of formFields) {

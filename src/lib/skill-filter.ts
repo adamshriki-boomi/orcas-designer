@@ -4,21 +4,20 @@ import { MANDATORY_SKILLS } from './constants';
 import { isFigmaUrl } from './url-utils';
 
 export function getActiveSkillsForPrompt(project: Prompt): MandatorySkill[] {
-  const hasFigma = !!(project.figmaFileLink.urlValue || project.figmaFileLink.files.length > 0);
-  const hasDesignFigma = !!(project.designSystemFigma.urlValue || project.designSystemFigma.files.length > 0);
+  // Figma source = anywhere Claude can READ an existing Figma file from. The
+  // user's Feature Information step is the only place that carries read-source
+  // references now: existing-state Figma links or a Figma-hosted prototype URL.
+  // (The Design Products step's `figmaDestinationUrl` is a WRITE target — not
+  // a source — so it doesn't satisfy this condition.)
   const hasSourceFigma = !!(
     project.currentImplementation.figmaLinks.length > 0 ||
-    project.designSystemFigma.urlValue ||
-    project.designSystemFigma.files.length > 0 ||
     (project.prototypeSketches.urlValue && isFigmaUrl(project.prototypeSketches.urlValue))
   );
   const isAddOnTop = project.currentImplementation.implementationMode === 'add-on-top';
   return MANDATORY_SKILLS.filter(skill => {
     switch (skill.includeCondition) {
       case 'always': return true;
-      case 'hasFigma': return hasFigma;
       case 'hasSourceFigma': return hasSourceFigma;
-      case 'hasDesignFigma': return hasDesignFigma;
       case 'isAddOnTop': return isAddOnTop;
       case 'never': return false;
     }

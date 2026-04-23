@@ -10,35 +10,6 @@ export function createTestPrompt(overrides: Partial<Prompt> = {}): Prompt {
   }
 }
 
-export function createPromptWithFigma(overrides: Partial<Prompt> = {}): Prompt {
-  return createTestPrompt({
-    figmaFileLink: {
-      ...emptyFormField(),
-      urlValue: 'https://www.figma.com/design/abc123/My-Design',
-    },
-    ...overrides,
-  })
-}
-
-export function createPromptWithDesignSystem(overrides: Partial<Prompt> = {}): Prompt {
-  return createTestPrompt({
-    designSystemStorybook: {
-      ...emptyFormField(),
-      urlValue: 'https://storybook.example.com',
-    },
-    designSystemNpm: {
-      ...emptyFormField(),
-      inputType: 'text',
-      textValue: '@example/design-system',
-    },
-    designSystemFigma: {
-      ...emptyFormField(),
-      urlValue: 'https://www.figma.com/design/ds123/Design-System',
-    },
-    ...overrides,
-  })
-}
-
 export function createPromptWithCurrentImpl(overrides: Partial<Prompt> = {}): Prompt {
   return createTestPrompt({
     currentImplementation: {
@@ -62,10 +33,6 @@ export function createFullPrompt(overrides: Partial<Prompt> = {}): Prompt {
     },
     uxResearch: { ...emptyFormField(), urlValue: 'https://docs.google.com/document/d/abc123/edit' },
     uxWriting: { ...emptyFormField(), inputType: 'text', textValue: 'Use active voice for all CTAs' },
-    figmaFileLink: { ...emptyFormField(), urlValue: 'https://www.figma.com/design/target/Target' },
-    designSystemStorybook: { ...emptyFormField(), urlValue: 'https://storybook.example.com' },
-    designSystemNpm: { ...emptyFormField(), inputType: 'text', textValue: '@example/ds' },
-    designSystemFigma: { ...emptyFormField(), urlValue: 'https://www.figma.com/design/ds/DS' },
     prototypeSketches: { ...emptyFormField(), urlValue: 'https://prototype.example.com' },
     designProducts: {
       products: ['wireframe', 'mockup'],
@@ -148,4 +115,3 @@ export function createAiVoiceMemory(): SharedMemory {
     isBuiltIn: true,
   });
 }
-

@@ -3,8 +3,6 @@ import { MANDATORY_SKILLS } from './constants'
 import { emptyFormField, emptyCurrentImplementation } from './types'
 import {
   createTestPrompt,
-  createPromptWithFigma,
-  createPromptWithDesignSystem,
   createPromptWithCurrentImpl,
 } from '@/test/helpers/prompt-fixtures'
 
@@ -47,6 +45,15 @@ describe('getActiveSkillsForPrompt', () => {
     }
   })
 
+  it('code-connect-components is `never` since there is no design-system Figma source', () => {
+    // After the Design System step was simplified to just the locked
+    // Exosphere card, there's no designSystemFigma field and therefore no
+    // hasDesignFigma trigger — so code-connect-components is unreachable.
+    const project = createTestPrompt()
+    const result = getActiveSkillsForPrompt(project)
+    expect(result.map(s => s.name)).not.toContain('code-connect-components')
+  })
+
   it('includes isAddOnTop skills when default implementationMode is add-on-top', () => {
     const project = createTestPrompt()
     const result = getActiveSkillsForPrompt(project)
@@ -64,21 +71,6 @@ describe('getActiveSkillsForPrompt', () => {
     const result = getActiveSkillsForPrompt(project)
     const names = result.map(s => s.name)
     expect(names).not.toContain('screenshot-overlay-positioning')
-  })
-
-  it('includes hasDesignFigma skills when designSystemFigma has a URL', () => {
-    const project = createPromptWithDesignSystem()
-    const result = getActiveSkillsForPrompt(project)
-    const names = result.map(s => s.name)
-    expect(names).toContain('code-connect-components')
-  })
-
-  it('includes hasSourceFigma skills when designSystemFigma has a URL', () => {
-    const project = createPromptWithDesignSystem()
-    const result = getActiveSkillsForPrompt(project)
-    const names = result.map(s => s.name)
-    expect(names).toContain('implement-design')
-    expect(names).toContain('create-design-system-rules')
   })
 
   it('includes hasSourceFigma skills when currentImplementation has figmaLinks', () => {
@@ -115,22 +107,27 @@ describe('getActiveSkillsForPrompt', () => {
     expect(names).not.toContain('create-design-system-rules')
   })
 
-  it('does not include hasDesignFigma skills for a project with only figmaFileLink', () => {
-    const project = createPromptWithFigma()
+  it('does not include hasSourceFigma skills when only designProducts.figmaDestinationUrl is set', () => {
+    // figmaDestinationUrl is a WRITE target — it's not a readable source, so
+    // implement-design / create-design-system-rules (which read FROM Figma)
+    // should NOT fire just because the user wants to push to Figma.
+    const project = createTestPrompt({
+      designProducts: {
+        products: ['mockup'],
+        figmaDestinationUrl: 'https://www.figma.com/design/dest/Destination',
+      },
+    })
     const result = getActiveSkillsForPrompt(project)
     const names = result.map(s => s.name)
-    expect(names).not.toContain('code-connect-components')
+    expect(names).not.toContain('implement-design')
+    expect(names).not.toContain('create-design-system-rules')
   })
 
   it('never includes never-condition skills even with full project data', () => {
-    const project = createPromptWithDesignSystem({
+    const project = createPromptWithCurrentImpl({
       currentImplementation: {
         ...emptyCurrentImplementation(),
         figmaLinks: ['https://www.figma.com/design/x/Y'],
-      },
-      figmaFileLink: {
-        ...emptyFormField(),
-        urlValue: 'https://www.figma.com/design/a/B',
       },
     })
     const result = getActiveSkillsForPrompt(project)

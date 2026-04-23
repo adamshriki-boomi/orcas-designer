@@ -25,10 +25,6 @@ export function toPrompt(row: Record<string, unknown>): Prompt {
     currentImplementation: data.currentImplementation as Prompt['currentImplementation'],
     uxResearch: data.uxResearch as Prompt['uxResearch'],
     uxWriting: data.uxWriting as Prompt['uxWriting'],
-    figmaFileLink: data.figmaFileLink as Prompt['figmaFileLink'],
-    designSystemStorybook: data.designSystemStorybook as Prompt['designSystemStorybook'],
-    designSystemNpm: data.designSystemNpm as Prompt['designSystemNpm'],
-    designSystemFigma: data.designSystemFigma as Prompt['designSystemFigma'],
     prototypeSketches: data.prototypeSketches as Prompt['prototypeSketches'],
     designProducts: (data.designProducts as Prompt['designProducts']) ?? emptyDesignProducts(),
     promptMode: row.prompt_mode as Prompt['promptMode'],
@@ -56,12 +52,12 @@ export function promptToRow(project: Partial<Prompt>, userId?: string) {
 
   // Pack form data fields into the `data` JSONB column. Deliverables-era
   // columns (output_directory, accessibility_level, browser_compatibility,
-  // external_resources_accessible, design_direction) are no longer written
-  // by the app; they remain in the table for historical rows.
+  // external_resources_accessible, design_direction) and the per-field
+  // design-system inputs (figma_file_link, design_system_*) are no longer
+  // written by the app; they remain in the table for historical rows.
   const formFields = [
     'companyInfo', 'productInfo', 'featureDefinition', 'featureInfo',
-    'currentImplementation', 'uxResearch', 'uxWriting', 'figmaFileLink',
-    'designSystemStorybook', 'designSystemNpm', 'designSystemFigma',
+    'currentImplementation', 'uxResearch', 'uxWriting',
     'prototypeSketches', 'designProducts',
   ] as const;
   const data: Record<string, unknown> = {};

@@ -59,10 +59,6 @@ describe('emptyPrompt', () => {
     expect(emptyPrompt('p-1', 'Test').selectedSharedMemoryIds).toContain('built-in-company-context')
   })
 
-  it('sets designSystemNpm inputType to text', () => {
-    expect(emptyPrompt('p-1', 'Test').designSystemNpm.inputType).toBe('text')
-  })
-
   it('sets createdAt and updatedAt as ISO strings', () => {
     const project = emptyPrompt('p-1', 'Test')
     expect(() => new Date(project.createdAt)).not.toThrow()

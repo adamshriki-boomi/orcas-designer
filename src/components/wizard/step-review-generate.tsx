@@ -84,10 +84,6 @@ export function StepReviewGenerate({
         currentImplementation: projectData.currentImplementation,
         uxResearch: projectData.uxResearch,
         uxWriting: projectData.uxWriting,
-        figmaFileLink: projectData.figmaFileLink,
-        designSystemStorybook: projectData.designSystemStorybook,
-        designSystemNpm: projectData.designSystemNpm,
-        designSystemFigma: projectData.designSystemFigma,
         prototypeSketches: projectData.prototypeSketches,
         designProducts: projectData.designProducts,
       };

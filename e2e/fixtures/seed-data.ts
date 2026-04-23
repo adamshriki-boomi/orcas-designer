@@ -83,10 +83,6 @@ const emptyPromptData = () => ({
   currentImplementation: { ...emptyFormField(), figmaLinks: [], implementationMode: 'add-on-top' },
   uxResearch: emptyFormField(),
   uxWriting: emptyFormField(),
-  figmaFileLink: emptyFormField(),
-  designSystemStorybook: emptyFormField(),
-  designSystemNpm: { ...emptyFormField(), inputType: 'text' },
-  designSystemFigma: emptyFormField(),
   prototypeSketches: emptyFormField(),
 });
 

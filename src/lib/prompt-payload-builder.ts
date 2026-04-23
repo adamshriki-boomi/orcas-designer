@@ -14,7 +14,6 @@ export interface WizardSnapshot {
   'Company & Product': string;
   'Feature Definition': string;
   'Feature Information': string;
-  'Design System': string;
   'Voice & Writing': string;
   'Design Products': string;
 }
@@ -122,12 +121,8 @@ export function buildPromptGenerationPayload(
       ['UX research findings', fieldToText(prompt.uxResearch)],
       ['Prior prototypes or wireframes', fieldToText(prompt.prototypeSketches)],
     ]),
-    'Design System': joinSections([
-      ['Target Figma file (write destination)', fieldToText(prompt.figmaFileLink)],
-      ['Storybook', fieldToText(prompt.designSystemStorybook)],
-      ['NPM package', fieldToText(prompt.designSystemNpm)],
-      ['Reference Figma (read-only)', fieldToText(prompt.designSystemFigma)],
-    ]),
+    // Design System is not rendered as a wizardSnapshot key — the `exosphere`
+    // MANDATORY_SKILL carries it via contextSnapshot.mandatorySkills.
     'Voice & Writing': fieldToText(prompt.uxWriting),
     'Design Products': designProductsToText(prompt.designProducts),
   };

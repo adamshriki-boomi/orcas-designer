@@ -3,8 +3,7 @@ import { emptyFormField } from './types';
 import type { SharedSkill, SharedMemory } from './types';
 import {
   createTestPrompt,
-  createPromptWithFigma,
-  createPromptWithDesignSystem,
+  createPromptWithCurrentImpl,
   createFullPrompt,
 } from '@/test/helpers/prompt-fixtures';
 
@@ -13,7 +12,7 @@ const sharedMemories: SharedMemory[] = [];
 
 describe('buildPromptGenerationPayload', () => {
   describe('wizardSnapshot', () => {
-    it('produces all six wizardSnapshot section keys even when fields are empty', () => {
+    it('produces all five wizardSnapshot section keys even when fields are empty', () => {
       const prompt = createTestPrompt();
       const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
 
@@ -21,12 +20,17 @@ describe('buildPromptGenerationPayload', () => {
         [
           'Company & Product',
           'Design Products',
-          'Design System',
           'Feature Definition',
           'Feature Information',
           'Voice & Writing',
         ].sort(),
       );
+    });
+
+    it('does NOT emit a Design System section (Exosphere flows via mandatorySkills)', () => {
+      const prompt = createTestPrompt();
+      const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
+      expect(Object.keys(wizardSnapshot)).not.toContain('Design System');
     });
 
     it('merges Company Info and Product Info under a single section', () => {
@@ -121,22 +125,6 @@ describe('buildPromptGenerationPayload', () => {
       expect(wizardSnapshot['Design Products']).not.toContain('Figma destination');
     });
 
-    it('merges all four design-system fields into a single section', () => {
-      const prompt = createPromptWithFigma({
-        designSystemStorybook: { ...emptyFormField(), urlValue: 'https://storybook.example.com' },
-        designSystemNpm: { ...emptyFormField(), inputType: 'text', textValue: '@boomi/exosphere' },
-        designSystemFigma: { ...emptyFormField(), urlValue: 'https://figma.com/design/ref' },
-      });
-      const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
-      const ds = wizardSnapshot['Design System'];
-
-      expect(ds).toContain('Target Figma file');
-      expect(ds).toContain('Storybook');
-      expect(ds).toContain('NPM package');
-      expect(ds).toContain('Reference Figma');
-      expect(ds).toContain('@boomi/exosphere');
-    });
-
     it('does NOT include Deliverables & Constraints section (removed in Phase 4 realignment)', () => {
       const prompt = createTestPrompt();
       const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
@@ -175,8 +163,10 @@ describe('buildPromptGenerationPayload', () => {
         sharedSkills,
         sharedMemories,
       );
+      // createPromptWithCurrentImpl sets currentImplementation.figmaLinks —
+      // that's the hasSourceFigma trigger after the design-system simplification.
       const withFigma = buildPromptGenerationPayload(
-        createPromptWithFigma({ currentImplementation: { ...createPromptWithDesignSystem().currentImplementation, figmaLinks: ['https://figma.com/design/impl'] } }),
+        createPromptWithCurrentImpl(),
         sharedSkills,
         sharedMemories,
       );

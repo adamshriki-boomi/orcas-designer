@@ -1,8 +1,6 @@
 export type SkillIncludeCondition =
   | 'always'
-  | 'hasFigma'
   | 'hasSourceFigma'
-  | 'hasDesignFigma'
   | 'isAddOnTop'
   | 'never';
 
@@ -43,7 +41,7 @@ export const MANDATORY_SKILLS: MandatorySkill[] = [
   // Figma
   { name: 'implement-design', category: 'Figma', description: 'Translate Figma designs into production-ready code', invocation: '/implement-design', repoUrl: MARKETPLACE_REPO, includeCondition: 'hasSourceFigma' },
   { name: 'create-design-system-rules', category: 'Figma', description: 'Generate custom design system rules', invocation: '/create-design-system-rules', repoUrl: MARKETPLACE_REPO, includeCondition: 'hasSourceFigma' },
-  { name: 'code-connect-components', category: 'Figma', description: 'Connect Figma components to code via Code Connect', invocation: '/code-connect-components', repoUrl: MARKETPLACE_REPO, includeCondition: 'hasDesignFigma' },
+  { name: 'code-connect-components', category: 'Figma', description: 'Connect Figma components to code via Code Connect', invocation: '/code-connect-components', repoUrl: MARKETPLACE_REPO, includeCondition: 'never' },
 
   // Atlassian
   { name: 'search-company-knowledge', category: 'Atlassian', description: 'Search Confluence and Jira for internal info', invocation: '/search-company-knowledge', repoUrl: ATLASSIAN_REPO, includeCondition: 'never' },

@@ -14,8 +14,9 @@ interface PromptCardProps {
 }
 
 function getFilledCount(project: Prompt): number {
-  // Company info always filled (locked Boomi Context memory)
-  let count = 1;
+  // Company info always filled (locked Boomi Context memory).
+  // Design System always filled (locked Exosphere skill).
+  let count = 2;
 
   // Product info: field data OR a selected product memory
   if (
@@ -25,19 +26,26 @@ function getFilledCount(project: Prompt): number {
     count++;
   }
 
-  const otherFields = [
+  // Feature definition: has a name
+  if (project.featureDefinition.name.trim().length > 0) count++;
+
+  // Feature information sub-sections
+  const featureFields = [
     project.featureInfo,
-    project.figmaFileLink,
-    project.designSystemStorybook,
-    project.designSystemNpm,
-    project.designSystemFigma,
+    project.uxResearch,
     project.prototypeSketches,
   ];
-  count += otherFields.filter(isFieldFilled).length;
+  count += featureFields.filter(isFieldFilled).length;
+
+  // Design products: at least one chosen output (always true for non-empty
+  // form data since emptyPrompt defaults to ['wireframe'])
+  if (project.designProducts.products.length > 0) count++;
 
   return count;
 }
 
+// Company + Design System (always) + Product + Feature Definition + feature
+// info fields (3) + Design Products = 8 completion slots.
 const TOTAL_FIELDS = 8;
 
 function getCompletionPercent(project: Prompt): number {
@@ -117,7 +125,9 @@ export const PromptCard = memo(function PromptCard({ project }: PromptCardProps)
     const comp = getCompletionPercent(project);
     const filled = getFilledCount(project);
     const time = getRelativeTime(project.updatedAt);
-    const figma = project.figmaFileLink.urlValue.trim().length > 0;
+    const figma =
+      project.designProducts.figmaDestinationUrl.trim().length > 0 ||
+      project.currentImplementation.figmaLinks.length > 0;
     const skills = MANDATORY_SKILLS.length + (project.selectedSharedSkillIds?.length ?? 0) + (project.customSkills?.length ?? 0);
     const memories = (project.selectedSharedMemoryIds?.length ?? 0) + (project.customMemories?.length ?? 0);
     const hasOutput = !!(project.generatedPrompt && project.generatedPrompt.length > 0);

@@ -21,10 +21,6 @@ type FormFieldKey =
   | 'featureInfo'
   | 'uxResearch'
   | 'uxWriting'
-  | 'figmaFileLink'
-  | 'designSystemStorybook'
-  | 'designSystemNpm'
-  | 'designSystemFigma'
   | 'prototypeSketches';
 
 type WizardAction =

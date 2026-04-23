@@ -17,7 +17,7 @@ import { useGenerateVersion } from '@/hooks/use-prompt-versions';
 import { generateId } from '@/lib/id';
 import { toast } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
-import type { Prompt, SharedSkill, SharedMemory } from '@/lib/types';
+import type { Prompt, SharedSkill, SharedMemory, DesignProduct } from '@/lib/types';
 
 interface StepReviewGenerateProps {
   formData: Prompt;
@@ -26,10 +26,10 @@ interface StepReviewGenerateProps {
   onSave: () => Promise<void>;
 }
 
-const ACCESSIBILITY_LABELS: Record<string, string> = {
-  none: 'None',
-  'wcag-aa': 'WCAG 2.1 AA',
-  'wcag-aaa': 'WCAG 2.1 AAA',
+const PRODUCT_LABELS: Record<DesignProduct, string> = {
+  wireframe: 'Wireframe',
+  mockup: 'Mockup',
+  'animated-prototype': 'Animated prototype',
 };
 
 export function StepReviewGenerate({
@@ -80,6 +80,7 @@ export function StepReviewGenerate({
       row.data = {
         companyInfo: projectData.companyInfo,
         productInfo: projectData.productInfo,
+        featureDefinition: projectData.featureDefinition,
         featureInfo: projectData.featureInfo,
         currentImplementation: projectData.currentImplementation,
         uxResearch: projectData.uxResearch,
@@ -89,6 +90,7 @@ export function StepReviewGenerate({
         designSystemNpm: projectData.designSystemNpm,
         designSystemFigma: projectData.designSystemFigma,
         prototypeSketches: projectData.prototypeSketches,
+        designProducts: projectData.designProducts,
       };
       const supabase = createClient();
       const { error: insertError } = await supabase.from('prompts').insert(row as never);
@@ -125,20 +127,34 @@ export function StepReviewGenerate({
             <Row
               label="Feature"
               value={
+                formData.featureDefinition.name ||
                 formData.featureInfo.textValue ||
                 formData.featureInfo.urlValue ||
                 '—'
               }
             />
             <Row
-              label="Accessibility"
-              value={<Badge variant="secondary">{ACCESSIBILITY_LABELS[formData.accessibilityLevel]}</Badge>}
+              label="Type"
+              value={
+                <Badge variant="secondary">
+                  {formData.featureDefinition.mode === 'new' ? 'New feature' : 'Improvement'}
+                </Badge>
+              }
             />
             <Row
-              label="Browsers"
-              value={formData.browserCompatibility.join(', ') || 'chrome'}
+              label="Outputs"
+              value={
+                formData.designProducts.products.length > 0
+                  ? formData.designProducts.products.map((p) => PRODUCT_LABELS[p]).join(', ')
+                  : '—'
+              }
             />
-            <Row label="Output directory" value={<code className="text-xs">{formData.outputDirectory}</code>} />
+            {formData.designProducts.figmaDestinationUrl && (
+              <Row
+                label="Figma destination"
+                value={<code className="text-xs">{formData.designProducts.figmaDestinationUrl}</code>}
+              />
+            )}
             <Row label="Total skills" value={String(totalSkills)} />
             <Row label="Total memories" value={String(totalMemories)} />
           </CardContent>

@@ -3,16 +3,21 @@ export type SkillId = string;
 export type MemoryId = string;
 export type FieldType = 'url' | 'file' | 'text';
 export type ImplementationMode = 'add-on-top' | 'redesign';
-export type AccessibilityLevel = 'none' | 'wcag-aa' | 'wcag-aaa';
-export type BrowserTarget = 'chrome' | 'firefox' | 'safari' | 'edge';
 export type PromptMode = 'lite' | 'comprehensive';
 export type PromptVersionStatus = 'running' | 'completed' | 'failed';
 
-export interface DesignDirection {
-  primaryColor: string;
-  fontFamily: string;
-  motionStyle: 'none' | 'subtle' | 'expressive';
-  borderRadiusStyle: 'sharp' | 'rounded' | 'pill';
+export type FeatureMode = 'new' | 'improvement';
+export type DesignProduct = 'wireframe' | 'mockup' | 'animated-prototype';
+
+export interface FeatureDefinitionData {
+  mode: FeatureMode;
+  name: string;
+  briefDescription: string;
+}
+
+export interface DesignProductsData {
+  products: DesignProduct[];
+  figmaDestinationUrl: string;
 }
 
 export interface FileAttachment {
@@ -82,6 +87,7 @@ export interface Prompt {
   updatedAt: string;
   companyInfo: FormFieldData;
   productInfo: FormFieldData;
+  featureDefinition: FeatureDefinitionData;
   featureInfo: FormFieldData;
   currentImplementation: CurrentImplementationData;
   uxResearch: FormFieldData;
@@ -91,12 +97,8 @@ export interface Prompt {
   designSystemNpm: FormFieldData;
   designSystemFigma: FormFieldData;
   prototypeSketches: FormFieldData;
-  outputDirectory: string;
-  accessibilityLevel: AccessibilityLevel;
-  externalResourcesAccessible: boolean;
-  browserCompatibility: BrowserTarget[];
+  designProducts: DesignProductsData;
   promptMode: PromptMode;
-  designDirection: DesignDirection | null;
   selectedSharedSkillIds: SkillId[];
   customSkills: CustomSkill[];
   selectedSharedMemoryIds: MemoryId[];
@@ -172,6 +174,17 @@ export const emptyCurrentImplementation = (): CurrentImplementationData => ({
   implementationMode: 'add-on-top',
 });
 
+export const emptyFeatureDefinition = (): FeatureDefinitionData => ({
+  mode: 'new',
+  name: '',
+  briefDescription: '',
+});
+
+export const emptyDesignProducts = (): DesignProductsData => ({
+  products: ['wireframe'],
+  figmaDestinationUrl: '',
+});
+
 export const emptyPrompt = (id: string, name: string): Prompt => ({
   id,
   name,
@@ -179,6 +192,7 @@ export const emptyPrompt = (id: string, name: string): Prompt => ({
   updatedAt: new Date().toISOString(),
   companyInfo: emptyFormField(),
   productInfo: emptyFormField(),
+  featureDefinition: emptyFeatureDefinition(),
   featureInfo: emptyFormField(),
   currentImplementation: emptyCurrentImplementation(),
   uxResearch: emptyFormField(),
@@ -188,12 +202,8 @@ export const emptyPrompt = (id: string, name: string): Prompt => ({
   designSystemNpm: { ...emptyFormField(), inputType: 'text' },
   designSystemFigma: emptyFormField(),
   prototypeSketches: emptyFormField(),
-  outputDirectory: './output/',
-  accessibilityLevel: 'none',
-  externalResourcesAccessible: true,
-  browserCompatibility: ['chrome'],
+  designProducts: emptyDesignProducts(),
   promptMode: 'comprehensive',
-  designDirection: null,
   selectedSharedSkillIds: [],
   customSkills: [],
   selectedSharedMemoryIds: ['built-in-company-context'],

@@ -70,8 +70,17 @@ describe('emptyPrompt', () => {
     expect(new Date(project.createdAt).toISOString()).toBe(project.createdAt)
   })
 
-  it('defaults designDirection to null', () => {
-    expect(emptyPrompt('p-1', 'Test').designDirection).toBeNull()
+  it('defaults featureDefinition to a new-mode empty shape', () => {
+    const fd = emptyPrompt('p-1', 'Test').featureDefinition
+    expect(fd.mode).toBe('new')
+    expect(fd.name).toBe('')
+    expect(fd.briefDescription).toBe('')
+  })
+
+  it('defaults designProducts to wireframe-only with no Figma destination', () => {
+    const dp = emptyPrompt('p-1', 'Test').designProducts
+    expect(dp.products).toEqual(['wireframe'])
+    expect(dp.figmaDestinationUrl).toBe('')
   })
 
   it('defaults regenerationCount to 0 and generatedPrompt to empty', () => {

@@ -748,11 +748,11 @@ export const BUILT_IN_UX_RESEARCH_PROCESS_MEMORY_ID = 'built-in-ux-research-proc
 
 export const WIZARD_STEPS = [
   { key: 'company-product', label: 'Company & Product', required: true },
-  { key: 'feature', label: 'Feature', required: true },
-  { key: 'current-state', label: 'Current State', required: false },
+  { key: 'feature-definition', label: 'Feature Definition', required: true },
+  { key: 'feature-information', label: 'Feature Information', required: false },
   { key: 'design-system', label: 'Design System', required: false },
   { key: 'voice-writing', label: 'Voice & Writing', required: false },
-  { key: 'deliverables', label: 'Deliverables & Constraints', required: false },
+  { key: 'design-products', label: 'Design Products', required: true },
   { key: 'skills-memories', label: 'Skills & Memories', required: false },
   { key: 'review', label: 'Review & Generate', required: true },
 ] as const;

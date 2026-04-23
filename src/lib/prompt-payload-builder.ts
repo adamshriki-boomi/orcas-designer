@@ -4,17 +4,19 @@ import type {
   SharedMemory,
   FormFieldData,
   CurrentImplementationData,
+  FeatureDefinitionData,
+  DesignProductsData,
 } from './types';
 import { MANDATORY_SKILLS } from './constants';
 import { getActiveSkillsForPrompt } from './skill-filter';
 
 export interface WizardSnapshot {
   'Company & Product': string;
-  Feature: string;
-  'Current State': string;
+  'Feature Definition': string;
+  'Feature Information': string;
   'Design System': string;
   'Voice & Writing': string;
-  'Deliverables & Constraints': string;
+  'Design Products': string;
 }
 
 export interface ContextSnapshot {
@@ -60,6 +62,31 @@ function currentImplementationToText(data: CurrentImplementationData): string {
   return parts.join('\n\n');
 }
 
+function featureDefinitionToText(data: FeatureDefinitionData): string {
+  const parts: string[] = [];
+  parts.push(`Type: ${data.mode === 'new' ? 'New feature' : 'Improvement of existing feature'}`);
+  if (data.name) parts.push(`Name: ${data.name}`);
+  if (data.briefDescription) parts.push(`Brief:\n${data.briefDescription}`);
+  return parts.join('\n\n');
+}
+
+function designProductsToText(data: DesignProductsData): string {
+  const PRODUCT_LABELS: Record<string, string> = {
+    wireframe: 'Lo-fi wireframe',
+    mockup: 'Hi-fi mockup',
+    'animated-prototype': 'Animated prototype',
+  };
+  const parts: string[] = [];
+  const products = data.products.length > 0
+    ? data.products.map((p) => `- ${PRODUCT_LABELS[p] ?? p}`).join('\n')
+    : '- (none selected — defaulting to lo-fi wireframe)';
+  parts.push(`Requested outputs:\n${products}`);
+  if (data.figmaDestinationUrl) {
+    parts.push(`Figma destination (write target): ${data.figmaDestinationUrl}`);
+  }
+  return parts.join('\n\n');
+}
+
 function joinSections(sections: Array<[string, string]>): string {
   return sections
     .filter(([, body]) => body.trim().length > 0)
@@ -88,9 +115,10 @@ export function buildPromptGenerationPayload(
       ['Company', fieldToText(prompt.companyInfo)],
       ['Product', fieldToText(prompt.productInfo)],
     ]),
-    Feature: fieldToText(prompt.featureInfo),
-    'Current State': joinSections([
-      ['Existing app / redesign', currentImplementationToText(prompt.currentImplementation)],
+    'Feature Definition': featureDefinitionToText(prompt.featureDefinition),
+    'Feature Information': joinSections([
+      ['Feature description / requirements doc', fieldToText(prompt.featureInfo)],
+      ['Existing app / current state', currentImplementationToText(prompt.currentImplementation)],
       ['UX research findings', fieldToText(prompt.uxResearch)],
       ['Prior prototypes or wireframes', fieldToText(prompt.prototypeSketches)],
     ]),
@@ -101,14 +129,7 @@ export function buildPromptGenerationPayload(
       ['Reference Figma (read-only)', fieldToText(prompt.designSystemFigma)],
     ]),
     'Voice & Writing': fieldToText(prompt.uxWriting),
-    'Deliverables & Constraints': [
-      `Accessibility level: ${prompt.accessibilityLevel}`,
-      `Browser compatibility: ${prompt.browserCompatibility.join(', ') || 'none specified'}`,
-      `Output directory: ${prompt.outputDirectory}`,
-      prompt.externalResourcesAccessible
-        ? 'External resources (URLs, Figma, Storybook) are accessible in the execution environment.'
-        : 'External resources may NOT be accessible — plan for a fallback.',
-    ].join('\n'),
+    'Design Products': designProductsToText(prompt.designProducts),
   };
 
   const activeMandatoryNames = new Set(

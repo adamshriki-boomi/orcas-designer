@@ -67,13 +67,9 @@ export function createFullPrompt(overrides: Partial<Prompt> = {}): Prompt {
     designSystemNpm: { ...emptyFormField(), inputType: 'text', textValue: '@example/ds' },
     designSystemFigma: { ...emptyFormField(), urlValue: 'https://www.figma.com/design/ds/DS' },
     prototypeSketches: { ...emptyFormField(), urlValue: 'https://prototype.example.com' },
-    accessibilityLevel: 'wcag-aa',
-    browserCompatibility: ['chrome', 'firefox', 'safari'],
-    designDirection: {
-      primaryColor: '#3B82F6',
-      fontFamily: 'Inter',
-      motionStyle: 'subtle',
-      borderRadiusStyle: 'rounded',
+    designProducts: {
+      products: ['wireframe', 'mockup'],
+      figmaDestinationUrl: 'https://www.figma.com/design/dest/Destination',
     },
     ...overrides,
   })

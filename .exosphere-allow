@@ -7,8 +7,3 @@
 # any line that uses the shadow color tokens correctly.
 var(--exo-color-shadow-
 
-# Transient finds in files scheduled for deletion in the Prompt Generator Realignment
-# Phase 4 (design-direction fields + step-deliverables.tsx). Remove these allow
-# entries once those files are gone.
-primaryColor:
-placeholder="#

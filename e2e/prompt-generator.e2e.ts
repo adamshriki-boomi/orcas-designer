@@ -24,11 +24,11 @@ test.describe('Prompt Generator — list and wizard', () => {
     await page.waitForTimeout(500);
     const stepLabels = [
       'Company & Product',
-      'Feature',
-      'Current State',
+      'Feature Definition',
+      'Feature Information',
       'Design System',
       'Voice & Writing',
-      'Deliverables & Constraints',
+      'Design Products',
       'Skills & Memories',
       'Review & Generate',
     ];

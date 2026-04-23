@@ -13,17 +13,17 @@ const sharedMemories: SharedMemory[] = [];
 
 describe('buildPromptGenerationPayload', () => {
   describe('wizardSnapshot', () => {
-    it('produces all eight section keys even when fields are empty', () => {
+    it('produces all six wizardSnapshot section keys even when fields are empty', () => {
       const prompt = createTestPrompt();
       const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
 
       expect(Object.keys(wizardSnapshot).sort()).toEqual(
         [
           'Company & Product',
-          'Current State',
-          'Deliverables & Constraints',
+          'Design Products',
           'Design System',
-          'Feature',
+          'Feature Definition',
+          'Feature Information',
           'Voice & Writing',
         ].sort(),
       );
@@ -52,30 +52,73 @@ describe('buildPromptGenerationPayload', () => {
       expect(wizardSnapshot['Company & Product']).toContain('Reference URL: https://boomi.com');
     });
 
-    it('merges Current Implementation, UX Research, and Prototypes into Current State', () => {
+    it('merges feature description, current state, UX research, and prototypes into Feature Information', () => {
       const prompt = createFullPrompt();
       const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
-      const state = wizardSnapshot['Current State'];
+      const state = wizardSnapshot['Feature Information'];
 
-      expect(state).toContain('## Existing app / redesign');
+      expect(state).toContain('## Feature description / requirements doc');
+      expect(state).toContain('## Existing app / current state');
       expect(state).toContain('## UX research findings');
       expect(state).toContain('## Prior prototypes or wireframes');
     });
 
-    it('includes figmaLinks in the Current State section when present', () => {
+    it('includes figmaLinks in the Feature Information section when present', () => {
       const prompt = createFullPrompt();
       const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
-      expect(wizardSnapshot['Current State']).toContain('Figma links:');
-      expect(wizardSnapshot['Current State']).toMatch(/figma\.com/);
+      expect(wizardSnapshot['Feature Information']).toContain('Figma links:');
+      expect(wizardSnapshot['Feature Information']).toMatch(/figma\.com/);
     });
 
-    it('notes implementation mode in Current State', () => {
+    it('notes implementation mode in Feature Information', () => {
       const addOnTop = buildPromptGenerationPayload(
         createTestPrompt(),
         sharedSkills,
         sharedMemories,
       );
-      expect(addOnTop.wizardSnapshot['Current State']).toContain('Add on top of existing app');
+      expect(addOnTop.wizardSnapshot['Feature Information']).toContain('Add on top of existing app');
+    });
+
+    it('includes feature definition mode, name, and brief', () => {
+      const prompt = createTestPrompt({
+        featureDefinition: {
+          mode: 'improvement',
+          name: 'Checkout redesign',
+          briefDescription: 'Rework the 3-step checkout flow.',
+        },
+      });
+      const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
+      const section = wizardSnapshot['Feature Definition'];
+
+      expect(section).toContain('Type: Improvement of existing feature');
+      expect(section).toContain('Name: Checkout redesign');
+      expect(section).toContain('Brief:');
+      expect(section).toContain('Rework the 3-step checkout flow.');
+    });
+
+    it('includes design products and optional Figma destination', () => {
+      const prompt = createTestPrompt({
+        designProducts: {
+          products: ['wireframe', 'animated-prototype'],
+          figmaDestinationUrl: 'https://www.figma.com/design/dest/Dest',
+        },
+      });
+      const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
+      const section = wizardSnapshot['Design Products'];
+
+      expect(section).toContain('Lo-fi wireframe');
+      expect(section).toContain('Animated prototype');
+      expect(section).not.toContain('Hi-fi mockup');
+      expect(section).toContain('Figma destination');
+      expect(section).toContain('https://www.figma.com/design/dest/Dest');
+    });
+
+    it('omits Figma destination row when not set', () => {
+      const prompt = createTestPrompt({
+        designProducts: { products: ['wireframe'], figmaDestinationUrl: '' },
+      });
+      const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
+      expect(wizardSnapshot['Design Products']).not.toContain('Figma destination');
     });
 
     it('merges all four design-system fields into a single section', () => {
@@ -94,31 +137,17 @@ describe('buildPromptGenerationPayload', () => {
       expect(ds).toContain('@boomi/exosphere');
     });
 
-    it('includes a complete Deliverables & Constraints section', () => {
-      const prompt = createTestPrompt({
-        accessibilityLevel: 'wcag-aa',
-        browserCompatibility: ['chrome', 'firefox'],
-        outputDirectory: './output/v2/',
-        externalResourcesAccessible: false,
-      });
-      const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
-      const deliverables = wizardSnapshot['Deliverables & Constraints'];
-
-      expect(deliverables).toContain('wcag-aa');
-      expect(deliverables).toContain('chrome, firefox');
-      expect(deliverables).toContain('./output/v2/');
-      expect(deliverables).toContain('may NOT be accessible');
-    });
-
-    it('does NOT include Output Type or Interaction Level (removed fields)', () => {
+    it('does NOT include Deliverables & Constraints section (removed in Phase 4 realignment)', () => {
       const prompt = createTestPrompt();
       const { wizardSnapshot } = buildPromptGenerationPayload(prompt, sharedSkills, sharedMemories);
 
+      expect(Object.keys(wizardSnapshot)).not.toContain('Deliverables & Constraints');
       const allText = Object.values(wizardSnapshot).join('\n').toLowerCase();
+      expect(allText).not.toContain('accessibility level:');
+      expect(allText).not.toContain('browser compatibility:');
+      expect(allText).not.toContain('output directory:');
       expect(allText).not.toContain('output type:');
       expect(allText).not.toContain('interaction level:');
-      expect(allText).not.toContain('click-through');
-      expect(allText).not.toContain('full-prototype');
     });
   });
 

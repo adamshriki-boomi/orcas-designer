@@ -5,10 +5,9 @@ import type {
   Prompt,
   FormFieldData,
   CurrentImplementationData,
-  AccessibilityLevel,
-  BrowserTarget,
+  FeatureDefinitionData,
+  DesignProductsData,
   PromptMode,
-  DesignDirection,
   CustomSkill,
   SkillId,
   MemoryId,
@@ -32,12 +31,9 @@ type WizardAction =
   | { type: 'SET_NAME'; payload: string }
   | { type: 'SET_FIELD'; payload: { field: FormFieldKey; data: FormFieldData } }
   | { type: 'SET_CURRENT_IMPL'; payload: CurrentImplementationData }
-  | { type: 'SET_OUTPUT_DIRECTORY'; payload: string }
+  | { type: 'SET_FEATURE_DEFINITION'; payload: FeatureDefinitionData }
+  | { type: 'SET_DESIGN_PRODUCTS'; payload: DesignProductsData }
   | { type: 'SET_PROMPT_MODE'; payload: PromptMode }
-  | { type: 'SET_ACCESSIBILITY_LEVEL'; payload: AccessibilityLevel }
-  | { type: 'SET_BROWSER_COMPAT'; payload: BrowserTarget[] }
-  | { type: 'SET_EXTERNAL_RESOURCES'; payload: boolean }
-  | { type: 'SET_DESIGN_DIRECTION'; payload: DesignDirection | null }
   | { type: 'SET_SHARED_SKILLS'; payload: SkillId[] }
   | { type: 'SET_CUSTOM_SKILLS'; payload: CustomSkill[] }
   | { type: 'SET_SHARED_MEMORIES'; payload: MemoryId[] }
@@ -52,18 +48,12 @@ function wizardReducer(state: Prompt, action: WizardAction): Prompt {
       return { ...state, [action.payload.field]: action.payload.data };
     case 'SET_CURRENT_IMPL':
       return { ...state, currentImplementation: action.payload };
-    case 'SET_OUTPUT_DIRECTORY':
-      return { ...state, outputDirectory: action.payload };
+    case 'SET_FEATURE_DEFINITION':
+      return { ...state, featureDefinition: action.payload };
+    case 'SET_DESIGN_PRODUCTS':
+      return { ...state, designProducts: action.payload };
     case 'SET_PROMPT_MODE':
       return { ...state, promptMode: action.payload };
-    case 'SET_ACCESSIBILITY_LEVEL':
-      return { ...state, accessibilityLevel: action.payload };
-    case 'SET_BROWSER_COMPAT':
-      return { ...state, browserCompatibility: action.payload };
-    case 'SET_EXTERNAL_RESOURCES':
-      return { ...state, externalResourcesAccessible: action.payload };
-    case 'SET_DESIGN_DIRECTION':
-      return { ...state, designDirection: action.payload };
     case 'SET_SHARED_SKILLS':
       return { ...state, selectedSharedSkillIds: action.payload };
     case 'SET_CUSTOM_SKILLS':
@@ -97,28 +87,16 @@ export function useWizardForm(initialProject?: Prompt) {
     dispatch({ type: 'SET_CURRENT_IMPL', payload: data });
   }, []);
 
-  const setOutputDirectory = useCallback((dir: string) => {
-    dispatch({ type: 'SET_OUTPUT_DIRECTORY', payload: dir });
+  const setFeatureDefinition = useCallback((data: FeatureDefinitionData) => {
+    dispatch({ type: 'SET_FEATURE_DEFINITION', payload: data });
+  }, []);
+
+  const setDesignProducts = useCallback((data: DesignProductsData) => {
+    dispatch({ type: 'SET_DESIGN_PRODUCTS', payload: data });
   }, []);
 
   const setPromptMode = useCallback((mode: PromptMode) => {
     dispatch({ type: 'SET_PROMPT_MODE', payload: mode });
-  }, []);
-
-  const setAccessibilityLevel = useCallback((level: AccessibilityLevel) => {
-    dispatch({ type: 'SET_ACCESSIBILITY_LEVEL', payload: level });
-  }, []);
-
-  const setBrowserCompat = useCallback((browsers: BrowserTarget[]) => {
-    dispatch({ type: 'SET_BROWSER_COMPAT', payload: browsers });
-  }, []);
-
-  const setExternalResources = useCallback((accessible: boolean) => {
-    dispatch({ type: 'SET_EXTERNAL_RESOURCES', payload: accessible });
-  }, []);
-
-  const setDesignDirection = useCallback((dd: DesignDirection | null) => {
-    dispatch({ type: 'SET_DESIGN_DIRECTION', payload: dd });
   }, []);
 
   const setSharedSkills = useCallback((ids: SkillId[]) => {
@@ -146,12 +124,9 @@ export function useWizardForm(initialProject?: Prompt) {
     setName,
     setField,
     setCurrentImpl,
-    setOutputDirectory,
+    setFeatureDefinition,
+    setDesignProducts,
     setPromptMode,
-    setAccessibilityLevel,
-    setBrowserCompat,
-    setExternalResources,
-    setDesignDirection,
     setSharedSkills,
     setCustomSkills,
     setSharedMemories,

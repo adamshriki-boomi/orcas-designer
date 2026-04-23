@@ -81,18 +81,18 @@ Deno.test("buildUserMessage: preserves section order from wizard snapshot", () =
     prompt,
     {
       "Company & Product": "Boomi / Rivery",
-      Feature: "New onboarding",
-      "Current State": "None — greenfield",
+      "Feature Definition": "New onboarding",
+      "Feature Information": "None — greenfield",
     },
     null,
   );
 
   const companyIdx = out.indexOf("# Company & Product");
-  const featureIdx = out.indexOf("# Feature");
-  const stateIdx = out.indexOf("# Current State");
+  const featureDefIdx = out.indexOf("# Feature Definition");
+  const featureInfoIdx = out.indexOf("# Feature Information");
 
-  assertEquals(companyIdx < featureIdx, true);
-  assertEquals(featureIdx < stateIdx, true);
+  assertEquals(companyIdx < featureDefIdx, true);
+  assertEquals(featureDefIdx < featureInfoIdx, true);
 });
 
 Deno.test("buildUserMessage: handles numeric and boolean values without dropping them", () => {

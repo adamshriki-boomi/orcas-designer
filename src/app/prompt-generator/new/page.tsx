@@ -6,11 +6,11 @@ import { useWizardForm } from '@/hooks/use-wizard-form';
 import { useSharedSkills } from '@/hooks/use-shared-skills';
 import {
   useSharedMemories,
-  COMPANY_CONTEXT_MEMORY_ID,
   PRODUCT_CONTEXT_MEMORY_IDS,
   DESIGN_SYSTEM_MEMORY_IDS,
   UX_WRITING_MEMORY_IDS,
 } from '@/hooks/use-shared-memories';
+import { BUILT_IN_COMPANY_CONTEXT_MEMORY_ID } from '@/lib/constants';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
 import { promptToRow } from '@/hooks/use-prompts';
@@ -26,11 +26,11 @@ import { PageContainer } from '@/components/layout/page-container';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { WizardShell } from '@/components/wizard/wizard-shell';
 import { StepCompanyProduct } from '@/components/wizard/step-company-product';
-import { StepFeatureInfo } from '@/components/wizard/step-feature-info';
+import { StepFeatureDefinition } from '@/components/wizard/step-feature-definition';
 import { StepCurrentState } from '@/components/wizard/step-current-state';
 import { StepDesignSystem } from '@/components/wizard/step-design-system';
 import { StepVoiceWriting } from '@/components/wizard/step-voice-writing';
-import { StepDeliverables } from '@/components/wizard/step-deliverables';
+import { StepDesignProducts } from '@/components/wizard/step-design-products';
 import { StepSkillsMemories } from '@/components/wizard/step-skills-memories';
 import { StepReviewGenerate } from '@/components/wizard/step-review-generate';
 import { Input } from '@/components/ui/input';
@@ -51,11 +51,8 @@ function WizardContent() {
     setName,
     setField,
     setCurrentImpl,
-    setOutputDirectory,
-    setAccessibilityLevel,
-    setBrowserCompat,
-    setExternalResources,
-    setDesignDirection,
+    setFeatureDefinition,
+    setDesignProducts,
     setSharedSkills,
     setCustomSkills,
     setSharedMemories,
@@ -88,10 +85,17 @@ function WizardContent() {
         };
       }
       case 1: {
-        const ok = isFieldFilled(formData.featureInfo);
+        const ok = formData.featureDefinition.name.trim().length > 0;
         return {
           canProceed: ok,
-          validationMessage: ok ? null : 'Describe the feature to generate a brief.',
+          validationMessage: ok ? null : 'Give the feature a name to continue.',
+        };
+      }
+      case 5: {
+        const ok = formData.designProducts.products.length > 0;
+        return {
+          canProceed: ok,
+          validationMessage: ok ? null : 'Pick at least one design output to continue.',
         };
       }
       default:
@@ -101,7 +105,7 @@ function WizardContent() {
 
   const completedSteps = useMemo(() => {
     const set = new Set<number>();
-    // Step 0 (Company & Product) — company is always "on" via built-in memory
+    // Step 0 (Company & Product)
     if (
       isFieldFilled(formData.productInfo) ||
       isFieldFilled(formData.companyInfo) ||
@@ -111,8 +115,11 @@ function WizardContent() {
     ) {
       set.add(0);
     }
-    if (isFieldFilled(formData.featureInfo)) set.add(1);
+    // Step 1 (Feature Definition) — completion = has a name
+    if (formData.featureDefinition.name.trim().length > 0) set.add(1);
+    // Step 2 (Feature Information) — completion = any sub-section filled
     if (
+      isFieldFilled(formData.featureInfo) ||
       isFieldFilled(formData.currentImplementation) ||
       formData.currentImplementation.figmaLinks.length > 0 ||
       isFieldFilled(formData.uxResearch) ||
@@ -120,6 +127,7 @@ function WizardContent() {
     ) {
       set.add(2);
     }
+    // Step 3 (Design System)
     if (
       isFieldFilled(formData.figmaFileLink) ||
       isFieldFilled(formData.designSystemStorybook) ||
@@ -131,6 +139,7 @@ function WizardContent() {
     ) {
       set.add(3);
     }
+    // Step 4 (Voice & Writing)
     if (
       isFieldFilled(formData.uxWriting) ||
       (formData.selectedSharedMemoryIds ?? []).some((id) =>
@@ -139,17 +148,11 @@ function WizardContent() {
     ) {
       set.add(4);
     }
-    if (
-      formData.accessibilityLevel !== 'none' ||
-      formData.browserCompatibility.length > 1 ||
-      !formData.externalResourcesAccessible ||
-      formData.designDirection !== null ||
-      formData.outputDirectory !== './output/'
-    ) {
-      set.add(5);
-    }
-    set.add(6); // Skills & Memories — mandatory skills always included; always "complete"
-    // Step 7 (Review & Generate) is the terminal step; not "completed" until a generation lands
+    // Step 5 (Design Products) — completion = at least one product chosen
+    if (formData.designProducts.products.length > 0) set.add(5);
+    // Step 6 (Skills & Memories) — always complete (mandatory skills auto-attach)
+    set.add(6);
+    // Step 7 (Review & Generate) is the terminal step; not "completed" until generation
     return set;
   }, [formData]);
 
@@ -166,6 +169,7 @@ function WizardContent() {
       row.data = {
         companyInfo: projectData.companyInfo,
         productInfo: projectData.productInfo,
+        featureDefinition: projectData.featureDefinition,
         featureInfo: projectData.featureInfo,
         currentImplementation: projectData.currentImplementation,
         uxResearch: projectData.uxResearch,
@@ -175,6 +179,7 @@ function WizardContent() {
         designSystemNpm: projectData.designSystemNpm,
         designSystemFigma: projectData.designSystemFigma,
         prototypeSketches: projectData.prototypeSketches,
+        designProducts: projectData.designProducts,
       };
       const supabase = createClient();
       const { error } = await supabase.from('prompts').insert(row as never);
@@ -207,14 +212,17 @@ function WizardContent() {
       }
       case 1:
         return (
-          <StepFeatureInfo
-            data={formData.featureInfo}
-            onChange={(d: FormFieldData) => setField('featureInfo', d)}
+          <StepFeatureDefinition
+            data={formData.featureDefinition}
+            onChange={setFeatureDefinition}
           />
         );
       case 2:
         return (
           <StepCurrentState
+            mode={formData.featureDefinition.mode}
+            featureInfo={formData.featureInfo}
+            onFeatureInfoChange={(d: FormFieldData) => setField('featureInfo', d)}
             current={formData.currentImplementation}
             onCurrentChange={setCurrentImpl}
             research={formData.uxResearch}
@@ -259,17 +267,9 @@ function WizardContent() {
       }
       case 5:
         return (
-          <StepDeliverables
-            outputDirectory={formData.outputDirectory}
-            onOutputDirectoryChange={setOutputDirectory}
-            accessibilityLevel={formData.accessibilityLevel}
-            onAccessibilityLevelChange={setAccessibilityLevel}
-            browserCompatibility={formData.browserCompatibility}
-            onBrowserCompatChange={setBrowserCompat}
-            externalResourcesAccessible={formData.externalResourcesAccessible}
-            onExternalResourcesChange={setExternalResources}
-            designDirection={formData.designDirection}
-            onDesignDirectionChange={setDesignDirection}
+          <StepDesignProducts
+            data={formData.designProducts}
+            onChange={setDesignProducts}
           />
         );
       case 6:
@@ -286,7 +286,7 @@ function WizardContent() {
             onSharedMemoriesChange={setSharedMemories}
             customMemories={formData.customMemories ?? []}
             onCustomMemoriesChange={setCustomMemories}
-            lockedMemoryIds={[COMPANY_CONTEXT_MEMORY_ID]}
+            lockedMemoryIds={[BUILT_IN_COMPANY_CONTEXT_MEMORY_ID]}
           />
         );
       case 7:

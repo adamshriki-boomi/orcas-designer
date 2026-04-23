@@ -7,6 +7,8 @@ import type { Prompt } from '@/lib/types';
 import { emptyPrompt } from '@/lib/types';
 import { generateId } from '@/lib/id';
 
+import { emptyFeatureDefinition, emptyDesignProducts } from '@/lib/types';
+
 export function toPrompt(row: Record<string, unknown>): Prompt {
   const data = (row.data ?? {}) as Record<string, unknown>;
   return {
@@ -16,6 +18,9 @@ export function toPrompt(row: Record<string, unknown>): Prompt {
     updatedAt: row.updated_at as string,
     companyInfo: data.companyInfo as Prompt['companyInfo'],
     productInfo: data.productInfo as Prompt['productInfo'],
+    // featureDefinition / designProducts are new — fall back to empty shapes
+    // when reading legacy rows saved before the Phase 4 realignment.
+    featureDefinition: (data.featureDefinition as Prompt['featureDefinition']) ?? emptyFeatureDefinition(),
     featureInfo: data.featureInfo as Prompt['featureInfo'],
     currentImplementation: data.currentImplementation as Prompt['currentImplementation'],
     uxResearch: data.uxResearch as Prompt['uxResearch'],
@@ -25,12 +30,8 @@ export function toPrompt(row: Record<string, unknown>): Prompt {
     designSystemNpm: data.designSystemNpm as Prompt['designSystemNpm'],
     designSystemFigma: data.designSystemFigma as Prompt['designSystemFigma'],
     prototypeSketches: data.prototypeSketches as Prompt['prototypeSketches'],
-    outputDirectory: row.output_directory as string,
-    accessibilityLevel: row.accessibility_level as Prompt['accessibilityLevel'],
-    externalResourcesAccessible: row.external_resources_accessible as boolean,
-    browserCompatibility: row.browser_compatibility as Prompt['browserCompatibility'],
+    designProducts: (data.designProducts as Prompt['designProducts']) ?? emptyDesignProducts(),
     promptMode: row.prompt_mode as Prompt['promptMode'],
-    designDirection: row.design_direction as Prompt['designDirection'],
     selectedSharedSkillIds: row.selected_shared_skill_ids as string[],
     customSkills: (row.custom_skills ?? []) as Prompt['customSkills'],
     selectedSharedMemoryIds: row.selected_shared_memory_ids as string[],
@@ -45,12 +46,7 @@ export function promptToRow(project: Partial<Prompt>, userId?: string) {
   if (userId !== undefined) row.user_id = userId;
   if (project.id !== undefined) row.id = project.id;
   if (project.name !== undefined) row.name = project.name;
-  if (project.outputDirectory !== undefined) row.output_directory = project.outputDirectory;
-  if (project.accessibilityLevel !== undefined) row.accessibility_level = project.accessibilityLevel;
-  if (project.externalResourcesAccessible !== undefined) row.external_resources_accessible = project.externalResourcesAccessible;
-  if (project.browserCompatibility !== undefined) row.browser_compatibility = project.browserCompatibility;
   if (project.promptMode !== undefined) row.prompt_mode = project.promptMode;
-  if (project.designDirection !== undefined) row.design_direction = project.designDirection;
   if (project.selectedSharedSkillIds !== undefined) row.selected_shared_skill_ids = project.selectedSharedSkillIds;
   if (project.customSkills !== undefined) row.custom_skills = project.customSkills;
   if (project.selectedSharedMemoryIds !== undefined) row.selected_shared_memory_ids = project.selectedSharedMemoryIds;
@@ -58,11 +54,15 @@ export function promptToRow(project: Partial<Prompt>, userId?: string) {
   if (project.regenerationCount !== undefined) row.regeneration_count = project.regenerationCount;
   if (project.generatedPrompt !== undefined) row.generated_prompt = project.generatedPrompt;
 
-  // Pack form data fields into the `data` JSONB column
+  // Pack form data fields into the `data` JSONB column. Deliverables-era
+  // columns (output_directory, accessibility_level, browser_compatibility,
+  // external_resources_accessible, design_direction) are no longer written
+  // by the app; they remain in the table for historical rows.
   const formFields = [
-    'companyInfo', 'productInfo', 'featureInfo', 'currentImplementation',
-    'uxResearch', 'uxWriting', 'figmaFileLink', 'designSystemStorybook',
-    'designSystemNpm', 'designSystemFigma', 'prototypeSketches',
+    'companyInfo', 'productInfo', 'featureDefinition', 'featureInfo',
+    'currentImplementation', 'uxResearch', 'uxWriting', 'figmaFileLink',
+    'designSystemStorybook', 'designSystemNpm', 'designSystemFigma',
+    'prototypeSketches', 'designProducts',
   ] as const;
   const data: Record<string, unknown> = {};
   let hasData = false;

@@ -1,6 +1,14 @@
+import { renderHook, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 import { clearAllTables, createMockSupabaseClient } from '@/test/helpers/supabase-mock';
 
 const mockClient = createMockSupabaseClient();
+
+vi.mock('@/contexts/auth-context', () => ({
+  useAuth: () => ({ user: { id: 'user-1' } }),
+}));
+
+import { useSharedMemories, toSharedMemory } from './use-shared-memories';
 
 beforeEach(() => {
   clearAllTables();
@@ -264,5 +272,161 @@ describe('shared_memories Supabase operations', () => {
     const ids = data!.map((r: Record<string, unknown>) => r.id);
     expect(ids).toContain('boomi-knowledge-mem');
     expect(ids).not.toContain('untagged-mem');
+  });
+});
+
+describe('useSharedMemories hook', () => {
+  it('loads memories that already exist and marks isLoading false', async () => {
+    // Pre-seed as though the RPC upsert had already run.
+    await mockClient.from('shared_memories').insert({
+      id: 'built-in-company-context', name: 'Boomi Context',
+      description: 'Built-in company context', content: 'Boomi is...',
+      file_name: 'boomi-context.md', is_built_in: true, created_by: null,
+      category: 'Company', tags: [],
+    });
+    await mockClient.from('shared_memories').insert({
+      id: 'user-mem-1', name: 'Internal glossary',
+      description: 'User-authored', content: 'ETL = ...',
+      file_name: 'glossary.md', is_built_in: false, created_by: 'user-1',
+      category: null, tags: [],
+    });
+
+    const { result } = renderHook(() => useSharedMemories());
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 2000 });
+
+    const names = result.current.sharedMemories.map((m) => m.name).sort();
+    expect(names).toContain('Boomi Context');
+    expect(names).toContain('Internal glossary');
+  });
+
+  it('addMemory inserts a user memory and refreshes', async () => {
+    const { result } = renderHook(() => useSharedMemories());
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 2000 });
+
+    const id = await result.current.addMemory({
+      name: 'Fresh memory',
+      description: 'Created in test',
+      content: '# Hello',
+      fileName: 'fresh.md',
+      isBuiltIn: false,
+      category: null,
+      tags: [],
+    });
+    expect(id).toBeTruthy();
+
+    await waitFor(
+      () => expect(result.current.sharedMemories.some((m) => m.name === 'Fresh memory')).toBe(true),
+      { timeout: 2000 },
+    );
+  });
+
+  it('updateMemory mutates a row', async () => {
+    await mockClient.from('shared_memories').insert({
+      id: 'upd-mem', name: 'Before', description: 'old', content: 'x',
+      file_name: 'x.md', is_built_in: false, created_by: 'user-1',
+      category: null, tags: [],
+    });
+
+    const { result } = renderHook(() => useSharedMemories());
+    await waitFor(() => expect(result.current.sharedMemories.some((m) => m.id === 'upd-mem')).toBe(true));
+
+    await result.current.updateMemory('upd-mem', { name: 'After', content: 'new content' });
+
+    await waitFor(() => {
+      const updated = result.current.sharedMemories.find((m) => m.id === 'upd-mem');
+      expect(updated?.name).toBe('After');
+    }, { timeout: 2000 });
+  });
+
+  it('deleteMemory removes user-authored memories', async () => {
+    await mockClient.from('shared_memories').insert({
+      id: 'del-mem', name: 'Goodbye', description: '', content: '',
+      file_name: 'x.md', is_built_in: false, created_by: 'user-1',
+      category: null, tags: [],
+    });
+
+    const { result } = renderHook(() => useSharedMemories());
+    await waitFor(() => expect(result.current.sharedMemories.some((m) => m.id === 'del-mem')).toBe(true));
+
+    await result.current.deleteMemory('del-mem');
+
+    await waitFor(
+      () => expect(result.current.sharedMemories.some((m) => m.id === 'del-mem')).toBe(false),
+      { timeout: 2000 },
+    );
+  });
+
+  it('deleteMemory refuses to delete built-in memories', async () => {
+    await mockClient.from('shared_memories').insert({
+      id: 'built-in-locked', name: 'Locked', description: '', content: '',
+      file_name: 'x.md', is_built_in: true, created_by: null,
+      category: null, tags: [],
+    });
+
+    const { result } = renderHook(() => useSharedMemories());
+    await waitFor(() =>
+      expect(result.current.sharedMemories.some((m) => m.id === 'built-in-locked')).toBe(true),
+    );
+
+    await result.current.deleteMemory('built-in-locked');
+
+    // Still there.
+    expect(result.current.sharedMemories.some((m) => m.id === 'built-in-locked')).toBe(true);
+  });
+
+  it('isMemoryUsed returns names of prompts that reference the memory', async () => {
+    await mockClient.from('prompts').insert({
+      id: 'p-1', name: 'Alpha prompt', user_id: 'user-1',
+      selected_shared_memory_ids: ['target-mem'],
+    });
+    await mockClient.from('prompts').insert({
+      id: 'p-2', name: 'Gamma prompt', user_id: 'user-1',
+      selected_shared_memory_ids: ['other-mem'],
+    });
+
+    const { result } = renderHook(() => useSharedMemories());
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 2000 });
+
+    const users = await result.current.isMemoryUsed('target-mem');
+    expect(users).toEqual(['Alpha prompt']);
+  });
+});
+
+describe('toSharedMemory', () => {
+  it('maps snake_case row fields to camelCase Prompt shape', () => {
+    const memory = toSharedMemory({
+      id: 'm-1',
+      name: 'A',
+      description: 'B',
+      content: 'C',
+      file_name: 'd.md',
+      is_built_in: true,
+      category: 'Company',
+      tags: ['x'],
+      created_at: 'when',
+      updated_at: 'later',
+    });
+    expect(memory).toEqual({
+      id: 'm-1',
+      name: 'A',
+      description: 'B',
+      content: 'C',
+      fileName: 'd.md',
+      isBuiltIn: true,
+      category: 'Company',
+      tags: ['x'],
+      createdAt: 'when',
+      updatedAt: 'later',
+    });
+  });
+
+  it('defaults missing category + tags to safe values', () => {
+    const memory = toSharedMemory({
+      id: 'm-1', name: 'N', description: '', content: '', file_name: '',
+      is_built_in: false,
+      created_at: '', updated_at: '',
+    });
+    expect(memory.category).toBeNull();
+    expect(memory.tags).toEqual([]);
   });
 });

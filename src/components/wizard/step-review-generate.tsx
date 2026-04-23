@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, AlertCircle, Save, KeyRound } from 'lucide-react';
+import { Sparkles, AlertCircle, Save, KeyRound, Lock } from 'lucide-react';
 import { WizardStep } from './wizard-step';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,13 +45,12 @@ export function StepReviewGenerate({
   const [error, setError] = useState<string | null>(null);
 
   const mandatorySkills = getActiveSkillsForPrompt(formData);
-  const totalSkills =
-    mandatorySkills.length +
-    formData.selectedSharedSkillIds.length +
-    formData.customSkills.length;
-  const totalMemories =
-    (formData.selectedSharedMemoryIds ?? []).length +
-    (formData.customMemories ?? []).length;
+  const selectedSharedSkills = formData.selectedSharedSkillIds
+    .map((id) => sharedSkills.find((s) => s.id === id))
+    .filter((s): s is SharedSkill => s !== undefined);
+  const selectedSharedMemories = (formData.selectedSharedMemoryIds ?? [])
+    .map((id) => sharedMemories.find((m) => m.id === id))
+    .filter((m): m is SharedMemory => m !== undefined);
 
   async function handleGenerate() {
     if (!user) {
@@ -118,47 +117,125 @@ export function StepReviewGenerate({
   return (
     <WizardStep
       title="Review & Generate"
-      description="Click Generate to have Claude Opus 4.7 author a custom Claude Code brief. Lo-fi → animated prototype → hi-fi in one session."
+      description="Everything Claude Opus 4.7 will see before it writes the brief. The brief will generate only the design products you selected."
     >
       <div className="space-y-6">
-        <Card>
-          <CardContent className="space-y-3">
-            <Row label="Prompt name" value={formData.name || 'Untitled'} />
-            <Row
-              label="Feature"
-              value={
-                formData.featureDefinition.name ||
-                formData.featureInfo.textValue ||
-                formData.featureInfo.urlValue ||
-                '—'
-              }
-            />
-            <Row
-              label="Type"
-              value={
-                <Badge variant="secondary">
-                  {formData.featureDefinition.mode === 'new' ? 'New feature' : 'Improvement'}
-                </Badge>
-              }
-            />
-            <Row
-              label="Outputs"
-              value={
-                formData.designProducts.products.length > 0
-                  ? formData.designProducts.products.map((p) => PRODUCT_LABELS[p]).join(', ')
-                  : '—'
-              }
-            />
-            {formData.designProducts.figmaDestinationUrl && (
+        {/* Summary */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold">Summary</h3>
+          <Card>
+            <CardContent className="space-y-3">
+              <Row label="Prompt name" value={formData.name || 'Untitled'} />
               <Row
-                label="Figma destination"
-                value={<code className="text-xs">{formData.designProducts.figmaDestinationUrl}</code>}
+                label="Feature"
+                value={formData.featureDefinition.name || '—'}
               />
-            )}
-            <Row label="Total skills" value={String(totalSkills)} />
-            <Row label="Total memories" value={String(totalMemories)} />
-          </CardContent>
-        </Card>
+              <Row
+                label="Type"
+                value={
+                  <Badge variant="secondary">
+                    {formData.featureDefinition.mode === 'new' ? 'New feature' : 'Improvement'}
+                  </Badge>
+                }
+              />
+              <Row
+                label="Outputs"
+                value={
+                  formData.designProducts.products.length > 0
+                    ? formData.designProducts.products.map((p) => PRODUCT_LABELS[p]).join(', ')
+                    : '—'
+                }
+              />
+              {formData.designProducts.figmaDestinationUrl && (
+                <Row
+                  label="Figma destination"
+                  value={<code className="text-xs break-all">{formData.designProducts.figmaDestinationUrl}</code>}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Skills */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold">
+            Skills ({mandatorySkills.length + selectedSharedSkills.length + formData.customSkills.length})
+          </h3>
+          <Card>
+            <CardContent className="space-y-4">
+              {mandatorySkills.length > 0 && (
+                <ItemGroup
+                  heading="Always included"
+                  headingIcon={<Lock className="size-3.5 text-muted-foreground" />}
+                >
+                  {mandatorySkills.map((s) => (
+                    <ItemRow key={s.name} title={s.name} subtitle={s.description} />
+                  ))}
+                </ItemGroup>
+              )}
+              {selectedSharedSkills.length > 0 && (
+                <ItemGroup heading="Shared">
+                  {selectedSharedSkills.map((s) => (
+                    <ItemRow key={s.id} title={s.name} subtitle={s.description} />
+                  ))}
+                </ItemGroup>
+              )}
+              {formData.customSkills.length > 0 && (
+                <ItemGroup heading="Custom">
+                  {formData.customSkills.map((s) => (
+                    <ItemRow
+                      key={s.id}
+                      title={s.name}
+                      subtitle={s.urlValue || (s.fileContent?.name ?? '')}
+                    />
+                  ))}
+                </ItemGroup>
+              )}
+              {mandatorySkills.length === 0 &&
+                selectedSharedSkills.length === 0 &&
+                formData.customSkills.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No skills attached.</p>
+                )}
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Memories */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold">
+            Memories ({selectedSharedMemories.length + (formData.customMemories?.length ?? 0)})
+          </h3>
+          <Card>
+            <CardContent className="space-y-4">
+              {selectedSharedMemories.length > 0 && (
+                <ItemGroup heading="Shared">
+                  {selectedSharedMemories.map((m) => (
+                    <ItemRow
+                      key={m.id}
+                      title={m.name}
+                      subtitle={m.description}
+                      badge={m.isBuiltIn ? 'Built-in' : undefined}
+                    />
+                  ))}
+                </ItemGroup>
+              )}
+              {(formData.customMemories ?? []).length > 0 && (
+                <ItemGroup heading="Custom">
+                  {(formData.customMemories ?? []).map((m) => (
+                    <ItemRow
+                      key={m.id}
+                      title={m.name}
+                      subtitle={m.content.slice(0, 120) + (m.content.length > 120 ? '...' : '')}
+                    />
+                  ))}
+                </ItemGroup>
+              )}
+              {selectedSharedMemories.length === 0 && (formData.customMemories?.length ?? 0) === 0 && (
+                <p className="text-sm text-muted-foreground">No memories attached.</p>
+              )}
+            </CardContent>
+          </Card>
+        </section>
 
         {!settingsLoading && !hasApiKey && (
           <div className="rounded-xl border border-amber-500/50 bg-amber-50/50 dark:bg-amber-900/20 p-4">
@@ -223,6 +300,56 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-muted-foreground">{label}</span>
       <span className="text-sm font-medium text-right truncate max-w-[60%]">{value}</span>
+    </div>
+  );
+}
+
+function ItemGroup({
+  heading,
+  headingIcon,
+  children,
+}: {
+  heading: string;
+  headingIcon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-1.5">
+        {headingIcon}
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {heading}
+        </p>
+      </div>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function ItemRow({
+  title,
+  subtitle,
+  badge,
+}: {
+  title: string;
+  subtitle?: string;
+  badge?: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-md border border-border/50 p-2.5">
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium truncate">{title}</p>
+          {badge && (
+            <Badge variant="secondary" className="shrink-0 text-xs">
+              {badge}
+            </Badge>
+          )}
+        </div>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground line-clamp-2">{subtitle}</p>
+        )}
+      </div>
     </div>
   );
 }

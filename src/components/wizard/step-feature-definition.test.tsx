@@ -7,13 +7,19 @@ import type { FeatureDefinitionData } from '@/lib/types';
 // plain HTML equivalents so we can assert label→input association and value
 // reflection like any other React component test.
 vi.mock('@/components/ui/input', () => ({
-  Input: ({ leadingIcon: _leadingIcon, clearable: _clearable, ...props }: Record<string, unknown>) => (
-    <input {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />
+  Input: ({ leadingIcon: _leadingIcon, clearable: _clearable, label, ...props }: Record<string, unknown> & { label?: string }) => (
+    <label>
+      {label}
+      <input {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />
+    </label>
   ),
 }));
 vi.mock('@/components/ui/textarea', () => ({
-  Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-    <textarea {...props} />
+  Textarea: ({ label, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string }) => (
+    <label>
+      {label}
+      <textarea {...props} />
+    </label>
   ),
 }));
 

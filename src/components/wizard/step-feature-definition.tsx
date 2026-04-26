@@ -81,9 +81,8 @@ export function StepFeatureDefinition({ data, onChange }: StepFeatureDefinitionP
         </section>
 
         <section className="space-y-2">
-          <Label htmlFor="feature-name">Feature name</Label>
           <Input
-            id="feature-name"
+            label="Feature name"
             type="text"
             value={data.name}
             onChange={(e) => update({ name: e.target.value })}
@@ -92,12 +91,11 @@ export function StepFeatureDefinition({ data, onChange }: StepFeatureDefinitionP
         </section>
 
         <section className="space-y-2">
-          <Label htmlFor="feature-brief">Brief description</Label>
           <p className="text-xs text-muted-foreground">
             One or two sentences about what this feature does and why it matters.
           </p>
           <Textarea
-            id="feature-brief"
+            label="Brief description"
             value={data.briefDescription}
             onChange={(e) => update({ briefDescription: e.target.value })}
             placeholder="Give users a single place to see and filter every pipeline run across their workspaces..."

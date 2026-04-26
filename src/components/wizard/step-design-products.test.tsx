@@ -4,8 +4,11 @@ import type { DesignProductsData } from '@/lib/types';
 
 // See step-feature-definition.test.tsx for why these are mocked.
 vi.mock('@/components/ui/input', () => ({
-  Input: ({ leadingIcon: _leadingIcon, clearable: _clearable, ...props }: Record<string, unknown>) => (
-    <input {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />
+  Input: ({ leadingIcon: _leadingIcon, clearable: _clearable, label, ...props }: Record<string, unknown> & { label?: string }) => (
+    <label>
+      {label}
+      <input {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />
+    </label>
   ),
 }));
 

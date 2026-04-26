@@ -116,13 +116,12 @@ export function StepDesignProducts({ data, onChange }: StepDesignProductsProps) 
         </section>
 
         <section className="space-y-2">
-          <Label htmlFor="figma-destination">Figma destination (optional)</Label>
           <p className="text-xs text-muted-foreground">
             If you want the output built directly in Figma, paste the destination file URL here.
             Only <code className="text-[0.7rem]">figma.com</code> / <code className="text-[0.7rem]">www.figma.com</code> links are accepted.
           </p>
           <Input
-            id="figma-destination"
+            label="Figma destination (optional)"
             type="url"
             value={data.figmaDestinationUrl}
             onChange={(e) => update({ figmaDestinationUrl: e.target.value })}

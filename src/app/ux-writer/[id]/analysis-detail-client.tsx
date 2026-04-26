@@ -422,28 +422,19 @@ export default function AnalysisDetailClient({ id }: Props) {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium" htmlFor="edit-description">
-                        Description <span className="text-destructive">*</span>
-                      </label>
-                      <Textarea
-                        id="edit-description"
-                        rows={4}
-                        value={editDescription}
-                        onChange={(e) => setEditDescription(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium" htmlFor="edit-focus">
-                        Focus area
-                      </label>
-                      <Input
-                        id="edit-focus"
-                        type="text"
-                        value={editFocusNotes}
-                        onChange={(e) => setEditFocusNotes(e.target.value)}
-                      />
-                    </div>
+                    <Textarea
+                      label="Description"
+                      required
+                      rows={4}
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                    />
+                    <Input
+                      label="Focus area"
+                      type="text"
+                      value={editFocusNotes}
+                      onChange={(e) => setEditFocusNotes(e.target.value)}
+                    />
                   </CardContent>
                 </Card>
 

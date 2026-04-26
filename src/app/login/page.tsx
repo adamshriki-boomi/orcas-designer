@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Waves, Mail, ArrowRight, CheckCircle, Lock } from 'lucide-react';
+import { Waves, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
@@ -93,23 +93,15 @@ export default function LoginPage() {
           /* Magic link form */
           <form onSubmit={handleMagicLink} className="space-y-4">
             <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="email">
-                  Email address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@boomi.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Email address"
+                leadingIcon="Mail"
+                type="email"
+                placeholder="you@boomi.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
 
               {error && (
                 <p className="text-sm text-destructive">{error}</p>
@@ -137,41 +129,25 @@ export default function LoginPage() {
           /* Password form */
           <form onSubmit={handlePassword} className="space-y-4">
             <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="email-pw">
-                  Email address
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="email-pw"
-                    type="email"
-                    placeholder="you@boomi.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Email address"
+                leadingIcon="Mail"
+                type="email"
+                placeholder="you@boomi.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="password">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Password"
+                leadingIcon="Lock"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
 
               {error && (
                 <p className="text-sm text-destructive">{error}</p>

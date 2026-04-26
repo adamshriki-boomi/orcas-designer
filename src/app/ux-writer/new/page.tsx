@@ -237,31 +237,22 @@ export default function NewAnalysisPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium" htmlFor="ux-description">
-                  Description <span className="text-destructive">*</span>
-                </label>
-                <Textarea
-                  id="ux-description"
-                  rows={4}
-                  placeholder="e.g., Login dialog with error states for invalid credentials"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
+              <Textarea
+                label="Description"
+                required
+                rows={4}
+                placeholder="e.g., Login dialog with error states for invalid credentials"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium" htmlFor="ux-focus">
-                  Focus area
-                </label>
-                <Input
-                  id="ux-focus"
-                  type="text"
-                  placeholder="e.g., error messages, button labels, tooltips"
-                  value={focusNotes}
-                  onChange={(e) => setFocusNotes(e.target.value)}
-                />
-              </div>
+              <Input
+                label="Focus area"
+                type="text"
+                placeholder="e.g., error messages, button labels, tooltips"
+                value={focusNotes}
+                onChange={(e) => setFocusNotes(e.target.value)}
+              />
             </CardContent>
           </Card>
 

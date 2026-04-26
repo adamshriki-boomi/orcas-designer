@@ -9,13 +9,18 @@ const ExTextareaLazy = dynamic(
   { ssr: false }
 )
 
-function Textarea({ className, placeholder, value, onChange, disabled, rows, ...props }: React.ComponentProps<"textarea">) {
+interface TextareaProps extends React.ComponentProps<"textarea"> {
+  label?: string
+}
+
+function Textarea({ className, placeholder, value, onChange, disabled, rows, label, ...props }: TextareaProps) {
   return (
     <ExTextareaLazy
       placeholder={placeholder || ""}
       value={typeof value === "string" ? value : ""}
       disabled={disabled || false}
       rows={rows || 4}
+      {...(label ? { label } : {})}
       onInput={(e: Event) => {
         if (onChange) {
           const host = e.target as HTMLElement

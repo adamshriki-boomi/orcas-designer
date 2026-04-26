@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orcas Designer — Resonance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand: #033D58;
+      --aqua-60: #127B87;
+      --aqua-50: #4D989D;
+      --aqua-40: #79BFBE;
+      --aqua-30: #A9DFDA;
+      --aqua-10: #EFF7F6;
+      --gray-90: #262626;
+      --gray-30: #CCCCCC;
+      --gray-10: #F5F5F5;
+      --white: #FFFFFF;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans', system-ui, sans-serif;
+      background: var(--white);
+      color: var(--gray-90);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 72px 32px 96px;
+    }
+    .page-header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 400;
+      font-size: 44px;
+      letter-spacing: -0.01em;
+      color: var(--brand);
+      margin: 0 0 12px 0;
+    }
+    .page-header p {
+      max-width: 720px;
+      color: var(--gray-90);
+      margin: 0;
+      font-size: 15px;
+    }
+    .palette {
+      margin-top: 32px;
+      display: flex;
+      gap: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--gray-30);
+      max-width: 720px;
+    }
+    .swatch {
+      flex: 1;
+      padding: 16px 12px;
+      font-size: 11px;
+      font-family: 'Fira Mono', 'SF Mono', Menlo, monospace;
+      letter-spacing: 0.02em;
+      min-height: 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .swatch.brand   { background: var(--brand);   color: var(--white); }
+    .swatch.aqua-60 { background: var(--aqua-60); color: var(--white); }
+    .swatch.aqua-50 { background: var(--aqua-50); color: var(--white); }
+    .swatch.aqua-40 { background: var(--aqua-40); color: var(--gray-90); }
+    .swatch.aqua-30 { background: var(--aqua-30); color: var(--gray-90); }
+
+    .section {
+      margin-top: 88px;
+      padding-top: 56px;
+      border-top: 1px solid var(--gray-30);
+    }
+    .section-eyebrow {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      color: var(--aqua-60);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 11px;
+      margin: 0 0 8px 0;
+    }
+    .section-title {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 400;
+      font-size: 32px;
+      letter-spacing: -0.01em;
+      color: var(--brand);
+      margin: 0 0 12px 0;
+    }
+    .section-desc {
+      max-width: 680px;
+      margin: 0 0 40px 0;
+      font-size: 15px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .panel {
+      border-radius: 12px;
+      padding: 56px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+    }
+    .panel.light { background: var(--white);   border: 1px solid var(--gray-30); }
+    .panel.dark  { background: var(--brand);   border: 1px solid var(--brand); }
+    .panel.aqua  { background: var(--aqua-10); border: 1px solid var(--aqua-30); }
+    .panel.gray  { background: var(--gray-10); border: 1px solid var(--gray-30); }
+
+    .meta {
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gray-90);
+      opacity: 0.55;
+      margin: 32px 0 12px 0;
+    }
+    .favicons {
+      display: flex;
+      align-items: flex-end;
+      gap: 32px;
+      padding: 32px 40px;
+      background: var(--gray-10);
+      border-radius: 12px;
+      border: 1px solid var(--gray-30);
+    }
+    .favicons figure {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .favicons figcaption {
+      font-family: 'Fira Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-90);
+      opacity: 0.6;
+    }
+    .favicon-cell {
+      background: var(--white);
+      border: 1px solid var(--gray-30);
+      border-radius: 4px;
+      padding: 4px;
+      display: inline-flex;
+    }
+
+    /* Wordmark base */
+    .wm {
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: -0.005em;
+    }
+    .wm-large { font-size: 40px; }
+    .wm-mid   { font-size: 28px; }
+    .wm-light { color: var(--white); }
+    .wm-dark  { color: var(--brand); }
+
+    /* Brand-spec wordmark — Poppins regular (400), aqua 'i' in 'Designer' */
+    .wm-spec { font-weight: 400; }
+    .wm-spec .b-i { color: var(--aqua-60); }
+    .wm-spec.wm-light .b-i { color: var(--aqua-40); }
+
+    /* Current-app wordmark — Poppins bold (700), all navy, no accent */
+    .wm-current { font-weight: 700; letter-spacing: -0.015em; }
+
+    .lockup-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* Comparison panel — full-width side-by-side */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border: 1px solid var(--gray-30);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .compare-cell {
+      padding: 56px 40px;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      min-height: 240px;
+    }
+    .compare-cell + .compare-cell {
+      border-left: 1px solid var(--gray-30);
+    }
+    .compare-cell.gray { background: var(--gray-10); }
+    .compare-label {
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--aqua-60);
+      margin: 0;
+    }
+    .compare-sub {
+      font-family: 'Fira Mono', monospace;
+      font-size: 11px;
+      color: var(--gray-90);
+      opacity: 0.55;
+      margin: -16px 0 0 0;
+    }
+
+    .footer {
+      margin-top: 96px;
+      padding-top: 32px;
+      border-top: 1px solid var(--gray-30);
+      font-size: 13px;
+      color: var(--gray-90);
+      opacity: 0.6;
+    }
+    .footer code {
+      font-family: 'Fira Mono', monospace;
+      font-size: 12px;
+      background: var(--gray-10);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+
+    <header class="page-header">
+      <h1>Orcas Designer — Resonance</h1>
+      <p>Three concentric arcs radiating from a navy source-node above a water line — orca echolocation, a conductor's gesture, and a broadcast signal in one mark. Built with Boomi brand colors and Poppins per the Exosphere brand-heading spec.</p>
+
+      <div class="palette" aria-label="Boomi brand colors used">
+        <div class="swatch brand">#033D58<br>Brand</div>
+        <div class="swatch aqua-60">#127B87<br>Aqua 60</div>
+        <div class="swatch aqua-50">#4D989D<br>Aqua 50</div>
+        <div class="swatch aqua-40">#79BFBE<br>Aqua 40</div>
+        <div class="swatch aqua-30">#A9DFDA<br>Aqua 30</div>
+      </div>
+    </header>
+
+
+    <!-- ============================================================ -->
+    <!-- THE MARK — lockups, icon alone, wordmark alone, favicons     -->
+    <!-- ============================================================ -->
+    <section class="section">
+      <p class="section-eyebrow">The mark</p>
+      <h2 class="section-title">Lockup</h2>
+      <p class="section-desc">The icon and the wordmark working together, on light and dark surfaces. Both also work in isolation — see below.</p>
+
+      <div class="grid-2">
+        <div class="panel light">
+          <div class="lockup-row">
+            <svg width="72" height="72" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Orcas Designer mark">
+              <line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="32" cy="41" r="3.5" fill="#033D58"/>
+            </svg>
+            <span class="wm wm-spec wm-large wm-dark">Orcas Des<span class="b-i">i</span>gner</span>
+          </div>
+        </div>
+
+        <div class="panel dark">
+          <div class="lockup-row">
+            <svg width="72" height="72" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+              <line x1="8" y1="45" x2="56" y2="45" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="32" cy="41" r="3.5" fill="#FFFFFF"/>
+            </svg>
+            <span class="wm wm-spec wm-large wm-light">Orcas Des<span class="b-i">i</span>gner</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel aqua">
+          <svg width="180" height="180" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Orcas Designer icon">
+            <line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <circle cx="32" cy="41" r="3.5" fill="#033D58"/>
+          </svg>
+        </div>
+        <div class="panel light">
+          <span class="wm wm-spec wm-large wm-dark">Orcas Des<span class="b-i">i</span>gner</span>
+        </div>
+      </div>
+
+      <p class="meta">Favicon scaling — 16 / 32 / 48 / 64</p>
+      <div class="favicons">
+        <figure><span class="favicon-cell"><svg width="16" height="16" viewBox="0 0 64 64"><path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="32" cy="41" r="4" fill="#033D58"/></svg></span><figcaption>16 px</figcaption></figure>
+        <figure><span class="favicon-cell"><svg width="32" height="32" viewBox="0 0 64 64"><line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/><path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="32" cy="41" r="3.5" fill="#033D58"/></svg></span><figcaption>32 px</figcaption></figure>
+        <figure><span class="favicon-cell"><svg width="48" height="48" viewBox="0 0 64 64"><line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/><path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="32" cy="41" r="3.5" fill="#033D58"/></svg></span><figcaption>48 px</figcaption></figure>
+        <figure><span class="favicon-cell"><svg width="64" height="64" viewBox="0 0 64 64"><line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/><path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="32" cy="41" r="3.5" fill="#033D58"/></svg></span><figcaption>64 px</figcaption></figure>
+      </div>
+    </section>
+
+
+    <!-- ============================================================ -->
+    <!-- WORDMARK WEIGHT — current app vs. brand-spec                 -->
+    <!-- ============================================================ -->
+    <section class="section">
+      <p class="section-eyebrow">Decision needed</p>
+      <h2 class="section-title">Wordmark weight</h2>
+      <p class="section-desc">The Boomi brand-heading spec is Poppins <strong>regular (400)</strong>; the app today renders the wordmark in <strong>bold (700)</strong>. Both treatments shown below at the same size, paired with the icon. Pick whichever reads right — the icon is identical either way.</p>
+
+      <div class="compare">
+        <div class="compare-cell">
+          <p class="compare-label">Option 1 · Current app</p>
+          <p class="compare-sub">Poppins 700 · all navy</p>
+          <div class="lockup-row">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="32" cy="41" r="3.5" fill="#033D58"/>
+            </svg>
+            <span class="wm wm-current wm-large wm-dark">Orcas Designer</span>
+          </div>
+        </div>
+
+        <div class="compare-cell gray">
+          <p class="compare-label">Option 2 · Brand-spec</p>
+          <p class="compare-sub">Poppins 400 · aqua "i"</p>
+          <div class="lockup-row">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="32" cy="41" r="3.5" fill="#033D58"/>
+            </svg>
+            <span class="wm wm-spec wm-large wm-dark">Orcas Des<span class="b-i">i</span>gner</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="meta">Same comparison at sidebar size (~14 px text)</p>
+      <div class="compare">
+        <div class="compare-cell">
+          <p class="compare-label">Option 1 · Current app</p>
+          <div class="lockup-row" style="gap:10px;">
+            <svg width="32" height="32" viewBox="0 0 64 64">
+              <line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="32" cy="41" r="3.5" fill="#033D58"/>
+            </svg>
+            <span class="wm wm-current wm-dark" style="font-size:14px;">Orcas Designer</span>
+          </div>
+        </div>
+
+        <div class="compare-cell gray">
+          <p class="compare-label">Option 2 · Brand-spec</p>
+          <div class="lockup-row" style="gap:10px;">
+            <svg width="32" height="32" viewBox="0 0 64 64">
+              <line x1="8" y1="45" x2="56" y2="45" stroke="#033D58" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 12 39 A 20 20 0 0 1 52 39" stroke="#A9DFDA" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 18 39 A 14 14 0 0 1 46 39" stroke="#79BFBE" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <path d="M 24 39 A 8 8 0 0 1 40 39" stroke="#127B87" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <circle cx="32" cy="41" r="3.5" fill="#033D58"/>
+            </svg>
+            <span class="wm wm-spec wm-dark" style="font-size:14px;">Orcas Des<span class="b-i">i</span>gner</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <footer class="footer">
+      <p>Built from Boomi Exosphere brand tokens — Brand <code>#033D58</code>, Aqua family. Open with <code>open design/logo-options/index.html</code>.</p>
+    </footer>
+
+  </main>
+</body>
+</html>

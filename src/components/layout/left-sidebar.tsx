@@ -2,8 +2,10 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { Waves, Home, BotMessageSquare, PenLine, FlaskConical, Zap, BookOpen, Settings as SettingsIcon } from 'lucide-react';
+import { Home, BotMessageSquare, PenLine, FlaskConical, Zap, BookOpen, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { OrcasMark } from '@/components/brand/orcas-mark';
+import { OrcasWordmark } from '@/components/brand/orcas-wordmark';
 
 const SIDEBAR_WIDTH = 220;
 
@@ -59,12 +61,8 @@ export function LeftSidebar() {
           tabIndex={0}
           aria-label="Go to dashboard"
         >
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-            <Waves className="size-4 text-primary-foreground" />
-          </div>
-          <span className="font-heading text-sm font-bold tracking-tight overflow-hidden whitespace-nowrap">
-            Orcas Designer
-          </span>
+          <OrcasMark className="size-8 shrink-0" />
+          <OrcasWordmark className="text-sm overflow-hidden whitespace-nowrap" />
         </div>
 
         <ExLeftmenubarDivider />

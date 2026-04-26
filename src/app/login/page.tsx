@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Waves, ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
+import { OrcasMark } from '@/components/brand/orcas-mark';
+import { OrcasWordmark } from '@/components/brand/orcas-wordmark';
 
 type LoginMode = 'magic-link' | 'password';
 
@@ -62,12 +64,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-primary">
-            <Waves className="size-6 text-primary-foreground" />
-          </div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight">
-            Orcas Designer
-          </h1>
+          <OrcasMark className="size-14" />
+          <OrcasWordmark className="text-2xl" />
           <p className="text-sm text-muted-foreground text-center">
             Sign in with your Boomi email to continue
           </p>

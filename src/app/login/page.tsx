@@ -93,7 +93,7 @@ export default function LoginPage() {
             <div className="rounded-lg border border-border bg-card p-6 space-y-4">
               <Input
                 label="Email address"
-                leadingIcon="Mail"
+                leadingIcon="envelope-closed"
                 type="email"
                 placeholder="you@boomi.com"
                 value={email}
@@ -129,7 +129,7 @@ export default function LoginPage() {
             <div className="rounded-lg border border-border bg-card p-6 space-y-4">
               <Input
                 label="Email address"
-                leadingIcon="Mail"
+                leadingIcon="envelope-closed"
                 type="email"
                 placeholder="you@boomi.com"
                 value={email}
@@ -139,7 +139,7 @@ export default function LoginPage() {
 
               <Input
                 label="Password"
-                leadingIcon="Lock"
+                leadingIcon="lock-closed"
                 type="password"
                 placeholder="Enter your password"
                 value={password}

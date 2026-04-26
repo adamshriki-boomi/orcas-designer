@@ -13,6 +13,16 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // The codebase intentionally fetches data on user-change inside an
+      // effect (every Supabase-backed hook follows this pattern). The rule
+      // assumes apps use Suspense + use() for data fetching; we don't yet.
+      // Keep visibility as a warning so genuine cascading-render bugs still
+      // surface, without erroring on the universal pattern.
+      "react-hooks/set-state-in-effect": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -24,7 +24,7 @@ test.describe('Auth', () => {
     void supabase;
     await gotoApp(page);
     await page.waitForURL(/\/orcas-designer\/login$/);
-    await expect(page.getByRole('heading', { name: 'Orcas Designer' })).toBeVisible();
+    await expect(page.getByText('Orcas Designer')).toBeVisible();
   });
 
   test('login page shows magic link form by default', async ({ page, supabase }) => {

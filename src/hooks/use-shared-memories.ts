@@ -11,12 +11,14 @@ import {
   BUILT_IN_AI_VOICE_GUIDELINES,
   BUILT_IN_UXR_OPERATIONS_GUIDE,
   BUILT_IN_UX_RESEARCH_PROCESS,
+  BUILT_IN_EXOSPHERE_VISUAL_QA,
   BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
   BUILT_IN_PRODUCT_MEMORY_ID,
   BUILT_IN_UX_WRITING_MEMORY_ID,
   BUILT_IN_AI_VOICE_MEMORY_ID,
   BUILT_IN_UXR_OPERATIONS_GUIDE_MEMORY_ID,
   BUILT_IN_UX_RESEARCH_PROCESS_MEMORY_ID,
+  BUILT_IN_EXOSPHERE_VISUAL_QA_MEMORY_ID,
   COMPANY_CONTEXT_MEMORY_ID,
   PRODUCT_CONTEXT_MEMORY_IDS,
   UX_WRITING_MEMORY_IDS,
@@ -25,6 +27,7 @@ import {
 // Re-export for convenience so wizard steps can import these IDs from the
 // same module that owns the fetch hook.
 export { COMPANY_CONTEXT_MEMORY_ID, PRODUCT_CONTEXT_MEMORY_IDS, UX_WRITING_MEMORY_IDS };
+export const EXOSPHERE_VISUAL_QA_MEMORY_ID = BUILT_IN_EXOSPHERE_VISUAL_QA_MEMORY_ID;
 
 interface BuiltInMemorySeed {
   id: string;
@@ -36,7 +39,7 @@ interface BuiltInMemorySeed {
   tags: string[];
 }
 
-const BUILT_IN_MEMORIES: BuiltInMemorySeed[] = [
+export const BUILT_IN_MEMORIES: BuiltInMemorySeed[] = [
   {
     id: BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
     name: 'Boomi Context',
@@ -89,6 +92,15 @@ const BUILT_IN_MEMORIES: BuiltInMemorySeed[] = [
     content: BUILT_IN_UX_RESEARCH_PROCESS,
     fileName: 'ux-research-process.md',
     category: 'UX Research',
+    tags: ['Boomi Knowledge'],
+  },
+  {
+    id: BUILT_IN_EXOSPHERE_VISUAL_QA_MEMORY_ID,
+    name: 'Exosphere Visual QA',
+    description: 'Visual QA reference: severity rubric, Exosphere component cheat sheet, --exo-* tokens, and common QA pitfalls. Auto-attached by the Visual QA feature.',
+    content: BUILT_IN_EXOSPHERE_VISUAL_QA,
+    fileName: 'exosphere-visual-qa.md',
+    category: 'Design QA',
     tags: ['Boomi Knowledge'],
   },
 ];

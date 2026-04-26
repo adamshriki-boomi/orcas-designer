@@ -32,6 +32,7 @@ export type SeedData = {
   prompt_versions: Array<Record<string, unknown>>;
   researcher_projects: Array<Record<string, unknown>>;
   ux_writer_analyses: Array<Record<string, unknown>>;
+  visual_qa_reports: Array<Record<string, unknown>>;
   shared_skills: Array<Record<string, unknown>>;
   shared_memories: Array<Record<string, unknown>>;
   user_settings: Array<Record<string, unknown>>;
@@ -44,6 +45,7 @@ export function emptySeed(): SeedData {
     prompt_versions: [],
     researcher_projects: [],
     ux_writer_analyses: [],
+    visual_qa_reports: [],
     shared_skills: [],
     shared_memories: [],
     user_settings: [
@@ -263,6 +265,51 @@ export function populatedSeed(): SeedData {
       results: null,
       created_at: iso(3),
       updated_at: iso(3),
+    },
+  ];
+
+  seed.visual_qa_reports = [
+    {
+      id: 'vqa-1',
+      user_id: TEST_USER.id,
+      project_id: null,
+      title: 'Onboarding hero',
+      design_source: 'upload',
+      design_image_url: 'https://e2e-mock.example.com/design.png',
+      design_figma_url: null,
+      impl_image_url: 'https://e2e-mock.example.com/impl.png',
+      status: 'complete',
+      summary: 'Mostly aligned, with one high-severity CTA issue.',
+      severity_counts: { high: 1, medium: 1, low: 0 },
+      memory_ids: [],
+      findings: [
+        {
+          id: 'f-1',
+          severity: 'high',
+          category: 'Component',
+          exosphereComponent: 'ExButton',
+          location: 'Hero CTA',
+          description: 'CTA renders as outlined where the design specifies primary.',
+          expected: 'Solid Boomi-blue primary button',
+          actual: 'Outlined tertiary button',
+          suggestedFix: 'Set ExButton type="primary"',
+        },
+        {
+          id: 'f-2',
+          severity: 'medium',
+          category: 'Typography',
+          location: 'Hero heading',
+          description: 'Heading uses Inter where design specifies Poppins.',
+          expected: 'Poppins 32px',
+          actual: 'Inter 32px',
+          suggestedFix: 'Use --exo-font-family-heading',
+        },
+      ],
+      confluence_page_id: null,
+      confluence_page_url: null,
+      error: null,
+      created_at: iso(2),
+      updated_at: iso(2),
     },
   ];
 

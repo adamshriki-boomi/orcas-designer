@@ -384,6 +384,7 @@ export type Database = {
           confluence_base_url: string
           confluence_email: string
           created_at: string
+          figma_access_token: string
           id: string
           updated_at: string
           user_id: string
@@ -394,6 +395,7 @@ export type Database = {
           confluence_base_url?: string
           confluence_email?: string
           created_at?: string
+          figma_access_token?: string
           id?: string
           updated_at?: string
           user_id: string
@@ -404,6 +406,7 @@ export type Database = {
           confluence_base_url?: string
           confluence_email?: string
           created_at?: string
+          figma_access_token?: string
           id?: string
           updated_at?: string
           user_id?: string
@@ -417,6 +420,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      visual_qa_reports: {
+        Row: {
+          confluence_page_id: string | null
+          confluence_page_url: string | null
+          created_at: string
+          design_figma_url: string | null
+          design_image_url: string
+          design_source: string
+          error: string | null
+          findings: Json
+          id: string
+          impl_image_url: string
+          memory_ids: string[]
+          project_id: string | null
+          severity_counts: Json
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confluence_page_id?: string | null
+          confluence_page_url?: string | null
+          created_at?: string
+          design_figma_url?: string | null
+          design_image_url: string
+          design_source: string
+          error?: string | null
+          findings?: Json
+          id?: string
+          impl_image_url: string
+          memory_ids?: string[]
+          project_id?: string | null
+          severity_counts?: Json
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confluence_page_id?: string | null
+          confluence_page_url?: string | null
+          created_at?: string
+          design_figma_url?: string | null
+          design_image_url?: string
+          design_source?: string
+          error?: string | null
+          findings?: Json
+          id?: string
+          impl_image_url?: string
+          memory_ids?: string[]
+          project_id?: string | null
+          severity_counts?: Json
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       ux_writer_analyses: {
         Row: {

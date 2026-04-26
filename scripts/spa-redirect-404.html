@@ -11,7 +11,7 @@
       // src/app/<section>/[id]/page.tsx route — the spa-redirect test
       // fails if a dynamic route exists without coverage here.
       var basePath = '/orcas-designer';
-      var dynamicSections = ['prompt-generator', 'ux-writer', 'researcher'];
+      var dynamicSections = ['prompt-generator', 'ux-writer', 'researcher', 'visual-qa'];
       var path = window.location.pathname;
       if (path.indexOf(basePath) === 0) {
         path = path.slice(basePath.length);

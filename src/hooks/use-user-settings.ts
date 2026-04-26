@@ -9,6 +9,7 @@ interface UserSettings {
   confluenceBaseUrl: string;
   confluenceEmail: string;
   confluenceApiToken: string;
+  figmaAccessToken: string;
 }
 
 function maskApiKey(key: string): string {
@@ -27,7 +28,7 @@ export function useUserSettings() {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('user_settings')
-      .select('claude_api_key, confluence_base_url, confluence_email, confluence_api_token')
+      .select('claude_api_key, confluence_base_url, confluence_email, confluence_api_token, figma_access_token')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -37,11 +38,13 @@ export function useUserSettings() {
       confluenceBaseUrl: data.confluence_base_url ?? '',
       confluenceEmail: data.confluence_email ?? '',
       confluenceApiToken: data.confluence_api_token ?? '',
+      figmaAccessToken: data.figma_access_token ?? '',
     } : {
       claudeApiKey: '',
       confluenceBaseUrl: '',
       confluenceEmail: '',
       confluenceApiToken: '',
+      figmaAccessToken: '',
     });
     setLoading(false);
   }, [user]);
@@ -96,8 +99,20 @@ export function useUserSettings() {
       confluenceBaseUrl: '',
       confluenceEmail: '',
       confluenceApiToken: '',
+      figmaAccessToken: '',
     });
   }, [user]);
+
+  const saveFigmaToken = useCallback(async (token: string) => {
+    const trimmed = token.trim();
+    await upsertSettings({ figma_access_token: trimmed });
+    setSettings((prev) => prev ? { ...prev, figmaAccessToken: trimmed } : prev);
+  }, [upsertSettings]);
+
+  const deleteFigmaToken = useCallback(async () => {
+    await upsertSettings({ figma_access_token: '' });
+    setSettings((prev) => prev ? { ...prev, figmaAccessToken: '' } : prev);
+  }, [upsertSettings]);
 
   const saveConfluenceSettings = useCallback(async (
     baseUrl: string,
@@ -143,5 +158,8 @@ export function useUserSettings() {
     hasConfluenceSettings: Boolean(
       settings?.confluenceBaseUrl && settings?.confluenceEmail && settings?.confluenceApiToken
     ),
+    saveFigmaToken,
+    deleteFigmaToken,
+    hasFigmaToken: Boolean(settings?.figmaAccessToken),
   };
 }

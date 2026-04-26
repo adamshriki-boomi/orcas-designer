@@ -744,6 +744,107 @@ A hallmark of a mature UX Research team is that engagements never truly end. Res
 
 export const BUILT_IN_UX_RESEARCH_PROCESS_MEMORY_ID = 'built-in-ux-research-process';
 
+export const BUILT_IN_EXOSPHERE_VISUAL_QA = `# Exosphere Visual QA — Reference for AI-driven Design QA
+
+This memory bundles everything the AI engine needs to compare a Boomi product design against its implementation and produce a precise, developer-ready report.
+
+## Purpose
+
+Verify that the developed product looks and behaves as designed. Catch divergence early so engineering can fix it before users see it. Every finding is something a developer can act on immediately.
+
+## Severity rubric
+
+Use these three levels exactly. Definitions adapted from Adam Shriki's design-review template:
+
+- **Low** — does not affect the total experience. Examples: 4px off in horizontal padding; icon and label slightly misaligned; non-semantic color drift inside the design-system tolerance.
+- **Medium** — might affect the total experience. Examples: missing icon inside a button; wrong typography weight on a section header; spacing that visibly breaks the 8pt grid.
+- **High** — affects the entire experience. Examples: non-functional CTA; primary action rendered as tertiary (loses action hierarchy); broken layout at the standard breakpoint; missing required field; unreadable contrast.
+
+When in doubt, downgrade. Inflated severity erodes trust in the report.
+
+## Report structure
+
+Each finding is jargon-free and self-contained. Required fields:
+
+- \`severity\` — low | medium | high
+- \`category\` — Layout | Typography | Color | Iconography | Content | Interaction | Accessibility | Component
+- \`exosphereComponent\` — set when an Ex* component is misused, missing, or should be used (see cheat sheet below)
+- \`location\` — where in the screen, in plain words ("Header, right side"; "Primary CTA, bottom of card"; "Empty state under the table")
+- \`description\` — what is wrong, in language a PM or developer can understand without seeing the design
+- \`expected\` — what the design specifies (style, copy, position, behavior)
+- \`actual\` — what the implementation shows
+- \`suggestedFix\` — a concrete next step ("Use ExButton type=\\"primary\\""; "Replace inline padding with --exo-spacing-l token")
+
+Do not use design jargon ("kerning", "leading", "optical alignment") unless the audience clearly needs it. Translate to plain language.
+
+## Exosphere component cheat sheet
+
+Boomi's design system is **Exosphere** (\`@boomi/exosphere\`, snapshot v7.8.3). Components are Lit web components prefixed with \`Ex\`. The official component reference lives at \`~/.claude/skills/exosphere/\`. This cheat sheet covers the categories most often relevant to a Visual QA pass.
+
+**Buttons**
+- \`ExButton\` — types: primary | secondary | tertiary. Primary for the single most important action per surface; secondary for alternatives; tertiary for low-emphasis. **Common QA miss:** primary action rendered as outlined (tertiary) → typically High severity. Suggest type="primary".
+- \`ExIconButton\` — square icon-only button. Always needs \`tooltipText\`. Missing tooltip → Medium accessibility finding.
+
+**Inputs / Forms**
+- \`ExInput\` — single-line text. Has \`label\`, \`helperText\`, \`errorText\`, \`leadingIcon\`. Custom \`<label for>\` markup outside ExInput → Medium accessibility finding.
+- \`ExSelect\` — single-value dropdown. Prefer over native \`<select>\` for parity.
+- \`ExTextarea\` — multi-line text.
+- \`ExRadio\`, \`ExCheckbox\`, \`ExSwitch\` — selection controls.
+
+**Navigation**
+- \`ExLeftmenubarAdjustable\` + \`ExLeftmenubarLink\` — primary app navigation. Icons go in \`slot="icon"\`, not a prop.
+- \`ExBreadcrumb\` + \`ExBreadcrumbItem\` — page hierarchy.
+- \`ExTab\` + \`ExTabItem\` — sectioned content.
+
+**Feedback**
+- \`ExBadge\` — small status pill. Colors: gray | red | navy | green | yellow | blue | orange | white. Shape: round | squared.
+- \`ExAlertBanner\` — page-level banner. Severity tied to color.
+- \`ExAlertToast\` (via \`ToastController\`) — transient confirmation or error.
+- \`ExEmptyState\` — empty list/table placeholder. Props: \`label\` (header) + \`text\` (body).
+- \`ExDialog\` — modal **only** for destructive confirmation. ExDialog used for non-destructive flows → suggest ExSideDrawer.
+
+**Layout / Display**
+- \`ExCard\` — container.
+- \`ExStructuredList\` — tabular list rows.
+- \`ExSideDrawer\` — preferred for viewing/editing flows. Props: \`resize\`, \`footer\` (must be true for footer slot), \`width\`.
+- \`ExPill\` — chip / tag.
+- \`ExChart\` — single \`options\` JS object prop. Types: donut-chart | half-donut | stack-bar | grouped-bar | line-graph | area | radar.
+
+When the AI sees a UI element that should obviously be one of these (a stand-alone custom button where ExButton fits; a homemade modal where ExDialog/ExSideDrawer would; a custom badge instead of ExBadge), tag the finding with category "Component" and set \`exosphereComponent\` to the right name.
+
+## --exo-* token reference (spot hardcoded values)
+
+Exosphere tokens are CSS variables prefixed \`--exo-\`. Implementations should reference tokens, not raw hex/px:
+
+- **Color** — \`--exo-color-base-*\` (palette: blue, navy, gray, green, yellow, red, white, orange), \`--exo-color-action-*\`, \`--exo-color-surface-*\`, \`--exo-color-text-*\`. Hardcoded hex where a token exists → Low (or Medium if the shade is wrong).
+- **Spacing** — \`--exo-spacing-xs|s|m|l|xl|xxl\`. Off-token padding/margin → Low (or Medium when it visibly breaks alignment).
+- **Typography** — \`--exo-font-family-heading\` (Poppins), \`--exo-font-family-body\` (Noto Sans), \`--exo-font-family-mono\` (Fira Mono); size tokens \`--exo-font-size-*\`; weight tokens \`--exo-font-weight-*\`. Inter or other off-system font → Medium.
+- **Radius / shadow** — \`--exo-radius-*\`, \`--exo-shadow-*\`.
+
+If the design references a token, the implementation should too. Inline literals where a token exists is a finding.
+
+## Common QA pitfalls
+
+1. Action hierarchy lost — primary action demoted to outlined / secondary. Almost always High.
+2. Missing icon inside a button — Medium per the article's example.
+3. Wrong button flavor for a destructive action — should use the destructive flavor.
+4. Off-grid spacing — values like 7px, 11px, 22px instead of token values.
+5. Custom typography — Inter, system-ui, or hardcoded font-size where Poppins/Noto Sans tokens exist.
+6. Missing focus state / hover state on interactive elements.
+7. Color contrast failing WCAG AA. Always Accessibility category.
+8. Missing label / aria on inputs — use ExInput's \`label\` prop. Accessibility, Medium.
+9. Copy mismatch — the design's exact words differ from the implementation. Content category.
+10. Wrong empty state — custom placeholder instead of ExEmptyState.
+11. Overlay misuse — ExDialog where ExSideDrawer fits the editing flow (or vice versa for destructive confirmation).
+12. Missing native ExComponent — bespoke chip / pill instead of ExBadge or ExPill.
+
+## Tone
+
+Write findings as a colleague would speak in a design-dev sync: specific, concrete, blame-free. Lead with what's wrong; follow with what to do about it. Avoid "should" without an actionable suggestion.
+`;
+
+export const BUILT_IN_EXOSPHERE_VISUAL_QA_MEMORY_ID = 'built-in-exosphere-visual-qa';
+
 export const WIZARD_STEPS = [
   { key: 'company-product', label: 'Company & Product', required: true },
   { key: 'feature-definition', label: 'Feature Definition', required: true },

@@ -155,6 +155,64 @@ export interface UxAnalysisEntry {
   updatedAt: string;
 }
 
+// ── Visual QA Types ─────────────────────────────────────────────
+
+export type VisualQaSeverity = 'low' | 'medium' | 'high'
+
+export const VISUAL_QA_CATEGORIES = [
+  'Layout',
+  'Typography',
+  'Color',
+  'Iconography',
+  'Content',
+  'Interaction',
+  'Accessibility',
+  'Component',
+] as const
+export type VisualQaCategory = (typeof VISUAL_QA_CATEGORIES)[number]
+
+export type VisualQaDesignSource = 'upload' | 'figma'
+export type VisualQaStatus = 'pending' | 'running' | 'complete' | 'error'
+
+export interface VisualQaFinding {
+  id: string
+  severity: VisualQaSeverity
+  category: VisualQaCategory
+  exosphereComponent?: string
+  location: string
+  description: string
+  expected: string
+  actual: string
+  suggestedFix: string
+}
+
+export interface VisualQaSeverityCounts {
+  high: number
+  medium: number
+  low: number
+}
+
+export interface VisualQaReport {
+  id: string
+  userId: string
+  projectId: string | null
+  title: string
+  designSource: VisualQaDesignSource
+  designImageUrl: string
+  designFigmaUrl: string | null
+  implImageUrl: string
+  status: VisualQaStatus
+  findings: VisualQaFinding[]
+  summary: string | null
+  severityCounts: VisualQaSeverityCounts
+  memoryIds: string[]
+  confluencePageId: string | null
+  confluencePageUrl: string | null
+  error: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 // ── Prompt Types ─────────────────────────────────────────────────
 
 export const emptyFormField = (): FormFieldData => ({

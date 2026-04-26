@@ -110,6 +110,47 @@ describe('useUserSettings hook', () => {
     expect(result.current.maskedKey.endsWith('-123')).toBe(true);
   });
 
+  it('saveFigmaToken trims and stores the Figma access token; hasFigmaToken reflects it', async () => {
+    const { result } = renderHook(() => useUserSettings());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.hasFigmaToken).toBe(false);
+
+    await act(async () => {
+      await result.current.saveFigmaToken('  figd_abc123  ');
+    });
+
+    const { data } = await mockClient
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', 'user-1')
+      .maybeSingle();
+    expect(data!.figma_access_token).toBe('figd_abc123');
+    await waitFor(() => expect(result.current.hasFigmaToken).toBe(true));
+  });
+
+  it('deleteFigmaToken clears the stored Figma token', async () => {
+    await mockClient.from('user_settings').insert({
+      user_id: 'user-1',
+      claude_api_key: 'sk-ant-test',
+      figma_access_token: 'figd_abc123',
+    });
+
+    const { result } = renderHook(() => useUserSettings());
+    await waitFor(() => expect(result.current.hasFigmaToken).toBe(true));
+
+    await act(async () => {
+      await result.current.deleteFigmaToken();
+    });
+
+    const { data } = await mockClient
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', 'user-1')
+      .maybeSingle();
+    expect(data!.figma_access_token).toBe('');
+    await waitFor(() => expect(result.current.hasFigmaToken).toBe(false));
+  });
+
   it('saveApiKey overwrites an existing key (keeping it trimmed)', async () => {
     await mockClient.from('user_settings').insert({
       user_id: 'user-1',

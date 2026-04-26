@@ -8,7 +8,12 @@ vi.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({ user: { id: 'user-1' } }),
 }));
 
-import { useSharedMemories, toSharedMemory } from './use-shared-memories';
+import {
+  useSharedMemories,
+  toSharedMemory,
+  BUILT_IN_MEMORIES,
+  EXOSPHERE_VISUAL_QA_MEMORY_ID,
+} from './use-shared-memories';
 
 beforeEach(() => {
   clearAllTables();
@@ -389,6 +394,30 @@ describe('useSharedMemories hook', () => {
 
     const users = await result.current.isMemoryUsed('target-mem');
     expect(users).toEqual(['Alpha prompt']);
+  });
+});
+
+describe('built-in Exosphere Visual QA memory', () => {
+  it('exports the memory id', () => {
+    expect(EXOSPHERE_VISUAL_QA_MEMORY_ID).toBe('built-in-exosphere-visual-qa');
+  });
+
+  it('seeds a Visual QA built-in with the expected id, name, and category', () => {
+    const seed = BUILT_IN_MEMORIES.find((m) => m.id === EXOSPHERE_VISUAL_QA_MEMORY_ID);
+    expect(seed).toBeDefined();
+    expect(seed!.name).toBe('Exosphere Visual QA');
+    expect(seed!.category).toBe('Design QA');
+    expect(seed!.content.length).toBeGreaterThan(500);
+  });
+
+  it('seed content covers the article framework, severity rubric, and Exosphere component knowledge', () => {
+    const seed = BUILT_IN_MEMORIES.find((m) => m.id === EXOSPHERE_VISUAL_QA_MEMORY_ID)!;
+    expect(seed.content).toMatch(/severity/i);
+    expect(seed.content).toMatch(/Low/);
+    expect(seed.content).toMatch(/Medium/);
+    expect(seed.content).toMatch(/High/);
+    expect(seed.content).toMatch(/Ex[A-Z]/);
+    expect(seed.content).toMatch(/--exo-/);
   });
 });
 

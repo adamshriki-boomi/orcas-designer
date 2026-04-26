@@ -34,6 +34,9 @@ export default function SettingsPage() {
     saveConfluenceSettings,
     deleteConfluenceSettings,
     hasConfluenceSettings,
+    saveFigmaToken,
+    deleteFigmaToken,
+    hasFigmaToken,
   } = useUserSettings();
   const { resolvedTheme, setTheme } = useTheme();
 
@@ -51,6 +54,13 @@ export default function SettingsPage() {
   const [savingConfluence, setSavingConfluence] = useState(false);
   const [deleteConfluenceDialogOpen, setDeleteConfluenceDialogOpen] = useState(false);
   const [deletingConfluence, setDeletingConfluence] = useState(false);
+
+  // Figma form state
+  const [figmaTokenDraft, setFigmaTokenDraft] = useState('');
+  const [showFigmaToken, setShowFigmaToken] = useState(false);
+  const [savingFigma, setSavingFigma] = useState(false);
+  const [deleteFigmaDialogOpen, setDeleteFigmaDialogOpen] = useState(false);
+  const [deletingFigma, setDeletingFigma] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -111,6 +121,32 @@ export default function SettingsPage() {
       toast.error('Unable to remove Confluence settings');
     } finally {
       setDeletingConfluence(false);
+    }
+  }
+
+  async function handleSaveFigma() {
+    setSavingFigma(true);
+    try {
+      await saveFigmaToken(figmaTokenDraft);
+      setFigmaTokenDraft('');
+      toast.success('Figma token saved');
+    } catch {
+      toast.error('Unable to save Figma token');
+    } finally {
+      setSavingFigma(false);
+    }
+  }
+
+  async function handleDeleteFigma() {
+    setDeletingFigma(true);
+    try {
+      await deleteFigmaToken();
+      toast.success('Figma token removed');
+      setDeleteFigmaDialogOpen(false);
+    } catch {
+      toast.error('Unable to remove Figma token');
+    } finally {
+      setDeletingFigma(false);
     }
   }
 
@@ -309,6 +345,97 @@ export default function SettingsPage() {
                   disabled={deletingConfluence}
                 >
                   {deletingConfluence ? 'Removing...' : 'Remove'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Section 3.5: Figma Integration (Visual QA) */}
+          <section className="rounded-lg border border-border bg-card p-4">
+            <h2 className="text-sm font-semibold mb-1">Figma Integration</h2>
+            <p className="text-sm text-muted-foreground mb-3">
+              Personal access token used by Visual QA to render a Figma node as an image.
+              Generate one at{' '}
+              <a
+                href="https://www.figma.com/settings"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline cursor-pointer"
+              >
+                figma.com/settings
+              </a>
+              {' '}→ Personal access tokens (read-only file_content scope is sufficient).
+            </p>
+            {hasFigmaToken ? (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Figma token configured</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeleteFigmaDialogOpen(true)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="size-4 mr-1.5" />
+                  Delete
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                    Figma personal access token
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type={showFigmaToken ? 'text' : 'password'}
+                        placeholder={loading ? 'Loading...' : 'figd_xxxxxxxxxxxxxxxx'}
+                        value={figmaTokenDraft}
+                        onChange={(e) => setFigmaTokenDraft(e.target.value)}
+                        disabled={loading}
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowFigmaToken(!showFigmaToken)}
+                      className="shrink-0"
+                    >
+                      {showFigmaToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSaveFigma}
+                    disabled={!figmaTokenDraft.trim() || savingFigma}
+                    size="sm"
+                  >
+                    <Save className="size-4 mr-1.5" />
+                    {savingFigma ? 'Saving...' : 'Save'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Delete Figma Token Confirmation */}
+          <AlertDialog open={deleteFigmaDialogOpen} onOpenChange={setDeleteFigmaDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove Figma token</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Visual QA won&apos;t be able to render Figma nodes until you re-add a token.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={handleDeleteFigma}
+                  disabled={deletingFigma}
+                >
+                  {deletingFigma ? 'Removing...' : 'Remove'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

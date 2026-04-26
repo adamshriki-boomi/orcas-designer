@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { Home, BotMessageSquare, PenLine, FlaskConical, Zap, BookOpen, Settings as SettingsIcon } from 'lucide-react';
+import { Home, BotMessageSquare, PenLine, FlaskConical, ScanEye, Zap, BookOpen, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { OrcasMark } from '@/components/brand/orcas-mark';
 import { OrcasWordmark } from '@/components/brand/orcas-wordmark';
@@ -29,6 +29,7 @@ const primaryNavItems: NavItem[] = [
   { href: '/prompt-generator', label: 'Prompt Generator', icon: BotMessageSquare },
   { href: '/ux-writer', label: 'UX Writer', icon: PenLine },
   { href: '/researcher', label: 'Researcher', icon: FlaskConical },
+  { href: '/visual-qa', label: 'Visual QA', icon: ScanEye },
 ];
 
 const sharedNavItems: NavItem[] = [

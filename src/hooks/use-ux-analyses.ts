@@ -13,6 +13,7 @@ export function toUxAnalysisEntry(row: Record<string, unknown>): UxAnalysisEntry
     focusNotes: row.focus_notes as string | null,
     screenshotUrl: row.screenshot_url as string | null,
     includeAiVoice: row.include_ai_voice as boolean,
+    memoryIds: (row.memory_ids as string[] | null) ?? [],
     results: row.results as UxAnalysisResult | null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,

@@ -425,6 +425,7 @@ export type Database = {
           focus_notes: string | null
           id: string
           include_ai_voice: boolean
+          memory_ids: string[]
           name: string
           results: Json | null
           screenshot_url: string | null
@@ -437,6 +438,7 @@ export type Database = {
           focus_notes?: string | null
           id?: string
           include_ai_voice?: boolean
+          memory_ids?: string[]
           name?: string
           results?: Json | null
           screenshot_url?: string | null
@@ -449,6 +451,7 @@ export type Database = {
           focus_notes?: string | null
           id?: string
           include_ai_voice?: boolean
+          memory_ids?: string[]
           name?: string
           results?: Json | null
           screenshot_url?: string | null

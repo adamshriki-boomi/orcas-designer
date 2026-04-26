@@ -36,6 +36,7 @@ export function useUxAnalysis(id: string) {
     focusNotes?: string | null;
     screenshotUrl?: string | null;
     includeAiVoice?: boolean;
+    memoryIds?: string[];
     results?: UxAnalysisResult | null;
   }): Promise<void> => {
     const supabase = createClient();
@@ -45,6 +46,7 @@ export function useUxAnalysis(id: string) {
     if (updates.focusNotes !== undefined) row.focus_notes = updates.focusNotes;
     if (updates.screenshotUrl !== undefined) row.screenshot_url = updates.screenshotUrl;
     if (updates.includeAiVoice !== undefined) row.include_ai_voice = updates.includeAiVoice;
+    if (updates.memoryIds !== undefined) row.memory_ids = updates.memoryIds;
     if (updates.results !== undefined) row.results = updates.results as unknown as Json;
 
     const { error } = await supabase

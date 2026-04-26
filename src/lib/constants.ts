@@ -777,6 +777,20 @@ export const BUILT_IN_AI_VOICE_MEMORY_ID = 'built-in-ai-voice';
 export const UX_WRITING_MEMORY_IDS = [BUILT_IN_UX_WRITING_MEMORY_ID, BUILT_IN_AI_VOICE_MEMORY_ID];
 
 /**
+ * Built-in shared memories surfaced in the UX Writer "Context" picker.
+ * Boomi Context is always locked-on; the others are optional. UX Writing
+ * Guidelines are always applied by the edge function as the analysis core,
+ * so we don't expose them here. UXR / UX Research Process are research-only.
+ */
+export const UX_WRITER_CONTEXT_MEMORY_IDS = [
+  BUILT_IN_COMPANY_CONTEXT_MEMORY_ID,
+  BUILT_IN_PRODUCT_MEMORY_ID,
+  BUILT_IN_AI_VOICE_MEMORY_ID,
+];
+
+export const UX_WRITER_LOCKED_MEMORY_IDS = [BUILT_IN_COMPANY_CONTEXT_MEMORY_ID];
+
+/**
  * Built-in memories that are always attached to a generated brief and can
  * never be deselected. Surface this via the `lockedMemoryIds` prop wherever
  * a memory picker renders — keeps the lock set consistent across every step.

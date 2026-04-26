@@ -1,18 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft, FileText, Info, Settings, Trash2, Upload, X,
-  Loader2, PenLine, Image, Clock,
+  Loader2, PenLine, Image as ImageIcon, Clock,
 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useUxAnalysis } from '@/hooks/use-ux-analysis';
 import { useUxAnalyze } from '@/hooks/use-ux-analyze';
 import { useUserSettings } from '@/hooks/use-user-settings';
+import { useSharedMemories } from '@/hooks/use-shared-memories';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase';
+import {
+  UX_WRITER_CONTEXT_MEMORY_IDS,
+  UX_WRITER_LOCKED_MEMORY_IDS,
+  BUILT_IN_AI_VOICE_MEMORY_ID,
+} from '@/lib/constants';
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
@@ -22,7 +28,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { MemoryCard } from '@/components/memories/memory-card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,12 +41,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { extractScreenshotPath } from '@/lib/ux-writer-utils';
-import dynamic from 'next/dynamic';
-
-const ExBadge = dynamic(
-  () => import('@boomi/exosphere').then((m) => ({ default: m.ExBadge })),
-  { ssr: false },
-);
 
 interface Props {
   id: string;
@@ -64,19 +65,38 @@ export default function AnalysisDetailClient({ id }: Props) {
   const { analysis, isLoading, refetch } = useUxAnalysis(actualId);
   const { reanalyze, analyzing } = useUxAnalyze();
   const { hasApiKey } = useUserSettings();
+  const { sharedMemories } = useSharedMemories();
   const { user } = useAuth();
 
   // Edit mode state for Details tab
   const [editing, setEditing] = useState(false);
   const [editDescription, setEditDescription] = useState('');
   const [editFocusNotes, setEditFocusNotes] = useState('');
-  const [editIncludeAiVoice, setEditIncludeAiVoice] = useState(false);
+  const [editMemoryIds, setEditMemoryIds] = useState<string[]>(UX_WRITER_LOCKED_MEMORY_IDS);
   const [editScreenshotPath, setEditScreenshotPath] = useState<string | null>(null);
   const [editScreenshotName, setEditScreenshotName] = useState<string | null>(null);
+  const [editPreviewUrl, setEditPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   // Screenshot signed URL for display
   const [signedScreenshotUrl, setSignedScreenshotUrl] = useState<string | null>(null);
+
+  // Built-in memories surfaced in the Context picker — same set as the
+  // New Analysis page, ordered by UX_WRITER_CONTEXT_MEMORY_IDS.
+  const contextMemories = useMemo(() => {
+    return UX_WRITER_CONTEXT_MEMORY_IDS
+      .map((id) => sharedMemories.find((m) => m.id === id))
+      .filter((m): m is NonNullable<typeof m> => m !== undefined);
+  }, [sharedMemories]);
+
+  // Memories selected for THIS saved analysis, used for the read-only view.
+  const selectedContextMemories = useMemo(() => {
+    if (!analysis) return [];
+    const ids = new Set(analysis.memoryIds);
+    // Backwards-compat: surface AI Voice if the legacy toggle was on
+    if (analysis.includeAiVoice) ids.add(BUILT_IN_AI_VOICE_MEMORY_ID);
+    return contextMemories.filter((m) => ids.has(m.id));
+  }, [analysis, contextMemories]);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('results');
@@ -111,14 +131,37 @@ export default function AnalysisDetailClient({ id }: Props) {
     if (!analysis) return;
     setEditDescription(analysis.description);
     setEditFocusNotes(analysis.focusNotes ?? '');
-    setEditIncludeAiVoice(analysis.includeAiVoice);
+    // Restore selected memories. Backwards-compat: legacy rows only set
+    // include_ai_voice; promote that to the AI Voice memory selection.
+    const restored = new Set(analysis.memoryIds);
+    UX_WRITER_LOCKED_MEMORY_IDS.forEach((id) => restored.add(id));
+    if (analysis.includeAiVoice) restored.add(BUILT_IN_AI_VOICE_MEMORY_ID);
+    setEditMemoryIds(Array.from(restored));
     setEditScreenshotPath(analysis.screenshotUrl);
     setEditScreenshotName(analysis.screenshotUrl ? 'Current screenshot' : null);
+    // Reuse the already-fetched signed URL for the existing screenshot
+    // preview so the user sees what they're editing before re-uploading.
+    setEditPreviewUrl(signedScreenshotUrl);
     setEditing(true);
-  }, [analysis]);
+  }, [analysis, signedScreenshotUrl]);
+
+  // Revoke any local object URL we own when the preview changes or the
+  // edit form unmounts. (Signed URLs are http strings, not object URLs.)
+  useEffect(() => {
+    return () => {
+      if (editPreviewUrl?.startsWith('blob:')) URL.revokeObjectURL(editPreviewUrl);
+    };
+  }, [editPreviewUrl]);
 
   const uploadFile = useCallback(async (file: File) => {
     if (!user) return;
+
+    // Show preview immediately
+    if (editPreviewUrl?.startsWith('blob:')) URL.revokeObjectURL(editPreviewUrl);
+    const objectUrl = URL.createObjectURL(file);
+    setEditPreviewUrl(objectUrl);
+    setEditScreenshotName(file.name);
+
     setUploading(true);
     try {
       const supabase = createClient();
@@ -131,13 +174,26 @@ export default function AnalysisDetailClient({ id }: Props) {
         return;
       }
       setEditScreenshotPath(path);
-      setEditScreenshotName(file.name);
     } catch {
       toast.error('Unable to upload screenshot');
     } finally {
       setUploading(false);
     }
-  }, [user]);
+  }, [user, editPreviewUrl]);
+
+  const clearEditScreenshot = useCallback(() => {
+    if (editPreviewUrl?.startsWith('blob:')) URL.revokeObjectURL(editPreviewUrl);
+    setEditPreviewUrl(null);
+    setEditScreenshotPath(null);
+    setEditScreenshotName(null);
+  }, [editPreviewUrl]);
+
+  const toggleEditMemory = useCallback((id: string) => {
+    if (UX_WRITER_LOCKED_MEMORY_IDS.includes(id)) return;
+    setEditMemoryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }, []);
 
   const handleReanalyze = useCallback(async () => {
     if (!editDescription.trim()) return;
@@ -163,7 +219,8 @@ export default function AnalysisDetailClient({ id }: Props) {
         screenshotPath: editScreenshotPath?.startsWith('http') ? undefined : editScreenshotPath,
         description: editDescription.trim(),
         focusNotes: editFocusNotes.trim() || null,
-        includeAiVoice: editIncludeAiVoice,
+        includeAiVoice: editMemoryIds.includes(BUILT_IN_AI_VOICE_MEMORY_ID),
+        memoryIds: editMemoryIds,
       });
 
       await refetch();
@@ -173,7 +230,7 @@ export default function AnalysisDetailClient({ id }: Props) {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Re-analysis failed');
     }
-  }, [actualId, editDescription, editFocusNotes, editIncludeAiVoice, editScreenshotPath, reanalyze, refetch]);
+  }, [actualId, editDescription, editFocusNotes, editMemoryIds, editScreenshotPath, reanalyze, refetch]);
 
   const handleDelete = useCallback(async () => {
     try {
@@ -285,99 +342,146 @@ export default function AnalysisDetailClient({ id }: Props) {
           <TabsContent value="details">
             {editing ? (
               /* Edit mode */
-              <div className="max-w-xl space-y-6">
+              <div className="mx-auto max-w-2xl space-y-6">
                 {/* Screenshot */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Screenshot</label>
-                  {editScreenshotPath ? (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-muted/30">
-                      <Upload className="size-4 text-muted-foreground" />
-                      <span className="text-sm flex-1 truncate">{editScreenshotName}</span>
-                      <button
-                        type="button"
-                        onClick={() => { setEditScreenshotPath(null); setEditScreenshotName(null); }}
-                        className="text-muted-foreground hover:text-foreground cursor-pointer"
-                      >
-                        <X className="size-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <label
-                      className="flex items-center justify-center gap-2 px-3 py-8 rounded-md border border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors"
-                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                      onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const file = e.dataTransfer.files?.[0];
-                        if (file && file.type.startsWith('image/')) uploadFile(file);
-                      }}
-                    >
-                      <Upload className="size-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        {uploading ? 'Uploading...' : 'Drop an image or click to upload'}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) uploadFile(file);
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ImageIcon className="size-4 text-muted-foreground" />
+                      Screenshot
+                    </CardTitle>
+                    <CardDescription>
+                      Upload the UI you want analyzed. PNG, JPEG, or WebP, up to 5 MB.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {editPreviewUrl ? (
+                      <div className="space-y-2">
+                        <div className="overflow-hidden rounded-lg border border-border bg-muted/30">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={editPreviewUrl}
+                            alt={editScreenshotName ?? 'UI screenshot'}
+                            className="block max-h-96 w-full object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate text-xs text-muted-foreground">
+                            {uploading ? 'Uploading…' : editScreenshotName}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearEditScreenshot}
+                            disabled={uploading}
+                          >
+                            <X className="size-3.5" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label
+                        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border px-3 py-10 text-center transition-colors hover:border-primary/50"
+                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const file = e.dataTransfer.files?.[0];
+                          if (file && file.type.startsWith('image/')) uploadFile(file);
                         }}
-                        className="hidden"
-                        disabled={uploading}
+                      >
+                        <Upload className="size-5 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
+                          {uploading ? 'Uploading…' : 'Drop an image or click to upload'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) uploadFile(file);
+                          }}
+                          className="hidden"
+                          disabled={uploading}
+                        />
+                      </label>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Description + Focus */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>What are we looking at?</CardTitle>
+                    <CardDescription>
+                      Describe the screen so the analysis lands on the right copy.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium" htmlFor="edit-description">
+                        Description <span className="text-destructive">*</span>
+                      </label>
+                      <Textarea
+                        id="edit-description"
+                        rows={4}
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
                       />
-                    </label>
-                  )}
-                </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium" htmlFor="edit-focus">
+                        Focus area
+                      </label>
+                      <Input
+                        id="edit-focus"
+                        type="text"
+                        value={editFocusNotes}
+                        onChange={(e) => setEditFocusNotes(e.target.value)}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                {/* Description */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium" htmlFor="edit-description">
-                    Description <span className="text-destructive">*</span>
-                  </label>
-                  <Textarea
-                    id="edit-description"
-                    rows={4}
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                  />
-                </div>
+                {/* Context */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Context</CardTitle>
+                    <CardDescription>
+                      Boomi UX Writing Guidelines are always applied. Add more
+                      shared context to tailor the analysis.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {contextMemories.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Loading context…</p>
+                    ) : (
+                      <div className="grid gap-2">
+                        {contextMemories.map((memory) => {
+                          const locked = UX_WRITER_LOCKED_MEMORY_IDS.includes(memory.id);
+                          return (
+                            <MemoryCard
+                              key={memory.id}
+                              memory={memory}
+                              selected={locked || editMemoryIds.includes(memory.id)}
+                              locked={locked}
+                              onToggle={locked ? undefined : () => toggleEditMemory(memory.id)}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
-                {/* Focus notes */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium" htmlFor="edit-focus">
-                    Focus Area
-                  </label>
-                  <Input
-                    id="edit-focus"
-                    type="text"
-                    value={editFocusNotes}
-                    onChange={(e) => setEditFocusNotes(e.target.value)}
-                  />
-                </div>
-
-                {/* AI Voice toggle */}
-                <div
-                  className="flex items-center justify-between py-2 cursor-pointer"
-                  onClick={() => setEditIncludeAiVoice(!editIncludeAiVoice)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditIncludeAiVoice(!editIncludeAiVoice); } }}
-                  role="switch"
-                  aria-checked={editIncludeAiVoice}
-                  tabIndex={0}
-                >
-                  <div>
-                    <p className="text-sm font-medium">Include AI Voice guidelines</p>
-                    <p className="text-xs text-muted-foreground">For AI features (chatbot, assistant text)</p>
-                  </div>
-                  <Switch
-                    checked={editIncludeAiVoice}
-                    onCheckedChange={setEditIncludeAiVoice}
-                    size="sm"
-                  />
-                </div>
-
-                <div className="flex gap-3">
+                <div className="flex items-center justify-end gap-3">
+                  <Button variant="outline" onClick={() => setEditing(false)} disabled={analyzing}>
+                    Cancel
+                  </Button>
                   <Button
                     onClick={handleReanalyze}
                     disabled={!editDescription.trim() || analyzing || !hasApiKey}
@@ -385,25 +489,22 @@ export default function AnalysisDetailClient({ id }: Props) {
                     {analyzing ? (
                       <>
                         <Loader2 className="size-4 animate-spin" />
-                        Analyzing...
+                        Analyzing…
                       </>
                     ) : (
                       'Re-analyze'
                     )}
                   </Button>
-                  <Button variant="outline" onClick={() => setEditing(false)} disabled={analyzing}>
-                    Cancel
-                  </Button>
                 </div>
               </div>
             ) : (
               /* Read-only mode */
-              <div className="max-w-xl space-y-6">
+              <div className="mx-auto max-w-2xl space-y-6">
                 {/* Screenshot preview */}
                 {signedScreenshotUrl && (
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                      <Image className="size-4" />
+                      <ImageIcon className="size-4" />
                       Screenshot
                     </div>
                     <div className="rounded-lg border border-border overflow-hidden">
@@ -430,21 +531,28 @@ export default function AnalysisDetailClient({ id }: Props) {
                 {/* Focus notes */}
                 {analysis.focusNotes && (
                   <div className="space-y-1.5">
-                    <p className="text-sm font-medium text-muted-foreground">Focus Area</p>
+                    <p className="text-sm font-medium text-muted-foreground">Focus area</p>
                     <p className="text-sm">{analysis.focusNotes}</p>
                   </div>
                 )}
 
-                {/* AI Voice */}
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-muted-foreground">AI Voice Guidelines</p>
-                  <ExBadge
-                    color={(analysis.includeAiVoice ? 'green' : 'gray') as never}
-                    shape={"round" as never}
-                    useTextContent
-                  >
-                    {analysis.includeAiVoice ? 'Included' : 'Not included'}
-                  </ExBadge>
+                {/* Context */}
+                <div className="space-y-1.5">
+                  <p className="text-sm font-medium text-muted-foreground">Context</p>
+                  <p className="text-xs text-muted-foreground">
+                    Boomi UX Writing Guidelines are always applied.
+                  </p>
+                  {selectedContextMemories.length > 0 ? (
+                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm">
+                      {selectedContextMemories.map((m) => (
+                        <li key={m.id}>{m.name}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No additional context attached.
+                    </p>
+                  )}
                 </div>
 
                 {/* Timestamps */}

@@ -345,7 +345,7 @@ Deno.serve(async (req: Request) => {
 
     // Parse request body
     const body = await req.json();
-    const { screenshotUrl, description, focusNotes, includeAiVoice } = body;
+    const { screenshotUrl, description, focusNotes, includeAiVoice, memoryIds } = body;
 
     // Validate description is non-empty and within length limits
     if (!description || typeof description !== "string" || description.trim().length === 0) {
@@ -386,7 +386,36 @@ Deno.serve(async (req: Request) => {
     // Build system prompt
     let systemPrompt = `You are an expert UX writer at Boomi. Analyze the provided UI screen and suggest improvements based on the following UX writing guidelines.\n\n${UX_WRITING_GUIDELINES}`;
 
-    if (includeAiVoice) {
+    // Append user-selected shared memories as additional context (Boomi
+    // Context is always locked-on in the form; AI Voice, Rivery, etc. are
+    // optional). RLS on shared_memories allows authenticated reads.
+    const validMemoryIds = Array.isArray(memoryIds)
+      ? memoryIds.filter((id) => typeof id === "string" && id.length > 0)
+      : [];
+
+    if (validMemoryIds.length > 0) {
+      const { data: memoryRows } = await supabase
+        .from("shared_memories")
+        .select("id, name, content")
+        .in("id", validMemoryIds);
+
+      if (memoryRows && memoryRows.length > 0) {
+        // Preserve client-side ordering so the most-relevant memory wins
+        // when content gets truncated by the model.
+        const byId = new Map(memoryRows.map((m) => [m.id, m]));
+        for (const id of validMemoryIds) {
+          const mem = byId.get(id);
+          if (mem) {
+            systemPrompt += `\n\n# ${mem.name}\n\n${mem.content}`;
+          }
+        }
+      }
+    }
+
+    // Legacy fallback: older callers passed `includeAiVoice` instead of
+    // memoryIds. Skip if the AI Voice memory was already attached above.
+    const aiVoiceAlreadyAttached = validMemoryIds.includes("built-in-ai-voice");
+    if (includeAiVoice && !aiVoiceAlreadyAttached) {
       systemPrompt += `\n\n${AI_VOICE_GUIDELINES}`;
     }
 

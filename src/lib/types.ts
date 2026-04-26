@@ -149,6 +149,7 @@ export interface UxAnalysisEntry {
   focusNotes: string | null;
   screenshotUrl: string | null;
   includeAiVoice: boolean;
+  memoryIds: string[];
   results: UxAnalysisResult | null;
   createdAt: string;
   updatedAt: string;

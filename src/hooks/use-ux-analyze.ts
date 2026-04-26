@@ -15,6 +15,11 @@ interface AnalyzeParams {
   description: string;
   focusNotes: string | null;
   includeAiVoice: boolean;
+  /** Built-in / shared memory IDs to attach as extra context (Boomi
+   * Context is always included; the edge function reads contents from
+   * shared_memories and appends them after the always-on UX Writing
+   * Guidelines). */
+  memoryIds: string[];
 }
 
 /** Call the edge function and extract the result, throwing on errors. */
@@ -78,6 +83,7 @@ export function useUxAnalyze() {
           focus_notes: params.focusNotes,
           screenshot_url: params.screenshotPath ?? params.screenshotUrl,
           include_ai_voice: params.includeAiVoice,
+          memory_ids: params.memoryIds,
           results: result as unknown as Json,
         })
         .select('id')
@@ -114,6 +120,7 @@ export function useUxAnalyze() {
           focus_notes: params.focusNotes,
           screenshot_url: params.screenshotPath ?? params.screenshotUrl,
           include_ai_voice: params.includeAiVoice,
+          memory_ids: params.memoryIds,
           results: result as unknown as Json,
         } as never)
         .eq('id', entryId);

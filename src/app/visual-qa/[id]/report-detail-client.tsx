@@ -45,18 +45,6 @@ export default function ReportDetailClient({ id: routeId }: ReportDetailClientPr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Lock body scroll for this route so the panes own the only scroll surface.
-  // Without this, residual height (Toaster placeholder, Next.js dev tools button,
-  // browser scrollbar gutter) can produce a ~20–40px page scroll that breaks the
-  // "everything fits the viewport" promise of the layout.
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
-
   const { getReport, updateReport, deleteReport } = useVisualQaReports();
   const { hasConfluenceSettings } = useUserSettings();
   const { analyze, analyzing } = useVisualQaAnalyze();
@@ -187,11 +175,12 @@ export default function ReportDetailClient({ id: routeId }: ReportDetailClientPr
 
   return (
     <FadeIn>
-      {/* Height-locked column: Header + Breadcrumbs + the action band stay fixed; the split fills
-          the remaining viewport height and each pane scrolls independently. The min-h-0 chain on
-          every flex-column ancestor is required for the inner overflow-auto to actually scroll
-          instead of growing the page. */}
-      <PageContainer fluid className="flex h-[100dvh] min-h-0 flex-col overflow-hidden">
+      {/* Height-locked column pinned to the viewport via position: fixed so the
+          split-pane viewer is exactly viewport-tall regardless of what the flex
+          AppShell or any portal-mounted siblings (toaster, dev tools) do to the
+          enclosing <main>. Offset by the sidebar width so the layout sits beside,
+          not on top of, the sidebar. */}
+      <div className="fixed inset-y-0 right-0 left-[220px] flex flex-col overflow-hidden bg-background">
         <div className="shrink-0">
           <Header title={report.title} />
           <Breadcrumbs items={[{ label: 'Visual QA', href: '/visual-qa' }, { label: report.title }]} />
@@ -307,7 +296,7 @@ export default function ReportDetailClient({ id: routeId }: ReportDetailClientPr
             />
           </ResizableSplit>
         </div>
-      </PageContainer>
+      </div>
     </FadeIn>
   );
 }

@@ -22,7 +22,7 @@ const baseReport = (overrides: Partial<VisualQaReport> = {}): VisualQaReport => 
   error: null,
   createdAt: '2026-04-26T12:00:00.000Z',
   updatedAt: '2026-04-26T12:00:00.000Z',
-  findings: [
+  issues: [
     {
       id: 'f1',
       severity: 'high',
@@ -102,7 +102,7 @@ describe('renderConfluenceStorage', () => {
     )
   })
 
-  it('groups findings by category with an h2 per category', () => {
+  it('groups issues by category with an h2 per category', () => {
     const html = renderConfluenceStorage({
       report: baseReport(),
       designAttachmentName: 'design.png',
@@ -124,7 +124,7 @@ describe('renderConfluenceStorage', () => {
     expect(html).toMatch(/ac:structured-macro ac:name="info"/)
   })
 
-  it('renders each finding\'s location, description, expected, actual, suggestedFix', () => {
+  it('renders each issue\'s location, description, expected, actual, suggestedFix', () => {
     const html = renderConfluenceStorage({
       report: baseReport(),
       designAttachmentName: 'design.png',
@@ -173,7 +173,7 @@ describe('renderConfluenceStorage', () => {
     const html = renderConfluenceStorage({
       report: baseReport({
         title: 'A & B <script>',
-        findings: [
+        issues: [
           {
             id: 'fx',
             severity: 'high',
@@ -212,21 +212,21 @@ describe('renderMarkdown', () => {
     expect(md).toMatch(/## Summary\n+Looks close, with a few high-severity issues/)
   })
 
-  it('groups findings by category with H3 headings', () => {
+  it('groups issues by category with H3 headings', () => {
     const md = renderMarkdown(baseReport())
     expect(md).toMatch(/### Component/)
     expect(md).toMatch(/### Typography/)
     expect(md).toMatch(/### Layout/)
   })
 
-  it('renders severity inline with each finding', () => {
+  it('renders severity inline with each issue', () => {
     const md = renderMarkdown(baseReport())
     expect(md).toMatch(/\[High\]/)
     expect(md).toMatch(/\[Medium\]/)
     expect(md).toMatch(/\[Low\]/)
   })
 
-  it('renders all per-finding fields', () => {
+  it('renders all per-issue fields', () => {
     const md = renderMarkdown(baseReport())
     expect(md).toContain('Primary CTA, bottom of card')
     expect(md).toContain('Solid Boomi-blue background, white text, primary flavor.')

@@ -282,7 +282,7 @@ export function populatedSeed(): SeedData {
       summary: 'Mostly aligned, with one high-severity CTA issue.',
       severity_counts: { high: 1, medium: 1, low: 0 },
       memory_ids: [],
-      findings: [
+      issues: [
         {
           id: 'f-1',
           severity: 'high',

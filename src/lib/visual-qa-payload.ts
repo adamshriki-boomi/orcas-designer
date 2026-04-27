@@ -59,7 +59,7 @@ function buildSchemaInstructions(): string {
     'Return strict JSON with this exact shape and nothing else (no prose, no fences):',
     '{',
     '  "summary": string,                    // one short paragraph overview',
-    '  "findings": [',
+    '  "issues": [',
     '    {',
     '      "severity": "low" | "medium" | "high",',
     `      "category": "${categories}",`,

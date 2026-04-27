@@ -32,7 +32,7 @@ describe('toVisualQaReport', () => {
       confluence_page_id: null,
       confluence_page_url: null,
       error: null,
-      findings: [
+      issues: [
         {
           id: 'f1',
           severity: 'high',
@@ -61,8 +61,8 @@ describe('toVisualQaReport', () => {
     expect(out.summary).toBe('Looks close')
     expect(out.severityCounts).toEqual({ high: 1, medium: 2, low: 0 })
     expect(out.memoryIds).toEqual(['m1'])
-    expect(out.findings).toHaveLength(1)
-    expect(out.findings[0].id).toBe('f1')
+    expect(out.issues).toHaveLength(1)
+    expect(out.issues[0].id).toBe('f1')
     expect(out.createdAt).toBe('2026-04-26T10:00:00Z')
     expect(out.updatedAt).toBe('2026-04-26T11:00:00Z')
   })
@@ -79,7 +79,7 @@ describe('toVisualQaReport', () => {
       created_at: '',
       updated_at: '',
     })
-    expect(out.findings).toEqual([])
+    expect(out.issues).toEqual([])
     expect(out.severityCounts).toEqual({ high: 0, medium: 0, low: 0 })
     expect(out.memoryIds).toEqual([])
     expect(out.summary).toBeNull()
@@ -134,12 +134,12 @@ describe('visual_qa_reports Supabase operations', () => {
     await mockClient.from('visual_qa_reports').insert({
       id: 'edit-me', user_id: 'user-1', title: 'Before', design_source: 'upload',
       design_image_url: 'd', impl_image_url: 'i', status: 'complete',
-      findings: [],
+      issues: [],
     })
 
     await mockClient.from('visual_qa_reports').update({
       title: 'After',
-      findings: [{ id: 'f', severity: 'low', category: 'Layout', location: 'L', description: 'd', expected: 'e', actual: 'a', suggestedFix: 'f' }],
+      issues: [{ id: 'f', severity: 'low', category: 'Layout', location: 'L', description: 'd', expected: 'e', actual: 'a', suggestedFix: 'f' }],
     }).eq('id', 'edit-me')
 
     const { data } = await mockClient
@@ -149,7 +149,7 @@ describe('visual_qa_reports Supabase operations', () => {
       .single()
 
     expect(data!.title).toBe('After')
-    expect((data!.findings as unknown[]).length).toBe(1)
+    expect((data!.issues as unknown[]).length).toBe(1)
   })
 
   it('deletes a report by id', async () => {
@@ -245,7 +245,7 @@ describe('useVisualQaReports hook', () => {
       design_image_url: 'd', design_figma_url: 'https://figma.com/design/x?node-id=1-2',
       impl_image_url: 'i', status: 'complete',
       summary: 'A thorough QA',
-      findings: [
+      issues: [
         { id: 'f1', severity: 'high', category: 'Component', location: 'CTA', description: 'wrong button', expected: 'primary', actual: 'tertiary', suggestedFix: 'use primary' },
       ],
       severity_counts: { high: 1, medium: 0, low: 0 },
@@ -258,7 +258,7 @@ describe('useVisualQaReports hook', () => {
     expect(report).not.toBeNull()
     expect(report!.title).toBe('Detailed')
     expect(report!.designFigmaUrl).toBe('https://figma.com/design/x?node-id=1-2')
-    expect(report!.findings).toHaveLength(1)
+    expect(report!.issues).toHaveLength(1)
     expect(report!.severityCounts).toEqual({ high: 1, medium: 0, low: 0 })
   })
 

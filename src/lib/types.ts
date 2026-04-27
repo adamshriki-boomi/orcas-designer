@@ -174,7 +174,7 @@ export type VisualQaCategory = (typeof VISUAL_QA_CATEGORIES)[number]
 export type VisualQaDesignSource = 'upload' | 'figma'
 export type VisualQaStatus = 'pending' | 'running' | 'complete' | 'error'
 
-export interface VisualQaFinding {
+export interface VisualQaIssue {
   id: string
   severity: VisualQaSeverity
   category: VisualQaCategory
@@ -202,7 +202,7 @@ export interface VisualQaReport {
   designFigmaUrl: string | null
   implImageUrl: string
   status: VisualQaStatus
-  findings: VisualQaFinding[]
+  issues: VisualQaIssue[]
   summary: string | null
   severityCounts: VisualQaSeverityCounts
   memoryIds: string[]

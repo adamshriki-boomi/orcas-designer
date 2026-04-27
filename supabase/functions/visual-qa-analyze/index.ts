@@ -88,7 +88,7 @@ function buildSchemaInstructions(): string {
     "Return strict JSON with this exact shape and nothing else (no prose, no fences):",
     "{",
     '  "summary": string,',
-    '  "findings": [',
+    '  "issues": [',
     "    {",
     '      "severity": "low" | "medium" | "high",',
     `      "category": "${categories}",`,
@@ -179,7 +179,7 @@ async function resolveFigmaImage(
 
 interface AiResponse {
   summary: string;
-  findings: Array<Record<string, unknown>>;
+  issues: Array<Record<string, unknown>>;
 }
 
 function stripFences(text: string): string {
@@ -204,8 +204,8 @@ function parseAiResponse(rawText: string): AiResponse {
   if (typeof parsed !== "object" || parsed === null) throw new Error("AI response is not an object");
   const obj = parsed as Record<string, unknown>;
   if (typeof obj.summary !== "string") throw new Error("AI response missing summary");
-  if (!Array.isArray(obj.findings)) throw new Error("AI response missing findings array");
-  return { summary: obj.summary, findings: obj.findings as Array<Record<string, unknown>> };
+  if (!Array.isArray(obj.issues)) throw new Error("AI response missing issues array");
+  return { summary: obj.summary, issues: obj.issues as Array<Record<string, unknown>> };
 }
 
 function generateId(): string {
@@ -228,15 +228,15 @@ function normalizeFindings(raw: Array<Record<string, unknown>>): NormalizedFindi
   return raw.map((entry, idx) => {
     const sev = typeof entry.severity === "string" ? entry.severity.toLowerCase() : "";
     if (sev !== "low" && sev !== "medium" && sev !== "high") {
-      throw new Error(`Finding #${idx} has unknown severity`);
+      throw new Error(`Issue #${idx} has unknown severity`);
     }
     const cat = typeof entry.category === "string" ? entry.category : "";
     if (!VISUAL_QA_CATEGORIES.includes(cat as (typeof VISUAL_QA_CATEGORIES)[number])) {
-      throw new Error(`Finding #${idx} has unknown category`);
+      throw new Error(`Issue #${idx} has unknown category`);
     }
     const requireString = (k: string): string => {
       const v = entry[k];
-      if (typeof v !== "string") throw new Error(`Finding #${idx} missing string ${k}`);
+      if (typeof v !== "string") throw new Error(`Issue #${idx} missing string ${k}`);
       return v;
     };
     const out: NormalizedFinding = {
@@ -256,9 +256,9 @@ function normalizeFindings(raw: Array<Record<string, unknown>>): NormalizedFindi
   });
 }
 
-function computeSeverityCounts(findings: NormalizedFinding[]) {
+function computeSeverityCounts(issues: NormalizedFinding[]) {
   const counts = { high: 0, medium: 0, low: 0 };
-  for (const f of findings) counts[f.severity] += 1;
+  for (const f of issues) counts[f.severity] += 1;
   return counts;
 }
 
@@ -420,14 +420,14 @@ Deno.serve(async (req: Request) => {
         throw new Error("Claude did not return a text response");
       }
       const ai = parseAiResponse(textBlock.text);
-      const findings = normalizeFindings(ai.findings);
-      const severityCounts = computeSeverityCounts(findings);
+      const issues = normalizeFindings(ai.issues);
+      const severityCounts = computeSeverityCounts(issues);
 
       // Persist results.
       const updatePayload: Record<string, unknown> = {
         status: "complete",
         summary: ai.summary,
-        findings,
+        issues,
         severity_counts: severityCounts,
         memory_ids: memoryIds,
         updated_at: new Date().toISOString(),
@@ -438,7 +438,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({
         ok: true,
         summary: ai.summary,
-        findings,
+        issues,
         severityCounts,
       });
     } catch (innerErr) {

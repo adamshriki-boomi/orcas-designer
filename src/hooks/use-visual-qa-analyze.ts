@@ -12,7 +12,7 @@ export interface AnalyzeArgs {
 export interface AnalyzeResult {
   ok: boolean
   summary?: string
-  findings?: unknown[]
+  issues?: unknown[]
   severityCounts?: { high: number; medium: number; low: number }
   error?: string
 }

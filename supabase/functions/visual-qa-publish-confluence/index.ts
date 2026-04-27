@@ -26,7 +26,7 @@ const VISUAL_QA_CATEGORIES = [
 
 type Severity = "low" | "medium" | "high";
 
-interface Finding {
+interface Issue {
   id: string;
   severity: Severity;
   category: (typeof VISUAL_QA_CATEGORIES)[number];
@@ -48,7 +48,7 @@ interface ReportRow {
   status: string;
   summary: string | null;
   severity_counts: { high: number; medium: number; low: number } | null;
-  findings: Finding[] | null;
+  issues: Issue[] | null;
   created_at: string;
 }
 
@@ -112,7 +112,7 @@ function renderImageRow(designName: string, implName: string): string {
   );
 }
 
-function renderFindingPanel(f: Finding): string {
+function renderIssuePanel(f: Issue): string {
   const macro = severityToPanel(f.severity);
   const badge = f.exosphereComponent
     ? ` · <code>${escapeText(f.exosphereComponent)}</code>`
@@ -146,18 +146,18 @@ function renderConfluenceStorage(report: ReportRow, designName: string, implName
     out.push(`<p>${escapeText(report.summary)}</p>`);
   }
 
-  const findings = report.findings ?? [];
-  if (findings.length > 0) {
-    out.push("<h2>Findings</h2>");
-    const grouped = new Map<string, Finding[]>();
-    for (const f of findings) {
+  const issues = report.issues ?? [];
+  if (issues.length > 0) {
+    out.push("<h2>Issues</h2>");
+    const grouped = new Map<string, Issue[]>();
+    for (const f of issues) {
       const list = grouped.get(f.category) ?? [];
       list.push(f);
       grouped.set(f.category, list);
     }
     for (const [category, items] of grouped.entries()) {
       out.push(`<h2>${escapeText(category)}</h2>`);
-      for (const item of items) out.push(renderFindingPanel(item));
+      for (const item of items) out.push(renderIssuePanel(item));
     }
   }
   return out.join("\n");
@@ -268,7 +268,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: report, error: reportError } = await supabase
       .from("visual_qa_reports")
-      .select("id, title, design_source, design_image_url, design_figma_url, impl_image_url, status, summary, severity_counts, findings, created_at")
+      .select("id, title, design_source, design_image_url, design_figma_url, impl_image_url, status, summary, severity_counts, issues, created_at")
       .eq("id", reportId)
       .maybeSingle<ReportRow>();
     if (reportError || !report) return jsonResponse({ error: "Report not found" }, 404);

@@ -55,7 +55,7 @@ describe('buildSystemPrompt', () => {
     })
     expect(out).toMatch(/Return strict JSON/i)
     expect(out).toContain('"summary"')
-    expect(out).toContain('"findings"')
+    expect(out).toContain('"issues"')
     expect(out).toContain('"severity"')
     expect(out).toContain('"category"')
     expect(out).toContain('"location"')

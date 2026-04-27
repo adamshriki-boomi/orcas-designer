@@ -1,7 +1,7 @@
 import {
   VISUAL_QA_CATEGORIES,
   type VisualQaCategory,
-  type VisualQaFinding,
+  type VisualQaIssue,
   type VisualQaReport,
   type VisualQaSeverity,
 } from './types'
@@ -28,13 +28,13 @@ export function renderConfluenceStorage(args: RenderConfluenceArgs): string {
     out.push(`<p>${escapeText(report.summary)}</p>`)
   }
 
-  if (report.findings.length > 0) {
-    out.push('<h2>Findings</h2>')
-    const groups = groupByCategory(report.findings)
+  if (report.issues.length > 0) {
+    out.push('<h2>Issues</h2>')
+    const groups = groupByCategory(report.issues)
     for (const category of groups.keys()) {
       out.push(`<h2>${escapeText(category)}</h2>`)
       for (const f of groups.get(category)!) {
-        out.push(renderFindingPanel(f))
+        out.push(renderIssuePanel(f))
       }
     }
   }
@@ -70,10 +70,10 @@ export function renderMarkdown(report: VisualQaReport): string {
     out.push('')
   }
 
-  if (report.findings.length > 0) {
-    out.push('## Findings')
+  if (report.issues.length > 0) {
+    out.push('## Issues')
     out.push('')
-    const groups = groupByCategory(report.findings)
+    const groups = groupByCategory(report.issues)
     for (const category of groups.keys()) {
       out.push(`### ${category}`)
       out.push('')
@@ -116,7 +116,7 @@ function renderImageRow(designName: string, implName: string): string {
   )
 }
 
-function renderFindingPanel(f: VisualQaFinding): string {
+function renderIssuePanel(f: VisualQaIssue): string {
   const macro = severityToPanel(f.severity)
   const badge = f.exosphereComponent
     ? ` · <code>${escapeText(f.exosphereComponent)}</code>`
@@ -151,10 +151,10 @@ function severityLabel(sev: VisualQaSeverity): 'High' | 'Medium' | 'Low' {
 }
 
 function groupByCategory(
-  findings: readonly VisualQaFinding[]
-): Map<VisualQaCategory, VisualQaFinding[]> {
-  const map = new Map<VisualQaCategory, VisualQaFinding[]>()
-  for (const f of findings) {
+  issues: readonly VisualQaIssue[]
+): Map<VisualQaCategory, VisualQaIssue[]> {
+  const map = new Map<VisualQaCategory, VisualQaIssue[]>()
+  for (const f of issues) {
     if (!map.has(f.category)) map.set(f.category, [])
     map.get(f.category)!.push(f)
   }

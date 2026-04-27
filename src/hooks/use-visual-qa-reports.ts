@@ -5,13 +5,18 @@ import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/auth-context'
 import type {
   VisualQaDesignSource,
-  VisualQaFinding,
+  VisualQaIssue,
   VisualQaReport,
   VisualQaSeverityCounts,
   VisualQaStatus,
 } from '@/lib/types'
 
 export function toVisualQaReport(row: Record<string, unknown>): VisualQaReport {
+  // Read from `issues` (current column) and fall back to `findings` (pre-rename).
+  // This keeps existing rows visible on local databases that haven't yet run the
+  // 20260428000000_rename_findings_to_issues.sql migration. Once the migration
+  // has been applied, the legacy fallback is a no-op.
+  const issuesRaw = (row.issues ?? row.findings) as VisualQaIssue[] | null | undefined
   return {
     id: row.id as string,
     userId: row.user_id as string,
@@ -22,7 +27,7 @@ export function toVisualQaReport(row: Record<string, unknown>): VisualQaReport {
     designFigmaUrl: (row.design_figma_url as string | null) ?? null,
     implImageUrl: (row.impl_image_url as string) ?? '',
     status: (row.status as VisualQaStatus) ?? 'pending',
-    findings: (row.findings as VisualQaFinding[] | null) ?? [],
+    issues: issuesRaw ?? [],
     summary: (row.summary as string | null) ?? null,
     severityCounts:
       (row.severity_counts as VisualQaSeverityCounts | null) ?? { high: 0, medium: 0, low: 0 },
@@ -46,7 +51,7 @@ export interface CreateReportInput {
 }
 
 export type ReportPatch = Partial<
-  Pick<VisualQaReport, 'title' | 'findings' | 'summary' | 'severityCounts'>
+  Pick<VisualQaReport, 'title' | 'issues' | 'summary' | 'severityCounts'>
 >
 
 export function useVisualQaReports() {
@@ -101,7 +106,7 @@ export function useVisualQaReports() {
       const supabase = createClient()
       const mapped: Record<string, unknown> = {}
       if (patch.title !== undefined) mapped.title = patch.title
-      if (patch.findings !== undefined) mapped.findings = patch.findings
+      if (patch.issues !== undefined) mapped.issues = patch.issues
       if (patch.summary !== undefined) mapped.summary = patch.summary
       if (patch.severityCounts !== undefined) mapped.severity_counts = patch.severityCounts
 

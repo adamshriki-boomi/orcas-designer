@@ -430,7 +430,7 @@ export type Database = {
           design_image_url: string
           design_source: string
           error: string | null
-          findings: Json
+          issues: Json
           id: string
           impl_image_url: string
           memory_ids: string[]
@@ -450,7 +450,7 @@ export type Database = {
           design_image_url: string
           design_source: string
           error?: string | null
-          findings?: Json
+          issues?: Json
           id?: string
           impl_image_url: string
           memory_ids?: string[]
@@ -470,7 +470,7 @@ export type Database = {
           design_image_url?: string
           design_source?: string
           error?: string | null
-          findings?: Json
+          issues?: Json
           id?: string
           impl_image_url?: string
           memory_ids?: string[]

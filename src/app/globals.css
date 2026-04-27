@@ -174,3 +174,37 @@ ex-chart::part(chart--target) {
   display: flex;
   justify-content: center;
 }
+
+/* Visual QA opacity slider — Exosphere has no slider, so we style a native range */
+.vqa-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 8rem;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--exo-color-background-tertiary, #e2e8f0);
+  outline: none;
+  cursor: pointer;
+}
+.vqa-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--exo-color-action, #3b82f6);
+  border: none;
+  cursor: pointer;
+}
+.vqa-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: var(--exo-color-action, #3b82f6);
+  border: none;
+  cursor: pointer;
+}
+.vqa-range:focus-visible {
+  outline: 2px solid var(--exo-color-action, #3b82f6);
+  outline-offset: 2px;
+}

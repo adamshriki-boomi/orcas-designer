@@ -1,12 +1,12 @@
 import {
   VISUAL_QA_CATEGORIES,
   type VisualQaCategory,
-  type VisualQaFinding,
+  type VisualQaIssue,
   type VisualQaSeverity,
   type VisualQaSeverityCounts,
 } from './types'
 
-const generateFindingId = (): string =>
+const generateIssueId = (): string =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2) + Date.now().toString(36)
@@ -15,10 +15,10 @@ const SEVERITIES: ReadonlySet<VisualQaSeverity> = new Set(['low', 'medium', 'hig
 const CATEGORIES: ReadonlySet<string> = new Set(VISUAL_QA_CATEGORIES)
 
 export function computeSeverityCounts(
-  findings: readonly VisualQaFinding[]
+  issues: readonly VisualQaIssue[]
 ): VisualQaSeverityCounts {
   const counts: VisualQaSeverityCounts = { high: 0, medium: 0, low: 0 }
-  for (const f of findings) {
+  for (const f of issues) {
     if (f.severity === 'high' || f.severity === 'medium' || f.severity === 'low') {
       counts[f.severity] += 1
     }
@@ -26,13 +26,13 @@ export function computeSeverityCounts(
   return counts
 }
 
-export function assignFindingIds(findings: readonly VisualQaFinding[]): VisualQaFinding[] {
-  return findings.map((f) => (f.id ? f : { ...f, id: generateFindingId() }))
+export function assignIssueIds(issues: readonly VisualQaIssue[]): VisualQaIssue[] {
+  return issues.map((f) => (f.id ? f : { ...f, id: generateIssueId() }))
 }
 
 export interface VisualQaAiResponse {
   summary: string
-  findings: VisualQaFinding[]
+  issues: VisualQaIssue[]
 }
 
 export function normalizeAiResponse(raw: unknown): VisualQaAiResponse {
@@ -48,16 +48,16 @@ export function normalizeAiResponse(raw: unknown): VisualQaAiResponse {
     throw new Error('AI response is missing a string "summary"')
   }
 
-  const findings = obj.findings
-  if (!Array.isArray(findings)) {
-    throw new Error('AI response is missing a "findings" array')
+  const issues = obj.issues
+  if (!Array.isArray(issues)) {
+    throw new Error('AI response is missing a "issues" array')
   }
 
-  const normalized: VisualQaFinding[] = findings.map((entry, idx) =>
-    normalizeFinding(entry, idx)
+  const normalized: VisualQaIssue[] = issues.map((entry, idx) =>
+    normalizeIssue(entry, idx)
   )
 
-  return { summary, findings: normalized }
+  return { summary, issues: normalized }
 }
 
 function coerceToObject(raw: unknown): unknown {
@@ -83,32 +83,32 @@ function stripCodeFences(text: string): string {
   return fenced ? fenced[1] : text
 }
 
-function normalizeFinding(entry: unknown, idx: number): VisualQaFinding {
+function normalizeIssue(entry: unknown, idx: number): VisualQaIssue {
   if (typeof entry !== 'object' || entry === null) {
-    throw new Error(`Finding #${idx} is not an object`)
+    throw new Error(`Issue #${idx} is not an object`)
   }
   const f = entry as Record<string, unknown>
 
   const rawSeverity = typeof f.severity === 'string' ? f.severity.toLowerCase() : ''
   if (!SEVERITIES.has(rawSeverity as VisualQaSeverity)) {
-    throw new Error(`Finding #${idx} has unknown severity: ${String(f.severity)}`)
+    throw new Error(`Issue #${idx} has unknown severity: ${String(f.severity)}`)
   }
   const severity = rawSeverity as VisualQaSeverity
 
   const category = typeof f.category === 'string' ? f.category : ''
   if (!CATEGORIES.has(category)) {
-    throw new Error(`Finding #${idx} has unknown category: ${String(f.category)}`)
+    throw new Error(`Issue #${idx} has unknown category: ${String(f.category)}`)
   }
 
   const requireString = (key: string): string => {
     const v = f[key]
     if (typeof v !== 'string') {
-      throw new Error(`Finding #${idx} is missing required string "${key}"`)
+      throw new Error(`Issue #${idx} is missing required string "${key}"`)
     }
     return v
   }
 
-  const out: VisualQaFinding = {
+  const out: VisualQaIssue = {
     id: typeof f.id === 'string' ? f.id : '',
     severity,
     category: category as VisualQaCategory,

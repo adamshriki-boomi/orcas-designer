@@ -29,7 +29,7 @@ describe('useVisualQaAnalyze', () => {
 
   it('invokes the visual-qa-analyze edge function with reportId and memoryIds', async () => {
     invokeFn.mockResolvedValue({
-      data: { ok: true, summary: 's', findings: [], severityCounts: { high: 0, medium: 0, low: 0 } },
+      data: { ok: true, summary: 's', issues: [], severityCounts: { high: 0, medium: 0, low: 0 } },
       error: null,
     })
 
@@ -65,7 +65,7 @@ describe('useVisualQaAnalyze', () => {
         data: {
           ok: true,
           summary: 'done',
-          findings: [{ id: 'f1', severity: 'low', category: 'Layout', location: 'L', description: 'd', expected: 'e', actual: 'a', suggestedFix: 'f' }],
+          issues: [{ id: 'f1', severity: 'low', category: 'Layout', location: 'L', description: 'd', expected: 'e', actual: 'a', suggestedFix: 'f' }],
           severityCounts: { high: 0, medium: 0, low: 1 },
         },
         error: null,

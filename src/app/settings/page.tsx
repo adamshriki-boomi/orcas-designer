@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Trash2, Sun, Moon, LogOut, Save, Eye, EyeOff } from 'lucide-react';
 import { Header } from '@/components/layout/header';
@@ -11,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/auth-context';
 import { useUserSettings } from '@/hooks/use-user-settings';
 import { toast } from '@/components/ui/sonner';
+import { beginFigmaOAuth } from '@/lib/figma-oauth';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -22,8 +24,10 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 
-export default function SettingsPage() {
+function SettingsPageInner() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     loading,
     settings,
@@ -34,9 +38,8 @@ export default function SettingsPage() {
     saveConfluenceSettings,
     deleteConfluenceSettings,
     hasConfluenceSettings,
-    saveFigmaToken,
-    deleteFigmaToken,
-    hasFigmaToken,
+    figmaConnection,
+    disconnectFigma,
   } = useUserSettings();
   const { resolvedTheme, setTheme } = useTheme();
 
@@ -55,14 +58,29 @@ export default function SettingsPage() {
   const [deleteConfluenceDialogOpen, setDeleteConfluenceDialogOpen] = useState(false);
   const [deletingConfluence, setDeletingConfluence] = useState(false);
 
-  // Figma form state
-  const [figmaTokenDraft, setFigmaTokenDraft] = useState('');
-  const [showFigmaToken, setShowFigmaToken] = useState(false);
-  const [savingFigma, setSavingFigma] = useState(false);
-  const [deleteFigmaDialogOpen, setDeleteFigmaDialogOpen] = useState(false);
-  const [deletingFigma, setDeletingFigma] = useState(false);
+  // Figma OAuth state
+  const [disconnectFigmaDialogOpen, setDisconnectFigmaDialogOpen] = useState(false);
+  const [disconnectingFigma, setDisconnectingFigma] = useState(false);
+  const figmaToastRef = useRef(false);
 
   useEffect(() => setMounted(true), []);
+
+  // Toast on return from the OAuth callback (?figma=connected | ?figma=error&reason=...)
+  useEffect(() => {
+    if (figmaToastRef.current) return;
+    const status = searchParams.get('figma');
+    if (!status) return;
+    figmaToastRef.current = true;
+
+    if (status === 'connected') {
+      toast.success('Connected to Figma');
+    } else if (status === 'error') {
+      const reason = searchParams.get('reason');
+      toast.error(reason ? `Figma connection failed: ${reason}` : 'Figma connection failed');
+    }
+    // Strip the query so a refresh doesn't re-toast.
+    router.replace('/settings');
+  }, [searchParams, router]);
 
   const isDark = mounted && resolvedTheme === 'dark';
 
@@ -124,29 +142,24 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleSaveFigma() {
-    setSavingFigma(true);
+  function handleConnectFigma() {
     try {
-      await saveFigmaToken(figmaTokenDraft);
-      setFigmaTokenDraft('');
-      toast.success('Figma token saved');
-    } catch {
-      toast.error('Unable to save Figma token');
-    } finally {
-      setSavingFigma(false);
+      beginFigmaOAuth();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Unable to start Figma OAuth');
     }
   }
 
-  async function handleDeleteFigma() {
-    setDeletingFigma(true);
+  async function handleDisconnectFigma() {
+    setDisconnectingFigma(true);
     try {
-      await deleteFigmaToken();
-      toast.success('Figma token removed');
-      setDeleteFigmaDialogOpen(false);
+      await disconnectFigma();
+      toast.success('Disconnected from Figma');
+      setDisconnectFigmaDialogOpen(false);
     } catch {
-      toast.error('Unable to remove Figma token');
+      toast.error('Unable to disconnect from Figma');
     } finally {
-      setDeletingFigma(false);
+      setDisconnectingFigma(false);
     }
   }
 
@@ -354,88 +367,55 @@ export default function SettingsPage() {
           <section className="rounded-lg border border-border bg-card p-4">
             <h2 className="text-sm font-semibold mb-1">Figma Integration</h2>
             <p className="text-sm text-muted-foreground mb-3">
-              Personal access token used by Visual QA to render a Figma node as an image.
-              Generate one at{' '}
-              <a
-                href="https://www.figma.com/settings"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline cursor-pointer"
-              >
-                figma.com/settings
-              </a>
-              {' '}→ Personal access tokens (read-only file_content scope is sufficient).
+              Connect your Figma account so Visual QA can render frames from private files.
+              You&apos;ll be redirected to Figma to approve read-only access; nothing is written back.
             </p>
-            {hasFigmaToken ? (
+            {figmaConnection ? (
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Figma token configured</p>
+                <p className="text-sm text-muted-foreground">
+                  Connected as <span className="text-foreground">{figmaConnection.email}</span>
+                </p>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setDeleteFigmaDialogOpen(true)}
-                  className="text-destructive hover:text-destructive"
+                  onClick={() => setDisconnectFigmaDialogOpen(true)}
+                  className="text-destructive hover:text-destructive cursor-pointer"
                 >
                   <Trash2 className="size-4 mr-1.5" />
-                  Delete
+                  Disconnect
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                    Figma personal access token
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Input
-                        type={showFigmaToken ? 'text' : 'password'}
-                        placeholder={loading ? 'Loading...' : 'figd_xxxxxxxxxxxxxxxx'}
-                        value={figmaTokenDraft}
-                        onChange={(e) => setFigmaTokenDraft(e.target.value)}
-                        disabled={loading}
-                      />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowFigmaToken(!showFigmaToken)}
-                      className="shrink-0"
-                    >
-                      {showFigmaToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleSaveFigma}
-                    disabled={!figmaTokenDraft.trim() || savingFigma}
-                    size="sm"
-                  >
-                    <Save className="size-4 mr-1.5" />
-                    {savingFigma ? 'Saving...' : 'Save'}
-                  </Button>
-                </div>
+              <div className="flex items-center justify-end">
+                <Button
+                  onClick={handleConnectFigma}
+                  disabled={loading}
+                  size="sm"
+                  className="cursor-pointer"
+                >
+                  Connect to Figma
+                </Button>
               </div>
             )}
           </section>
 
-          {/* Delete Figma Token Confirmation */}
-          <AlertDialog open={deleteFigmaDialogOpen} onOpenChange={setDeleteFigmaDialogOpen}>
+          {/* Disconnect Figma Confirmation */}
+          <AlertDialog open={disconnectFigmaDialogOpen} onOpenChange={setDisconnectFigmaDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Remove Figma token</AlertDialogTitle>
+                <AlertDialogTitle>Disconnect from Figma</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Visual QA won&apos;t be able to render Figma nodes until you re-add a token.
+                  Visual QA won&apos;t be able to render Figma frames until you reconnect.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   variant="destructive"
-                  onClick={handleDeleteFigma}
-                  disabled={deletingFigma}
+                  onClick={handleDisconnectFigma}
+                  disabled={disconnectingFigma}
                 >
-                  {deletingFigma ? 'Removing...' : 'Remove'}
+                  {disconnectingFigma ? 'Disconnecting...' : 'Disconnect'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -477,5 +457,13 @@ export default function SettingsPage() {
         </div>
       </PageContainer>
     </FadeIn>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsPageInner />
+    </Suspense>
   );
 }

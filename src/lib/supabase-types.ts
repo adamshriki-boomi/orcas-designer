@@ -384,7 +384,11 @@ export type Database = {
           confluence_base_url: string
           confluence_email: string
           created_at: string
-          figma_access_token: string
+          figma_oauth_access_token: string | null
+          figma_oauth_expires_at: string | null
+          figma_oauth_refresh_token: string | null
+          figma_oauth_user_email: string | null
+          figma_oauth_user_id: string | null
           id: string
           updated_at: string
           user_id: string
@@ -395,7 +399,11 @@ export type Database = {
           confluence_base_url?: string
           confluence_email?: string
           created_at?: string
-          figma_access_token?: string
+          figma_oauth_access_token?: string | null
+          figma_oauth_expires_at?: string | null
+          figma_oauth_refresh_token?: string | null
+          figma_oauth_user_email?: string | null
+          figma_oauth_user_id?: string | null
           id?: string
           updated_at?: string
           user_id: string
@@ -406,7 +414,11 @@ export type Database = {
           confluence_base_url?: string
           confluence_email?: string
           created_at?: string
-          figma_access_token?: string
+          figma_oauth_access_token?: string | null
+          figma_oauth_expires_at?: string | null
+          figma_oauth_refresh_token?: string | null
+          figma_oauth_user_email?: string | null
+          figma_oauth_user_id?: string | null
           id?: string
           updated_at?: string
           user_id?: string

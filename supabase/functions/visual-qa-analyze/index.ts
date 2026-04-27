@@ -10,6 +10,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import Anthropic from "npm:@anthropic-ai/sdk@0.90.0";
+import {
+  FigmaNotConnectedError,
+  getValidFigmaAccessToken,
+} from "../_shared/figma-oauth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -158,15 +162,26 @@ async function downloadAsBase64(
 
 async function resolveFigmaImage(
   figmaUrl: string,
-  figmaToken: string
+  fetchAccessToken: (forceRefresh?: boolean) => Promise<string>
 ): Promise<{ data: string; mime: ImageMime }> {
   const ref = parseFigmaNodeUrl(figmaUrl);
   if (!ref) throw new Error("Invalid Figma URL — could not parse fileKey or node-id");
 
   const apiUrl = `https://api.figma.com/v1/images/${ref.fileKey}?ids=${encodeURIComponent(ref.nodeId)}&format=png&scale=2`;
-  const apiResp = await fetch(apiUrl, {
-    headers: { "X-Figma-Token": figmaToken },
+
+  // First attempt with current cached token; on 401, force a refresh and retry
+  // once. Covers the case where the token was rotated or revoked upstream
+  // since our last refresh.
+  let token = await fetchAccessToken();
+  let apiResp = await fetch(apiUrl, {
+    headers: { Authorization: `Bearer ${token}` },
   });
+  if (apiResp.status === 401) {
+    token = await fetchAccessToken(true);
+    apiResp = await fetch(apiUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
   if (!apiResp.ok) {
     throw new Error(`Figma API rejected the request (${apiResp.status})`);
   }
@@ -334,12 +349,14 @@ Deno.serve(async (req: Request) => {
       .maybeSingle<ReportRow>();
     if (reportError || !report) return jsonResponse({ error: "Report not found" }, 404);
 
-    // Read user settings (Claude key always; Figma token only if needed).
+    // Read user settings. Claude key is always required; Figma OAuth tokens
+    // are read lazily via getValidFigmaAccessToken below when the report's
+    // design source is "figma".
     const { data: settings } = await supabase
       .from("user_settings")
-      .select("claude_api_key, figma_access_token")
+      .select("claude_api_key")
       .eq("user_id", user.id)
-      .maybeSingle<{ claude_api_key: string | null; figma_access_token: string | null }>();
+      .maybeSingle<{ claude_api_key: string | null }>();
     if (!settings?.claude_api_key) {
       return jsonResponse(
         { error: "Claude API key not found. Please add it in Settings." },
@@ -360,10 +377,20 @@ Deno.serve(async (req: Request) => {
       let persistedDesignUrl: string | null = null;
       if (report.design_source === "figma") {
         if (!report.design_figma_url) throw new Error("Figma URL is missing on report");
-        if (!settings.figma_access_token) {
-          throw new Error("Figma access token not configured. Please add it in Settings.");
+        try {
+          design = await resolveFigmaImage(
+            report.design_figma_url,
+            (forceRefresh) =>
+              getValidFigmaAccessToken(supabase, user.id, { forceRefresh })
+          );
+        } catch (err) {
+          if (err instanceof FigmaNotConnectedError) {
+            throw new Error(
+              "Figma is not connected. Connect your Figma account in Settings before running Visual QA against a Figma URL."
+            );
+          }
+          throw err;
         }
-        design = await resolveFigmaImage(report.design_figma_url, settings.figma_access_token);
         persistedDesignUrl = await persistFigmaRender(
           supabase,
           user.id,

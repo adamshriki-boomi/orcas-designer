@@ -37,7 +37,8 @@ type DesignSource = 'upload' | 'figma';
 export default function NewVisualQaPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { hasApiKey, hasFigmaToken, loading: settingsLoading } = useUserSettings();
+  const { hasApiKey, figmaConnection, loading: settingsLoading } = useUserSettings();
+  const hasFigmaConnection = Boolean(figmaConnection);
   const { sharedMemories } = useSharedMemories();
   const { createReport } = useVisualQaReports();
   const { analyze, analyzing } = useVisualQaAnalyze();
@@ -104,7 +105,7 @@ export default function NewVisualQaPage() {
   );
 
   const figmaParsed = parseFigmaNodeUrl(figmaUrl.trim());
-  const figmaUrlValid = designSource !== 'figma' || (figmaParsed !== null && hasFigmaToken);
+  const figmaUrlValid = designSource !== 'figma' || (figmaParsed !== null && hasFigmaConnection);
   const designReady = designSource === 'upload' ? !!designPath : !!figmaParsed;
 
   const canSubmit =
@@ -250,9 +251,9 @@ export default function NewVisualQaPage() {
                     value={figmaUrl}
                     onChange={(e) => setFigmaUrl(e.target.value)}
                   />
-                  {!hasFigmaToken && (
+                  {!hasFigmaConnection && (
                     <p className="text-xs text-yellow-700">
-                      Add a Figma personal access token in{' '}
+                      Connect your Figma account in{' '}
                       <button
                         type="button"
                         onClick={() => router.push('/settings')}

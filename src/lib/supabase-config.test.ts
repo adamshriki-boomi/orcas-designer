@@ -19,6 +19,10 @@ const configPath = path.join(projectRoot, 'supabase/config.toml');
 function getEdgeFunctionNames(): string[] {
   return readdirSync(functionsDir)
     .filter((name) => statSync(path.join(functionsDir, name)).isDirectory())
+    // Underscore-prefixed dirs (e.g. `_shared`) hold helpers shared across
+    // functions and are not deployable functions themselves — Supabase's CLI
+    // skips them. Mirror that here so they don't trip the registration check.
+    .filter((name) => !name.startsWith('_'))
     .sort();
 }
 

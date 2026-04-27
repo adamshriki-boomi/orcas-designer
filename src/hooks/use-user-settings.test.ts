@@ -110,45 +110,44 @@ describe('useUserSettings hook', () => {
     expect(result.current.maskedKey.endsWith('-123')).toBe(true);
   });
 
-  it('saveFigmaToken trims and stores the Figma access token; hasFigmaToken reflects it', async () => {
+  it('figmaConnection is null until the OAuth columns are populated', async () => {
     const { result } = renderHook(() => useUserSettings());
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.hasFigmaToken).toBe(false);
-
-    await act(async () => {
-      await result.current.saveFigmaToken('  figd_abc123  ');
-    });
-
-    const { data } = await mockClient
-      .from('user_settings')
-      .select('*')
-      .eq('user_id', 'user-1')
-      .maybeSingle();
-    expect(data!.figma_access_token).toBe('figd_abc123');
-    await waitFor(() => expect(result.current.hasFigmaToken).toBe(true));
+    expect(result.current.figmaConnection).toBeNull();
   });
 
-  it('deleteFigmaToken clears the stored Figma token', async () => {
+  it('figmaConnection exposes the connected user email once OAuth row is present', async () => {
     await mockClient.from('user_settings').insert({
       user_id: 'user-1',
       claude_api_key: 'sk-ant-test',
-      figma_access_token: 'figd_abc123',
+      figma_oauth_access_token: 'access-abc',
+      figma_oauth_refresh_token: 'refresh-abc',
+      figma_oauth_user_email: 'designer@boomi.com',
     });
 
     const { result } = renderHook(() => useUserSettings());
-    await waitFor(() => expect(result.current.hasFigmaToken).toBe(true));
+    await waitFor(() =>
+      expect(result.current.figmaConnection?.email).toBe('designer@boomi.com')
+    );
+  });
 
-    await act(async () => {
-      await result.current.deleteFigmaToken();
+  it('disconnectFigma invokes the edge fn and clears figmaConnection', async () => {
+    await mockClient.from('user_settings').insert({
+      user_id: 'user-1',
+      claude_api_key: 'sk-ant-test',
+      figma_oauth_access_token: 'access-abc',
+      figma_oauth_refresh_token: 'refresh-abc',
+      figma_oauth_user_email: 'designer@boomi.com',
     });
 
-    const { data } = await mockClient
-      .from('user_settings')
-      .select('*')
-      .eq('user_id', 'user-1')
-      .maybeSingle();
-    expect(data!.figma_access_token).toBe('');
-    await waitFor(() => expect(result.current.hasFigmaToken).toBe(false));
+    const { result } = renderHook(() => useUserSettings());
+    await waitFor(() => expect(result.current.figmaConnection).not.toBeNull());
+
+    await act(async () => {
+      await result.current.disconnectFigma();
+    });
+
+    await waitFor(() => expect(result.current.figmaConnection).toBeNull());
   });
 
   it('saveApiKey overwrites an existing key (keeping it trimmed)', async () => {

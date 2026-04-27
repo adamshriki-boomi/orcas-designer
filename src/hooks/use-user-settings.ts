@@ -3,13 +3,19 @@
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import { useAuth } from '@/contexts/auth-context';
+import { disconnectFigma as invokeDisconnectFigma } from '@/lib/figma-oauth';
+
+interface FigmaConnection {
+  email: string;
+  userId: string;
+}
 
 interface UserSettings {
   claudeApiKey: string;
   confluenceBaseUrl: string;
   confluenceEmail: string;
   confluenceApiToken: string;
-  figmaAccessToken: string;
+  figmaConnection: FigmaConnection | null;
 }
 
 function maskApiKey(key: string): string {
@@ -28,23 +34,29 @@ export function useUserSettings() {
     const supabase = createClient();
     const { data, error } = await supabase
       .from('user_settings')
-      .select('claude_api_key, confluence_base_url, confluence_email, confluence_api_token, figma_access_token')
+      .select(
+        'claude_api_key, confluence_base_url, confluence_email, confluence_api_token, figma_oauth_access_token, figma_oauth_user_id, figma_oauth_user_email'
+      )
       .eq('user_id', user.id)
       .maybeSingle();
 
     if (error) { console.error('Failed to fetch settings:', error); }
+    const figmaConnection: FigmaConnection | null = data?.figma_oauth_access_token && data.figma_oauth_user_email
+      ? { email: data.figma_oauth_user_email, userId: data.figma_oauth_user_id ?? '' }
+      : null;
+
     setSettings(data ? {
       claudeApiKey: data.claude_api_key,
       confluenceBaseUrl: data.confluence_base_url ?? '',
       confluenceEmail: data.confluence_email ?? '',
       confluenceApiToken: data.confluence_api_token ?? '',
-      figmaAccessToken: data.figma_access_token ?? '',
+      figmaConnection,
     } : {
       claudeApiKey: '',
       confluenceBaseUrl: '',
       confluenceEmail: '',
       confluenceApiToken: '',
-      figmaAccessToken: '',
+      figmaConnection: null,
     });
     setLoading(false);
   }, [user]);
@@ -99,20 +111,14 @@ export function useUserSettings() {
       confluenceBaseUrl: '',
       confluenceEmail: '',
       confluenceApiToken: '',
-      figmaAccessToken: '',
+      figmaConnection: null,
     });
   }, [user]);
 
-  const saveFigmaToken = useCallback(async (token: string) => {
-    const trimmed = token.trim();
-    await upsertSettings({ figma_access_token: trimmed });
-    setSettings((prev) => prev ? { ...prev, figmaAccessToken: trimmed } : prev);
-  }, [upsertSettings]);
-
-  const deleteFigmaToken = useCallback(async () => {
-    await upsertSettings({ figma_access_token: '' });
-    setSettings((prev) => prev ? { ...prev, figmaAccessToken: '' } : prev);
-  }, [upsertSettings]);
+  const disconnectFigma = useCallback(async () => {
+    await invokeDisconnectFigma();
+    setSettings((prev) => prev ? { ...prev, figmaConnection: null } : prev);
+  }, []);
 
   const saveConfluenceSettings = useCallback(async (
     baseUrl: string,
@@ -158,8 +164,7 @@ export function useUserSettings() {
     hasConfluenceSettings: Boolean(
       settings?.confluenceBaseUrl && settings?.confluenceEmail && settings?.confluenceApiToken
     ),
-    saveFigmaToken,
-    deleteFigmaToken,
-    hasFigmaToken: Boolean(settings?.figmaAccessToken),
+    figmaConnection: settings?.figmaConnection ?? null,
+    disconnectFigma,
   };
 }

@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Orcas Designer
 
-## Getting Started
+AI-assisted design briefs and Visual QA for Boomi product designers.
 
-First, run the development server:
+Stack: Next.js 16 (App Router, static export) · React 19 · TypeScript · `@boomi/exosphere` · Tailwind v4 · Supabase (Postgres + Auth + Storage + Edge Functions) · Claude Opus 4.7.
+
+Hosted at https://adamshriki-boomi.github.io/orcas-designer/.
+
+## Setup
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Browser-side env vars
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env.local` and fill in:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` — from the Supabase dashboard → Project Settings → API.
+- `NEXT_PUBLIC_FIGMA_CLIENT_ID` — from figma.com/developers/apps → "Orcas Designer" app → OAuth credentials. Public, safe to commit to the build.
 
-## Learn More
+### 3. Supabase edge function secrets
 
-To learn more about Next.js, take a look at the following resources:
+These never go in `.env.local` — they live in Supabase. Set via the dashboard (Project Settings → Edge Functions → Secrets) or `supabase secrets set`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Secret | Source |
+|---|---|
+| `FIGMA_CLIENT_ID` | Figma app OAuth credentials (same value as `NEXT_PUBLIC_FIGMA_CLIENT_ID`) |
+| `FIGMA_CLIENT_SECRET` | Figma app OAuth credentials (private — only shown once on creation) |
+| `FIGMA_REDIRECT_URI_PROD` | `https://adamshriki-boomi.github.io/orcas-designer/auth/figma/callback` |
+| `FIGMA_REDIRECT_URI_DEV` | `http://localhost:3000/orcas-designer/auth/figma/callback` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The Anthropic / Confluence credentials are *per-user* (entered in `/settings`) and stored on `user_settings` rows.
 
-## Deploy on Vercel
+### 4. Database
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run migrations against your Supabase project:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
+
+### 5. Deploy edge functions
+
+```bash
+supabase functions deploy
+```
+
+## Running locally
+
+```bash
+npm run dev          # http://localhost:3000/orcas-designer/
+npm run test         # vitest unit tests
+npm run test:e2e     # playwright (separate :3100 + .next-e2e build)
+npm run lint
+```
+
+> The dev server uses `.next/`; e2e uses `.next-e2e/` to avoid lock contention. Don't collapse them.
+
+## Architecture notes
+
+- **Static export** (`next.config.ts` → `output: 'export'`, `basePath: '/orcas-designer'`). All pages are `'use client'`; server work lives in Supabase edge functions.
+- **Auth**: Supabase Auth, restricted to `@boomi.com` via DB trigger. Magic link or password.
+- **AI**: every analysis call goes to Claude Opus 4.7 via `@anthropic-ai/sdk` from inside an edge function (the user's own API key — read from `user_settings.claude_api_key`).
+- **Figma**: OAuth 2.0 (since 2026-04-27 — replaced PAT). Browser hits `/auth/figma/callback`, edge function `figma-oauth-exchange` swaps the code for tokens, `visual-qa-analyze` reads them via the shared helper at `supabase/functions/_shared/figma-oauth.ts` (auto-refreshes on expiry or 401).
+- **Tests**: `src/**/*.test.ts(x)` for vitest, `e2e/*.e2e.ts` for playwright. Edge function payload tests live next to the function (e.g. `prompt-generator-execute/payload.test.ts`).
+
+## Routes
+
+`/login` · `/` (dashboard) · `/projects` · `/projects/new` (8-step wizard) · `/projects/[id]` · `/visual-qa` · `/visual-qa/new` · `/visual-qa/[id]` · `/ux-writer` · `/researcher` · `/skills` · `/memories` · `/settings` · `/auth/figma/callback` (OAuth landing).
